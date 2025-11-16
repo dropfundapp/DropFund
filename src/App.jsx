@@ -719,17 +719,19 @@ const disconnectWallet = async () => {
         }
       `}</style>
       <nav className="backdrop-blur-xl bg-white/80 relative z-50">
-        {/* DEBUG: display wallet/connect state for quick inspection */}
-        <div className="fixed top-4 right-4 z-[999] bg-white/90 border px-3 py-2 rounded-md text-xs text-gray-800 shadow">
-          <div>connected: {String(connected)}</div>
-          <div>publicKey: {publicKey ? publicKey.toBase58().slice(0,6) + '...' : 'null'}</div>
-          <div>currentUser: {currentUser ? String(currentUser).slice(0,8) + '...' : 'null'}</div>
-          <div>wallet.name: {wallet?.name || 'null'}</div>
-          <div>wallet.readyState: {wallet?.readyState || 'null'}</div>
-          <div>available wallets: {wallets?.length ? wallets.map(w=>w.name).join(', ') : 'none'}</div>
-          <div>window.solana: {typeof window !== 'undefined' && window.solana ? (window.solana.isPhantom ? 'phantom' : 'present') : 'none'}</div>
-        </div>
-          <div className="fixed top-24 right-4 z-[999] bg-white/90 border px-3 py-2 rounded-md text-xs text-gray-800 shadow">
+        {DEBUG && (
+          <>
+            {/* DEBUG: display wallet/connect state for quick inspection */}
+            <div className="fixed top-4 right-4 z-[999] bg-white/90 border px-3 py-2 rounded-md text-xs text-gray-800 shadow">
+              <div>connected: {String(connected)}</div>
+              <div>publicKey: {publicKey ? publicKey.toBase58().slice(0,6) + '...' : 'null'}</div>
+              <div>currentUser: {currentUser ? String(currentUser).slice(0,8) + '...' : 'null'}</div>
+              <div>wallet.name: {wallet?.name || 'null'}</div>
+              <div>wallet.readyState: {wallet?.readyState || 'null'}</div>
+              <div>available wallets: {wallets?.length ? wallets.map(w=>w.name).join(', ') : 'none'}</div>
+              <div>window.solana: {typeof window !== 'undefined' && window.solana ? (window.solana.isPhantom ? 'phantom' : 'present') : 'none'}</div>
+            </div>
+            <div className="fixed top-24 right-4 z-[999] bg-white/90 border px-3 py-2 rounded-md text-xs text-gray-800 shadow">
             <div className="mb-2">Debug actions:</div>
             <button onClick={async () => {
               console.log('[DEBUG BUTTON] wallet object:', wallet);
@@ -767,6 +769,8 @@ const disconnectWallet = async () => {
               }
             }} className="px-2 py-1 bg-red-500 text-white rounded text-sm">Programmatic Disconnect</button>
           </div>
+          </>
+        )}
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => {
           setView('home');
