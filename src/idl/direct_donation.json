@@ -1,0 +1,37 @@
+{
+  "address": "5ZWLcrXGpKmV7R7u4LpiVKmVcdEYc7trztEQqYYDvXyz",
+  "metadata": {
+    "name": "direct_donation",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "donate",
+      "discriminator": [
+        121,
+        186,
+        218,
+        211,
+        73,
+        70,
+        196,
+        180
+      ],
+      "accounts": [
+        {
+  "name": "donate",
+  "accounts": [
+    { "name": "donor", "writable": true, "signer": true },
+    { "name": "creatorWallet", "writable": true },
+    { "name": "platformWallet", "writable": true },
+    { "name": "systemProgram", "address": "11111111111111111111111111111111" }
+  ],
+  "args": [{ "name": "amount", "type": "u64" }]
+}
+
+      ]
+    }
+  ]
+}
