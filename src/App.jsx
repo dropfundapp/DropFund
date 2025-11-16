@@ -359,9 +359,9 @@ const disconnectWallet = async () => {
   // ✅ Rotate words for hero text
   useEffect(() => {
     const words = [
-      { text: "medical", color: "#e11d48" },
+      { text: "art", color: "#e11d48" },
       { text: "business", color: "#2563eb" },
-      { text: "personal", color: "#9333ea" },
+      { text: "tech", color: "#9333ea" },
       { text: "family", color: "#db2777" },
       { text: "animal", color: "#ff9200" },
       { text: "emergency", color: "#dc2626" },
