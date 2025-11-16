@@ -5,7 +5,6 @@ export default defineConfig({
   plugins: [react()],
   define: {
     global: "window",
-    "process.env": {}, // 👈 prevent process env reference crash
   },
   resolve: {
     alias: {
@@ -16,6 +15,7 @@ export default defineConfig({
   optimizeDeps: {
     include: ["buffer", "process"],
   },
+  envPrefix: 'REACT_APP_', // 👈 expose REACT_APP_ variables
 });
 
 
