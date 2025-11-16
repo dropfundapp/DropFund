@@ -21,7 +21,7 @@ import { useDevapp, UserButton } from "@devfunlabs/web-sdk";
 // UI Icons
 import {
   Rocket, TrendingUp, DollarSign, Users, User, Target, CheckCircle, ArrowRight,
-  Plus, X, Coins, Menu, Search, Upload, Star, Clock, Zap, Share2, Copy, Check, Globe, Send
+  Plus, X, Coins, Menu, Search, Upload, Star, Clock, Zap, Share2, Copy, Check, Globe, Send, Droplets
 } from "lucide-react";
 
 // Needed for Buffer in browsers
@@ -777,9 +777,9 @@ const disconnectWallet = async () => {
           setSelectedCampaign(null);
         }}>
             <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-              <Rocket className="w-6 h-6 text-white" />
+              <Droplets className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-black">Crowd.Fund</span>
+            <span className="text-2xl font-bold text-black">DropFund</span>
           </div>
           <div className="hidden md:flex items-center gap-4">
             <button onClick={() => setView('getting-started')} className="text-gray-600 hover:text-black transition-colors font-medium">
@@ -865,7 +865,7 @@ const disconnectWallet = async () => {
                     </div>
                     <div>
                       <p className="text-gray-600 mb-4">
-                        Phantom is a secure digital wallet that lets you manage your crypto and connect to apps like Crowd.Fund.
+                        Phantom is a secure digital wallet that lets you manage your crypto and connect to apps like DropFund.
                       </p>
                       <div className="bg-gray-100 rounded-xl p-4 mb-4">
                         <h4 className="font-semibold mb-2 text-black">📱 For Mobile:</h4>
@@ -934,7 +934,7 @@ const disconnectWallet = async () => {
                     </div>
                     <div>
                       <p className="text-gray-600 mb-4">
-                        SOL is the cryptocurrency used on Solana (the blockchain powering Crowd.Fund). You'll need some to donate or create campaigns.
+                        SOL is the cryptocurrency used on Solana (the blockchain powering DropFund). You'll need some to donate or create campaigns.
                       </p>
                       <div className="bg-gray-100 rounded-xl p-4 space-y-3">
                         <div>
@@ -961,7 +961,7 @@ const disconnectWallet = async () => {
                       <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 text-xl font-bold text-white">
                         4
                       </div>
-                      <h3 className="text-2xl font-bold text-black">Connect to Crowd.Fund</h3>
+                      <h3 className="text-2xl font-bold text-black">Connect to DropFund</h3>
                     </div>
                     <div>
                       <p className="text-gray-600 mb-4">
@@ -1478,9 +1478,9 @@ const disconnectWallet = async () => {
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <Rocket className="w-6 h-6 text-white" />
+                  <Droplets className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-xl font-bold text-black">Crowd.Fund</span>
+                <span className="text-xl font-bold text-black">DropFund</span>
               </div>
               <p className="text-gray-600 text-sm">
                 Transparent crowdfunding powered by blockchain.
@@ -1523,7 +1523,7 @@ const disconnectWallet = async () => {
           </div>
           <div className="pt-8 border-t border-gray-200 text-center">
             <p className="text-sm text-gray-600">
-              © {new Date().getFullYear()} Crowd.Fund. All rights reserved.
+              © {new Date().getFullYear()} DropFund. All rights reserved.
             </p>
           </div>
         </div>
