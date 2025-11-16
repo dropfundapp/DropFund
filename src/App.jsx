@@ -1619,6 +1619,7 @@ const disconnectWallet = async () => {
                     <p className="text-xs text-gray-400">PNG, JPG up to 10MB</p>
                   </div>}
               </div>
+              {/* Token Type - Hidden for now, will be re-enabled in future update
               <div>
                 <label className="block text-sm text-gray-600 mb-2">Token Type</label>
                 <div className="inline-flex bg-gray-100 rounded-full p-1">
@@ -1636,8 +1637,9 @@ const disconnectWallet = async () => {
                   </button>
                 </div>
               </div>
+              */}
               <div>
-                <label className="block text-sm text-gray-600 mb-2">Funding Goal ({newCampaign.token})</label>
+                <label className="block text-sm text-gray-600 mb-2">Funding Goal (SOL)</label>
                 <input type="number" step="0.1" value={newCampaign.goal} onChange={e => setNewCampaign({
               ...newCampaign,
               goal: e.target.value
@@ -1669,6 +1671,7 @@ const disconnectWallet = async () => {
                   </div>
                 </div>
               </div>
+              {/* Milestones - Hidden for now, will be re-enabled in future update
               <div>
                 <label className="block text-sm text-gray-600 mb-2">Milestones (Optional)</label>
                 <div className="space-y-3 mb-3">
@@ -1698,6 +1701,7 @@ const disconnectWallet = async () => {
                   </div>
                 </div>
               </div>
+              */}
               <button onClick={createCampaign} disabled={loading || !newCampaign.title || !newCampaign.description || !newCampaign.goal} className="w-full px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-all disabled:opacity-50">
                 {loading ? 'Launching...' : 'Launch Campaign'}
               </button>
