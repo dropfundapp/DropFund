@@ -316,6 +316,21 @@ const disconnectWallet = async () => {
     loadCampaigns();
     checkOAuthCallback();
   }, [devbaseClient]);
+
+  // Check for campaign query parameter when campaigns are loaded
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const campaignId = urlParams.get('campaign');
+    if (campaignId && campaigns.length > 0) {
+      const campaign = campaigns.find(c => c.id === campaignId);
+      if (campaign) {
+        setSelectedCampaign(campaign);
+        setView('details');
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, [campaigns]);
   useEffect(() => {
     if ((viewedUserId || (connected && publicKey)) && campaigns.length > 0) {
       const targetUserId = viewedUserId || publicKey.toBase58();
