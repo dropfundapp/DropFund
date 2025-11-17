@@ -1332,7 +1332,7 @@ const disconnectWallet = async () => {
                     <TrendingUp className="w-6 h-6 text-blue-500" />
                   </div>
                   <h3 className="text-xl font-bold text-black mb-3">Global Access</h3>
-                  <p className="text-gray-600">Raise funds from anywhere, in seconds. No banks, no borders.</p>
+                  <p className="text-gray-600">Fund anything. From anyone. Instantly. No banks, no borders.</p>
                 </div>
                 <div className="bg-gray-50 rounded-2xl p-8 flex flex-col min-w-[280px] md:min-w-0" style={{
               scrollSnapAlign: 'center'
