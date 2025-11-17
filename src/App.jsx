@@ -522,9 +522,15 @@ const disconnectWallet = async () => {
     icon: DollarSign
   }];
   const handleFilterChange = filterValue => {
+    // Preserve the current vertical scroll position
+    const currentScrollY = window.scrollY;
+    
     setActiveFilter(filterValue);
     if (filterScrollRef.current) {
       requestAnimationFrame(() => {
+        // Restore vertical scroll position
+        window.scrollTo(0, currentScrollY);
+        
         const activeButton = filterScrollRef.current.querySelector(`[data-filter="${filterValue}"]`);
         if (activeButton) {
           const container = filterScrollRef.current;
@@ -534,10 +540,15 @@ const disconnectWallet = async () => {
           const containerCenter = containerRect.left + containerRect.width / 2;
           const scrollOffset = buttonCenter - containerCenter;
           const newScrollLeft = container.scrollLeft + scrollOffset;
+          
+          // Only scroll horizontally within the filter container
           container.scrollTo({
             left: newScrollLeft,
             behavior: 'smooth'
           });
+          
+          // Ensure vertical position stays fixed
+          window.scrollTo(0, currentScrollY);
         }
       });
     }
@@ -1344,22 +1355,24 @@ const disconnectWallet = async () => {
               </div>
             </div>
             <h2 className="text-3xl font-bold mb-6 text-black text-center">Active Campaigns</h2>
-            <div className="mb-8">
-              <div className="relative max-w-2xl mx-auto">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search campaigns..." className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent rounded-full focus:border-blue-500 focus:outline-none text-black placeholder-gray-400" />
+            <div className="sticky top-0 z-40 bg-white pb-4 -mx-6 px-6 md:px-0">
+              <div className="mb-4 pt-4">
+                <div className="relative max-w-2xl mx-auto">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search campaigns..." className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent rounded-full focus:border-blue-500 focus:outline-none text-black placeholder-gray-400" />
+                </div>
               </div>
-            </div>
-            <div className="mb-8 -mx-6 md:mx-0">
-              <div ref={filterScrollRef} className="overflow-x-auto scrollbar-hide md:flex md:justify-center px-6 md:px-0" style={{
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
-          }}>
-                <div className="inline-flex gap-2">
-                      {filterOptions.map(option => <button key={option.value} type="button" data-filter={option.value} onClick={() => handleFilterChange(option.value)} className={`px-4 py-2 rounded-full font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${activeFilter === option.value ? 'bg-blue-500 text-white shadow-md' : 'bg-transparent text-gray-600 hover:text-gray-900'}`}>
+              <div className="-mx-6 md:mx-0">
+                <div ref={filterScrollRef} className="overflow-x-auto scrollbar-hide md:flex md:justify-center px-6 md:px-0" style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}>
+                  <div className="inline-flex gap-2">
+                    {filterOptions.map(option => <button key={option.value} type="button" data-filter={option.value} onClick={() => handleFilterChange(option.value)} className={`px-4 py-2 rounded-full font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${activeFilter === option.value ? 'bg-blue-500 text-white shadow-md' : 'bg-transparent text-gray-600 hover:text-gray-900'}`}>
                       <option.icon className="w-4 h-4" />
                       <span className="text-sm">{option.label}</span>
                     </button>)}
+                  </div>
                 </div>
               </div>
             </div>
