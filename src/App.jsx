@@ -317,6 +317,11 @@ const disconnectWallet = async () => {
     checkOAuthCallback();
   }, [devbaseClient]);
 
+  // Scroll to top when view changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [view]);
+
   // Check for campaign query parameter when campaigns are loaded
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -1054,7 +1059,7 @@ const disconnectWallet = async () => {
               <button onClick={() => setView('home')} className="text-blue-500 hover:text-blue-600 mb-6 flex items-center gap-2">
                 ← Back to home
               </button>
-              <h1 className="text-5xl font-bold mb-4 text-black">
+              <h1 className="text-[2rem] md:text-5xl font-bold mb-4 text-black">
                 TERMS OF USE
               </h1>
               <p className="text-sm text-gray-500 mb-12">
@@ -1157,6 +1162,125 @@ const disconnectWallet = async () => {
 
                 <h2 className="text-2xl font-bold mt-8 mb-4 text-black">14. Contact</h2>
                 <p>If you have questions about these Terms, you may contact the DropFund team through our official channels, which will be announced on the website.</p>
+              </div>
+            </div>
+          </div>}
+        {view === 'privacy' && <div>
+            <div className="max-w-4xl mx-auto">
+              <button onClick={() => setView('home')} className="text-blue-500 hover:text-blue-600 mb-6 flex items-center gap-2">
+                ← Back to home
+              </button>
+              <h1 className="text-[2rem] md:text-5xl font-bold mb-4 text-black">
+                PRIVACY POLICY
+              </h1>
+              <p className="text-sm text-gray-500 mb-12">
+                Last Updated: 11 November 2025
+              </p>
+              <div className="prose prose-lg max-w-none text-gray-700 space-y-6">
+                <p>
+                  This Privacy Policy explains how DropFund ("we", "us", "our") collects, uses, and protects limited information from users ("you") who access our Platform.
+                </p>
+                <p>
+                  By using DropFund, you consent to this Policy.
+                </p>
+                
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">1. Overview</h2>
+                <p>
+                  DropFund is a decentralized application (dApp) that processes donations directly on the Solana blockchain.
+                </p>
+                <p>
+                  We do not store or control user funds, private keys, or personal identifiers.
+                </p>
+                <p>
+                  Any information collected is for functional and analytical purposes only.
+                </p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">2. Information We Collect</h2>
+                <p>We may collect:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Wallet addresses used to interact with the Platform;</li>
+                  <li>Campaign data you submit (title, image links, description, goal, URLs);</li>
+                  <li>Transaction data publicly available on-chain;</li>
+                  <li>Usage analytics (browser type, device, referrer, basic performance metrics).</li>
+                </ul>
+                <p>
+                  We do not collect names, emails, or government IDs unless you voluntarily contact us for support.
+                </p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">3. Cookies and Analytics</h2>
+                <p>
+                  We may use essential cookies or privacy-preserving analytics tools to improve Platform performance.
+                </p>
+                <p>
+                  No tracking or targeted advertising is conducted.
+                </p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">4. Data Storage</h2>
+                <p>
+                  Campaign metadata and related information may be stored via third-party decentralized or cloud providers (e.g., IPFS, DevFun, or similar).
+                </p>
+                <p>
+                  DropFund does not store private keys, seed phrases, or transaction signatures.
+                </p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">5. How We Use Data</h2>
+                <p>Collected data is used to:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Display and organize campaigns and donations;</li>
+                  <li>Monitor Platform health and prevent abuse;</li>
+                  <li>Support future feature development (e.g., milestone vaults);</li>
+                  <li>Comply with applicable laws if required.</li>
+                </ul>
+                <p>
+                  We do not sell, rent, or trade user data.
+                </p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">6. Sharing and Disclosure</h2>
+                <p>We may share limited, non-personal data with:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Infrastructure partners (e.g., RPC providers, IPFS nodes);</li>
+                  <li>Analytics or security vendors under confidentiality terms;</li>
+                  <li>Regulators or law enforcement when legally required.</li>
+                </ul>
+                <p>
+                  We do not share any private user data for marketing or advertising.
+                </p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">7. Blockchain Transparency</h2>
+                <p>
+                  All donations occur on the public Solana blockchain, meaning your wallet address and transaction details are publicly viewable.
+                </p>
+                <p>
+                  DropFund cannot alter or delete blockchain data.
+                </p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">8. Data Retention</h2>
+                <p>
+                  We retain off-chain metadata only as long as necessary for platform functionality or legal compliance, after which it may be deleted or anonymized.
+                </p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">9. Security</h2>
+                <p>
+                  DropFund employs standard encryption, access control, and secure hosting.
+                </p>
+                <p>
+                  However, blockchain transactions are inherently public and irreversible — please use caution when sharing wallet information.
+                </p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">10. Minors</h2>
+                <p>
+                  DropFund is not intended for individuals under 18. We do not knowingly collect data from minors.
+                </p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">11. International Use</h2>
+                <p>
+                  DropFund operates globally. By using it, you consent to data transfer and processing in other jurisdictions, including the United States and the British Virgin Islands.
+                </p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">12. Updates to this Policy</h2>
+                <p>
+                  We may update this Privacy Policy periodically. Continued use after updates constitutes acceptance of the new version.
+                </p>
               </div>
             </div>
           </div>}
@@ -1614,9 +1738,9 @@ const disconnectWallet = async () => {
                 <button onClick={() => setView('terms')} className="block text-sm text-gray-600 hover:text-blue-500 transition-colors text-left">
                   Terms of Use
                 </button>
-                <a href="#" target="_blank" className="block text-sm text-gray-600 hover:text-blue-500 transition-colors">
+                <button onClick={() => setView('privacy')} className="block text-sm text-gray-600 hover:text-blue-500 transition-colors text-left">
                   Privacy Policy
-                </a>
+                </button>
               </div>
             </div>
             <div>
