@@ -866,7 +866,7 @@ const disconnectWallet = async () => {
               <button onClick={() => setView('home')} className="text-blue-500 hover:text-blue-600 mb-6 flex items-center gap-2">
                 ← Back to home
               </button>
-              <h1 className="text-5xl font-bold mb-4 text-black">
+              <h1 className="text-[2rem] md:text-5xl font-bold mb-4 text-black">
                 Getting Started Guide
               </h1>
               <p className="text-xl text-gray-600 mb-12">
