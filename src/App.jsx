@@ -1729,7 +1729,7 @@ const disconnectWallet = async () => {
                 <span className="text-xl font-bold text-black">DropFund</span>
               </div>
               <p className="text-gray-600 text-sm">
-                Transparent crowdfunding powered by solana. Get funds fast, anywhere in the world.
+                Transparent crowdfunding powered by solana.
               </p>
             </div>
             <div>
