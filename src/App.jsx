@@ -1049,6 +1049,117 @@ const disconnectWallet = async () => {
               </div>
             </div>
           </div>}
+        {view === 'terms' && <div>
+            <div className="max-w-4xl mx-auto">
+              <button onClick={() => setView('home')} className="text-blue-500 hover:text-blue-600 mb-6 flex items-center gap-2">
+                ← Back to home
+              </button>
+              <h1 className="text-5xl font-bold mb-4 text-black">
+                🧾 TERMS OF SERVICE
+              </h1>
+              <p className="text-sm text-gray-500 mb-12">
+                Last Updated: 11 November 2025
+              </p>
+              <div className="prose prose-lg max-w-none text-gray-700 space-y-6">
+                <p>
+                  These Terms of Service ("Terms") constitute a legally binding agreement between you ("you" or "your") and DropFund ("DropFund", "we", "our", or "us").
+                </p>
+                <p>
+                  By accessing or using the DropFund website, smart-contracts, or any connected tools (collectively, the "Platform"), you agree that you have read, understood, and accepted these Terms. If you do not agree, do not access or use the Platform.
+                </p>
+                
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">1. Overview</h2>
+                <p>
+                  DropFund is a decentralized fundraising protocol built on the Solana blockchain. It enables creators to publish campaigns and receive direct, wallet-to-wallet donations.
+                </p>
+                <p>
+                  Each donation transaction executes on-chain and includes a 1% protocol fee, automatically routed to DropFund's fee address.
+                </p>
+                <p>
+                  DropFund does not take custody of user funds and does not guarantee campaign outcomes. All donations are final and non-refundable.
+                </p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">2. Eligibility</h2>
+                <p>You may use the Platform only if:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>You are at least 18 years old;</li>
+                  <li>You have full legal capacity to enter into these Terms;</li>
+                  <li>Your use complies with applicable laws in your jurisdiction;</li>
+                  <li>You are not located in, or a resident of, any sanctioned or prohibited country (including Cuba, Iran, North Korea, Syria, or Russia).</li>
+                </ul>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">3. Platform Use</h2>
+                <p>
+                  You acknowledge that DropFund is a non-custodial, smart-contract interface. When you make or receive a donation, you interact directly with the Solana blockchain through your connected wallet.
+                </p>
+                <p>
+                  DropFund does not have access to or control over your private keys, funds, or transactions. You are solely responsible for safeguarding your wallet and verifying all on-chain actions before approving them.
+                </p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">4. Campaigns</h2>
+                <p>Creators can launch campaigns through the DropFund interface.</p>
+                <p>Campaign data (title, description, media links, goals) is stored off-chain in decentralized or third-party storage.</p>
+                <p>Donations are executed directly from donor wallets to creator wallets, plus the 1% protocol fee.</p>
+                <p>In the future, DropFund may introduce optional milestone-based vaults for creators who prefer staged fund releases.</p>
+                <p>DropFund does not vet, endorse, or verify campaigns or their creators. You donate at your own discretion and risk.</p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">5. Protocol Fees</h2>
+                <p>
+                  Each donation processed through DropFund smart-contracts includes a 1% protocol fee, automatically distributed to DropFund's fee wallet.
+                </p>
+                <p>
+                  This fee supports maintenance, development, and operational costs of the protocol. It is applied transparently at the transaction level and cannot be reversed.
+                </p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">6. Transactions and Smart-Contract Risks</h2>
+                <p>All actions on the Platform are final and irreversible once recorded on the Solana blockchain.</p>
+                <p>By using DropFund, you understand that:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Transactions may fail, be delayed, or cost variable gas fees.</li>
+                  <li>You may lose access to funds if you lose your private keys or approve a malicious transaction.</li>
+                  <li>The smart-contracts may contain bugs or experience exploits beyond our control.</li>
+                </ul>
+                <p>DropFund assumes no liability for technical failures, blockchain congestion, or losses due to user error or third-party integrations.</p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">7. No Financial or Investment Advice</h2>
+                <p>DropFund does not provide financial, legal, or investment advice.</p>
+                <p>Donations are voluntary and do not constitute investments, securities, or ownership stakes in any project.</p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">8. Intellectual Property</h2>
+                <p>The DropFund name, logo, website content, and software code are owned or licensed by DropFund.</p>
+                <p>Users retain ownership of their campaign content but grant DropFund a non-exclusive, royalty-free license to display it for Platform functionality and promotion.</p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">9. Privacy & Data</h2>
+                <p>DropFund collects minimal information necessary to operate the Platform (such as wallet addresses, campaign metadata, and analytics).</p>
+                <p>We do not collect personal identifiers, custody user funds, or sell user data.</p>
+                <p>More details are provided in our Privacy Policy.</p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">10. Limitation of Liability</h2>
+                <p>DropFund and its contributors are not liable for:</p>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Any loss of funds, opportunities, or goodwill arising from your use of the Platform;</li>
+                  <li>Smart-contract bugs, blockchain downtime, or wallet mismanagement;</li>
+                  <li>Misrepresentation or failure of any campaign creator;</li>
+                  <li>Any indirect, incidental, or consequential damages.</li>
+                </ul>
+                <p>To the maximum extent permitted by law, DropFund's total liability shall not exceed the total protocol fees received from your transactions.</p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">11. Indemnification</h2>
+                <p>You agree to defend, indemnify, and hold harmless DropFund, its contributors, and affiliates from any claims, liabilities, or damages arising out of your use of the Platform, violation of these Terms, or breach of applicable laws.</p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">12. Changes to the Platform or Terms</h2>
+                <p>DropFund may modify or discontinue features, and update these Terms at any time.</p>
+                <p>The "Last Updated" date reflects the current version. Continued use constitutes acceptance of revised Terms.</p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">13. Jurisdiction & Governing Law</h2>
+                <p>These Terms are governed by and construed in accordance with the laws of the British Virgin Islands (BVI).</p>
+                <p>Any dispute shall be resolved by binding arbitration in Tortola, BVI, in English, under the BVI Arbitration Act 2013. Class actions are expressly waived.</p>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4 text-black">14. Contact</h2>
+                <p>If you have questions about these Terms, you may contact the DropFund team through our official channels, which will be announced on the website.</p>
+              </div>
+            </div>
+          </div>}
         {view === 'home' && <div className="pt-12">
             <div className="text-center mb-16">
               <h1 className="text-[4rem] md:text-[8rem] font-bold mb-6 leading-none">
@@ -1500,9 +1611,9 @@ const disconnectWallet = async () => {
             <div>
               <h4 className="font-semibold text-black mb-4">Legal</h4>
               <div className="space-y-2">
-                <a href="#" target="_blank" className="block text-sm text-gray-600 hover:text-blue-500 transition-colors">
+                <button onClick={() => setView('terms')} className="block text-sm text-gray-600 hover:text-blue-500 transition-colors text-left">
                   Terms of Service
-                </a>
+                </button>
                 <a href="#" target="_blank" className="block text-sm text-gray-600 hover:text-blue-500 transition-colors">
                   Privacy Policy
                 </a>
