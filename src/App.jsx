@@ -1055,14 +1055,14 @@ const disconnectWallet = async () => {
                 ← Back to home
               </button>
               <h1 className="text-5xl font-bold mb-4 text-black">
-                🧾 TERMS OF SERVICE
+                TERMS OF USE
               </h1>
               <p className="text-sm text-gray-500 mb-12">
                 Last Updated: 11 November 2025
               </p>
               <div className="prose prose-lg max-w-none text-gray-700 space-y-6">
                 <p>
-                  These Terms of Service ("Terms") constitute a legally binding agreement between you ("you" or "your") and DropFund ("DropFund", "we", "our", or "us").
+                  These Terms of Use ("Terms") constitute a legally binding agreement between you ("you" or "your") and DropFund ("DropFund", "we", "our", or "us").
                 </p>
                 <p>
                   By accessing or using the DropFund website, smart-contracts, or any connected tools (collectively, the "Platform"), you agree that you have read, understood, and accepted these Terms. If you do not agree, do not access or use the Platform.
@@ -1612,7 +1612,7 @@ const disconnectWallet = async () => {
               <h4 className="font-semibold text-black mb-4">Legal</h4>
               <div className="space-y-2">
                 <button onClick={() => setView('terms')} className="block text-sm text-gray-600 hover:text-blue-500 transition-colors text-left">
-                  Terms of Service
+                  Terms of Use
                 </button>
                 <a href="#" target="_blank" className="block text-sm text-gray-600 hover:text-blue-500 transition-colors">
                   Privacy Policy
