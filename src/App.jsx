@@ -1522,7 +1522,7 @@ const disconnectWallet = async () => {
                       <h3 className="text-lg font-semibold">Total Donated</h3>
                     </div>
                     <div className="text-4xl font-bold">
-                      {userDonations.reduce((sum, d) => sum + d.amount, 0).toFixed(2)}
+                      {userDonations.reduce((sum, d) => sum + d.amount, 0).toFixed(2)} SOL
                     </div>
                     <p className="text-blue-100 text-sm mt-1">Across {userDonations.length} {userDonations.length === 1 ? 'campaign' : 'campaigns'}</p>
                   </div>
