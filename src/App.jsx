@@ -1297,7 +1297,7 @@ const disconnectWallet = async () => {
                 <span className="text-gray-900">onchain</span>
               </h1>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-                Transparent crowdfunding powered by blockchain. Every transaction tracked, every milestone verified.
+                Transparent crowdfunding powered by solana. Get funds fast, anywhere in the world.
               </p>
               {connected && publicKey ? <button onClick={() => setIsCreating(true)} className="px-6 py-2.5 bg-blue-500 text-white rounded-full font-semibold hover:bg-blue-600 transition-all inline-flex items-center gap-2">
                   <Plus className="w-4 h-4" />
@@ -1320,8 +1320,8 @@ const disconnectWallet = async () => {
                   <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 mb-3">
                     <TrendingUp className="w-6 h-6 text-blue-500" />
                   </div>
-                  <h3 className="text-xl font-bold text-black mb-3">Smart Milestones</h3>
-                  <p className="text-gray-600">Funds auto-release when milestones are hit. No middlemen, just code.</p>
+                  <h3 className="text-xl font-bold text-black mb-3">Global Access</h3>
+                  <p className="text-gray-600">Raise funds from anywhere, in seconds. No banks, no borders.</p>
                 </div>
                 <div className="bg-gray-50 rounded-2xl p-8 flex flex-col min-w-[280px] md:min-w-0" style={{
               scrollSnapAlign: 'center'
@@ -1729,7 +1729,7 @@ const disconnectWallet = async () => {
                 <span className="text-xl font-bold text-black">DropFund</span>
               </div>
               <p className="text-gray-600 text-sm">
-                Transparent crowdfunding powered by blockchain.
+                Transparent crowdfunding powered by solana. Get funds fast, anywhere in the world.
               </p>
             </div>
             <div>
