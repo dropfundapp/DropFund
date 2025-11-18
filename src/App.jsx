@@ -165,7 +165,7 @@ function App() {
 
       try {
         if (!connected || !publicKey || !wallet) {
-          alert("Please connect and ensure your wallet is ready first.");
+          setToast({ type: 'error', message: 'Please connect your wallet first' });
           setLoading(false);
           return;
         }
@@ -232,7 +232,12 @@ function App() {
 
     } catch (err) {
       console.error("❌ Transaction failed:", err);
-      alert(`Transaction failed: ${err.message || err.toString()}`);
+      const errorMessage = err.message || err.toString();
+      if (errorMessage.includes('User rejected')) {
+        setToast({ type: 'error', message: 'Transaction cancelled' });
+      } else {
+        setToast({ type: 'error', message: `Transaction failed: ${errorMessage}` });
+      }
     } finally {
       setLoading(false);
     }
@@ -248,7 +253,7 @@ const connectWallet = async () => {
     await connect(); //
   } catch (err) {
     console.error("Wallet connection failed:", err);
-    alert("Wallet connection failed. Please ensure you have a Solana wallet installed (e.g., Phantom).");
+    setToast({ type: 'error', message: 'Wallet connection failed. Please install Phantom wallet' });
   }
 };
 const [walletMenuOpen, setWalletMenuOpen] = useState(false);
@@ -310,8 +315,18 @@ const disconnectWallet = async () => {
   const [wordColor, setWordColor] = useState('#e11d48');
   const [showShareModal, setShowShareModal] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [toast, setToast] = useState(null);
   const fileInputRef = useRef(null);
   const filterScrollRef = useRef(null);
+
+  // Auto-dismiss toast after 3 seconds
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
   useEffect(() => {
     loadCampaigns();
     checkOAuthCallback();
@@ -557,7 +572,7 @@ const disconnectWallet = async () => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+      setToast({ type: 'error', message: 'Please upload an image file' });
       return;
     }
     const img = new Image();
@@ -1943,6 +1958,24 @@ const disconnectWallet = async () => {
             </div>
           </div>
         </div>}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed bottom-6 right-6 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 z-50 animate-slide-up ${
+          toast.type === 'error' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
+        }`}>
+          {toast.type === 'error' ? (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+          <span className="font-medium">{toast.message}</span>
+        </div>
+      )}
     </div>
   );
 }

@@ -61,7 +61,7 @@ pub struct Donate<'info> {
     #[account(mut)]
     pub donor: Signer<'info>,
 
-    /// CHECK: This is a simple wallet receiving 99% of the donation.
+    /// CHECK: This is a simple wallet receiving 100% of the donation.
     #[account(mut)]
     pub creator_wallet: AccountInfo<'info>,
 
