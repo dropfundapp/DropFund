@@ -1406,7 +1406,7 @@ const disconnectWallet = async () => {
                         <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       </div>}
                       <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => loadCampaignDetails(campaign.id)}>
-                        <h3 className="text-base md:text-xl font-bold mb-2 md:mb-3 text-black group-hover:text-blue-600 transition-colors">
+                        <h3 className="text-base md:text-xl font-bold mb-2 md:mb-3 text-black">
                           {campaign.title}
                         </h3>
                         <div className="mb-3 md:mb-4 mt-auto">
@@ -1495,7 +1495,7 @@ const disconnectWallet = async () => {
                           <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                         </div>}
                         <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => loadCampaignDetails(campaign.id)}>
-                          <h3 className="text-base md:text-xl font-bold mb-2 md:mb-3 text-black group-hover:text-blue-600 transition-colors">
+                          <h3 className="text-base md:text-xl font-bold mb-2 md:mb-3 text-black">
                             {campaign.title}
                           </h3>
                           <div className="mb-3 md:mb-4 mt-auto">
@@ -1563,7 +1563,7 @@ const disconnectWallet = async () => {
                               <Rocket className="w-8 h-8 text-blue-500" />
                             </div>}
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-black mb-1 group-hover:text-blue-600 transition-colors truncate">
+                            <h3 className="font-semibold text-black mb-1 truncate">
                               {donation.campaign?.title || 'Campaign'}
                             </h3>
                             <div className="text-sm text-gray-500">
