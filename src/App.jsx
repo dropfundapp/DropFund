@@ -807,7 +807,7 @@ const disconnectWallet = async () => {
           setView('home');
           setSelectedCampaign(null);
         }}>
-            <img src="/Dropfund logo transparent.png" alt="DropFund" className="w-10 h-10 rounded-lg" />
+            <img src="/Dropfund logo drop lines 2.png" alt="DropFund" className="w-10 h-10 rounded-lg" />
             <span className="text-2xl font-bold text-black">DropFund</span>
           </div>
           <div className="hidden md:flex items-center gap-4">
@@ -1738,7 +1738,7 @@ const disconnectWallet = async () => {
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <img src="/Dropfund logo transparent.png" alt="DropFund" className="w-10 h-10 rounded-lg" />
+                <img src="/Dropfund logo drop lines 2.png" alt="DropFund" className="w-10 h-10 rounded-lg" />
                 <span className="text-xl font-bold text-black">DropFund</span>
               </div>
               <p className="text-gray-600 text-sm">
