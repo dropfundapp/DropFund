@@ -721,7 +721,7 @@ const disconnectWallet = async () => {
   };
   return (
     // Force re-render of entire app when connected changes
-    <div key={String(connected)} className="min-h-screen bg-white text-gray-900">
+    <div key={String(connected)} className="min-h-screen bg-page text-gray-900">
       {DEBUG && <DebugPanel />}
       <style>{`
         .wallet-adapter-modal-wrapper {
@@ -742,7 +742,7 @@ const disconnectWallet = async () => {
         .wallet-adapter-dropdown-list {
           box-shadow: none !important;
           border-radius: 8px !important;
-          background-color: #ebebeb !important;
+          background-color: #fff !important;
         }
 @media (max-width: 767px) {
     .wallet-adapter-dropdown-list {
@@ -764,7 +764,7 @@ const disconnectWallet = async () => {
           background-color: #d9d9d9 !important;
         }
       `}</style>
-      <nav className="backdrop-blur-xl bg-white/80 relative z-50">
+      <nav className="backdrop-blur-xl bg-page relative z-50">
         {DEBUG && (
           <>
             {/* DEBUG: display wallet/connect state for quick inspection */}
@@ -817,7 +817,7 @@ const disconnectWallet = async () => {
           </div>
           </>
         )}
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-8xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => {
           setView('home');
           setSelectedCampaign(null);
@@ -841,7 +841,7 @@ const disconnectWallet = async () => {
               Launch Campaign
             </button>
           </>}
-          <div className={`hidden md:inline-block ${connected && publicKey ? '[&_button]:!bg-transparent [&_button]:hover:!bg-transparent [&_button_span]:hidden [&_button_svg]:!text-gray-900' : '[&_button_span]:font-medium [&_button]:!bg-[#ebebeb] [&_button]:!rounded-[50px] [&_button]:hover:!opacity-70 [&_button]:transition-opacity'}`}>
+          <div className={`hidden md:inline-block ${connected && publicKey ? '[&_button]:!bg-transparent [&_button]:hover:!bg-transparent [&_button_span]:hidden [&_button_svg]:!text-gray-900' : '[&_button_span]:font-medium [&_button]:!bg-[#fff] [&_button]:!rounded-[50px] [&_button]:hover:!opacity-70 [&_button]:transition-opacity'}`}>
             <UserButton />
           </div>
           <div className={`md:hidden ${connected && publicKey ? '[&_button]:!bg-transparent [&_button]:hover:!bg-transparent [&_button_span]:hidden [&_button_svg]:!text-gray-900' : '[&_button_span]:font-medium [&_button]:!bg-[#ebebeb] [&_button]:!rounded-[50px] [&_button]:hover:!opacity-70 [&_button]:transition-opacity'}`}>
@@ -886,7 +886,7 @@ const disconnectWallet = async () => {
             </div>
           </div>
         </div>
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="max-w-8xl mx-auto px-6 py-12">
         {view === 'getting-started' && <div>
             <div className="max-w-4xl mx-auto">
               <button onClick={() => setView('home')} className="text-blue-500 hover:text-blue-600 mb-6 flex items-center gap-2">
@@ -1328,7 +1328,7 @@ const disconnectWallet = async () => {
               {connected && publicKey ? <button onClick={() => setIsCreating(true)} className="px-6 py-2.5 bg-blue-500 text-white rounded-full font-semibold hover:bg-blue-600 transition-all inline-flex items-center gap-2">
                   <Plus className="w-4 h-4" />
                   Launch Campaign
-                </button> : <div className="flex justify-center [&_button]:!bg-[#ebebeb] [&_button]:!rounded-[50px] [&_button]:hover:!opacity-70 [&_button]:transition-opacity">
+                </button> : <div className="flex justify-center [&_button]:!bg-[#fff] [&_button]:!rounded-[50px] [&_button]:hover:!opacity-70 [&_button]:transition-opacity">
                   <UserButton />
                 </div>}
             </div>
@@ -1340,41 +1340,47 @@ const disconnectWallet = async () => {
               <div className="flex md:grid md:grid-cols-3 gap-6 pb-4 md:pb-0 px-6 md:px-6" style={{
             scrollSnapAlign: 'center'
           }}>
-                <div className="bg-gray-50 rounded-2xl p-8 flex flex-col min-w-[280px] md:min-w-0" style={{
+                <div className="bg-white rounded-2xl overflow-hidden flex flex-col min-w-[280px] md:min-w-0" style={{
               scrollSnapAlign: 'center'
             }}>
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 mb-3">
-                    <TrendingUp className="w-6 h-6 text-blue-500" />
+                  <div className="w-full">
+                    <img src="/03a41308-1ed6-4f90-938b-8063ab568e78.png" alt="Global Access" className="w-full h-auto" />
                   </div>
-                  <h3 className="text-xl font-bold text-black mb-3">Global Access</h3>
-                  <p className="text-gray-600">Fund anything. From anyone. Instantly. No banks, no borders.</p>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-black mb-3">Global Access</h3>
+                    <p className="text-gray-600">Fund anything. From anyone. Instantly. No banks, no borders.</p>
+                  </div>
                 </div>
-                <div className="bg-gray-50 rounded-2xl p-8 flex flex-col min-w-[280px] md:min-w-0" style={{
+                <div className="bg-white rounded-2xl overflow-hidden flex flex-col min-w-[280px] md:min-w-0" style={{
               scrollSnapAlign: 'center'
             }}>
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 mb-3">
-                    <Coins className="w-6 h-6 text-blue-500" />
+                  <div className="w-full">
+                    <img src="/4af6b5fe-41a3-4061-85b9-2e7dfaff54d5.png" alt="Crypto Native" className="w-full h-auto" />
                   </div>
-                  <h3 className="text-xl font-bold text-black mb-3">Crypto Native</h3>
-                  <p className="text-gray-600">Accept SOL from anywhere. Near-zero payment processor fees.</p>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-black mb-3">Crypto Native</h3>
+                    <p className="text-gray-600">Accept SOL from anywhere. Near-zero payment processor fees.</p>
+                  </div>
                 </div>
-                <div className="bg-gray-50 rounded-2xl p-8 flex flex-col min-w-[280px] md:min-w-0" style={{
+                <div className="bg-white rounded-2xl overflow-hidden flex flex-col min-w-[280px] md:min-w-0" style={{
               scrollSnapAlign: 'center'
             }}>
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 mb-3">
-                    <Target className="w-6 h-6 text-blue-500" />
+                  <div className="w-full">
+                    <img src="/54ea0507-b216-4bf9-b1bf-de211403ff38.png" alt="Full Transparency" className="w-full h-auto" />
                   </div>
-                  <h3 className="text-xl font-bold text-black mb-3">Full Transparency</h3>
-                  <p className="text-gray-600">Every transaction on-chain. See exactly where funds go.</p>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-black mb-3">Full Transparency</h3>
+                    <p className="text-gray-600">Every transaction on-chain. See exactly where funds go.</p>
+                  </div>
                 </div>
               </div>
             </div>
             <h2 className="text-3xl font-bold mb-6 text-black text-center">Active Campaigns</h2>
-            <div className="sticky top-0 z-40 bg-white pb-4 -mx-6 px-6 md:px-0">
+            <div className="sticky top-0 z-40 bg-page pb-4 -mx-6 px-6 md:px-0">
               <div className="mb-4 pt-4">
                 <div className="relative max-w-2xl mx-auto">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search campaigns..." className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent rounded-full focus:border-blue-500 focus:outline-none text-black placeholder-gray-400" />
+                  <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search campaigns..." className="w-full pl-12 pr-4 py-3 bg-white border border-transparent rounded-full focus:border-blue-500 focus:outline-none text-black placeholder-gray-400" />
                 </div>
               </div>
               <div className="-mx-6 md:mx-0">
@@ -1401,8 +1407,8 @@ const disconnectWallet = async () => {
               </div> : <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCampaigns.map(campaign => {
             const progress = campaign.raised / campaign.goal * 100;
-            return <div key={campaign.id} className="bg-gray-50 rounded-2xl overflow-hidden hover:shadow-lg transition-all group relative flex md:flex-col">
-                      {campaign.image && <div className="w-32 h-full md:w-full md:h-48 overflow-hidden cursor-pointer flex-shrink-0" onClick={() => loadCampaignDetails(campaign.id)}>
+            return <div key={campaign.id} className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all group relative flex flex-row md:flex-col">
+                      {campaign.image && <div className="w-32 md:w-full md:h-64 overflow-hidden cursor-pointer flex-shrink-0" onClick={() => loadCampaignDetails(campaign.id)}>
                         <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       </div>}
                       <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => loadCampaignDetails(campaign.id)}>
@@ -1490,8 +1496,8 @@ const disconnectWallet = async () => {
                 </div> : <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {userCampaigns.map(campaign => {
               const progress = campaign.raised / campaign.goal * 100;
-              return <div key={campaign.id} className="bg-gray-50 rounded-2xl overflow-hidden hover:shadow-lg transition-all group relative flex md:flex-col">
-                        {campaign.image && <div className="w-32 h-full md:w-full md:h-48 overflow-hidden cursor-pointer flex-shrink-0" onClick={() => loadCampaignDetails(campaign.id)}>
+              return <div key={campaign.id} className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all group relative flex flex-row md:flex-col">
+                        {campaign.image && <div className="w-32 md:w-full md:h-64 overflow-hidden cursor-pointer flex-shrink-0" onClick={() => loadCampaignDetails(campaign.id)}>
                           <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                         </div>}
                         <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => loadCampaignDetails(campaign.id)}>
@@ -1554,7 +1560,7 @@ const disconnectWallet = async () => {
                     </div>
                     <p className="text-blue-100 text-sm mt-1">Across {userDonations.length} {userDonations.length === 1 ? 'campaign' : 'campaigns'}</p>
                   </div>
-                  {userDonations.map(donation => <div key={donation.id} className="bg-gray-50 rounded-2xl p-4 hover:shadow-lg transition-all group cursor-pointer" onClick={() => loadCampaignDetails(donation.campaignId)}>
+                  {userDonations.map(donation => <div key={donation.id} className="bg-white rounded-2xl p-4 hover:shadow-lg transition-all group cursor-pointer" onClick={() => loadCampaignDetails(donation.campaignId)}>
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-4 flex-1 min-w-0">
                           {donation.campaign?.image ? <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
@@ -1617,15 +1623,15 @@ const disconnectWallet = async () => {
                 <p className="text-lg text-gray-600 mb-6">{selectedCampaign.description}</p>
                 
                 {(selectedCampaign.websiteUrl || selectedCampaign.xUrl || selectedCampaign.telegramUrl) && <div className="flex flex-wrap gap-3 mb-6">
-                    {selectedCampaign.websiteUrl && <a href={selectedCampaign.websiteUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-2 transition-colors group">
+                    {selectedCampaign.websiteUrl && <a href={selectedCampaign.websiteUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white hover:bg-gray-200 rounded-lg flex items-center gap-2 transition-colors group">
                         <Globe className="w-4 h-4 text-gray-600 group-hover:text-gray-900" />
                         <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Website</span>
                       </a>}
-                    {selectedCampaign.xUrl && <a href={selectedCampaign.xUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-2 transition-colors group">
+                    {selectedCampaign.xUrl && <a href={selectedCampaign.xUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white hover:bg-gray-200 rounded-lg flex items-center gap-2 transition-colors group">
                         <span className="text-sm text-gray-600 group-hover:text-gray-900">𝕏</span>
                         <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Twitter</span>
                       </a>}
-                    {selectedCampaign.telegramUrl && <a href={selectedCampaign.telegramUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center gap-2 transition-colors group">
+                    {selectedCampaign.telegramUrl && <a href={selectedCampaign.telegramUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white hover:bg-gray-200 rounded-lg flex items-center gap-2 transition-colors group">
                         <Send className="w-4 h-4 text-gray-600 group-hover:text-gray-900" />
                         <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Telegram</span>
                       </a>}
@@ -1665,7 +1671,7 @@ const disconnectWallet = async () => {
                     Recent Backers
                   </h2>
                   {selectedCampaign.donations && selectedCampaign.donations.length > 0 ? <div className="space-y-2">
-                      {selectedCampaign.donations.slice(-10).reverse().map(donation => <div key={donation.id} className="bg-gray-50 rounded-xl p-4">
+                      {selectedCampaign.donations.slice(-10).reverse().map(donation => <div key={donation.id} className="bg-white rounded-xl p-4">
                   <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
@@ -1685,7 +1691,7 @@ const disconnectWallet = async () => {
                 </div>
               </div>
               <div>
-                <div className="bg-gray-50 rounded-2xl p-6 lg:sticky lg:top-6">
+                <div className="bg-white rounded-2xl p-6 lg:sticky lg:top-6">
                   <div className="mb-6">
                     <div className="flex justify-between items-center mb-4">
                       <div>
@@ -1707,7 +1713,7 @@ const disconnectWallet = async () => {
                   {connected && publicKey ? <div>
                       <div className="mb-4">
                         <label className="block text-sm text-gray-600 mb-2">Amount ({selectedCampaign.token || 'SOL'})</label>
-                        <input type="number" step="0.01" value={donationAmount} onChange={e => setDonationAmount(e.target.value)} placeholder="0.1" className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-black" />
+                        <input type="number" step="0.01" value={donationAmount} onChange={e => setDonationAmount(e.target.value)} placeholder="0.1" className="w-full px-4 py-3 bg-page border border-white rounded-xl focus:border-blue-500 focus:outline-none text-black" />
                       </div>
                       <button onClick={donate} disabled={loading || !donationAmount} className="w-full px-6 py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition-all disabled:opacity-50">
                         {loading ? 'Processing...' : 'Donate Now'}
@@ -1726,7 +1732,7 @@ const disconnectWallet = async () => {
                     Recent Backers
                   </h2>
                   {selectedCampaign.donations && selectedCampaign.donations.length > 0 ? <div className="space-y-2">
-                      {selectedCampaign.donations.slice(-10).reverse().map(donation => <div key={donation.id} className="bg-gray-50 rounded-xl p-4">
+                      {selectedCampaign.donations.slice(-10).reverse().map(donation => <div key={donation.id} className="bg-white rounded-xl p-4">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
@@ -1748,8 +1754,8 @@ const disconnectWallet = async () => {
             </div>
           </div>}
       </div>
-      <footer className="bg-gray-50 mt-20">
-        <div className="max-w-7xl mx-auto px-6 py-12">
+      <footer className="bg-white mt-20">
+        <div className="max-w-8xl mx-auto px-6 py-12">
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
@@ -1774,7 +1780,7 @@ const disconnectWallet = async () => {
             <div>
               <h4 className="font-semibold text-black mb-4">Follow Us</h4>
               <div className="flex gap-3">
-                <a href="https://x.com/Dropfundapp" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center hover:bg-blue-50 hover:border-blue-500 transition-all">
+                <a href="https://x.com/Dropfundapp" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-page border border-white rounded-lg flex items-center justify-center hover:bg-blue-50 hover:border-blue-500 transition-all">
                   <svg className="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                   </svg>
