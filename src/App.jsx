@@ -1332,15 +1332,17 @@ const disconnectWallet = async () => {
                   <UserButton />
                 </div>}
             </div>
-            <div className="mb-20 mt-20 -mx-6 overflow-x-auto scrollbar-hide md:overflow-visible" style={{
+            <div className="mb-20 mt-20 -mx-6">
+              <div className="overflow-x-scroll scrollbar-hide md:overflow-visible md:px-0" style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
           scrollSnapType: 'x mandatory'
         }}>
-              <div className="flex md:grid md:grid-cols-3 gap-6 pb-4 md:pb-0 px-6 md:px-6" style={{
-            scrollSnapAlign: 'center'
+                <div className="inline-grid grid-flow-col auto-cols-[280px] md:grid md:grid-flow-row md:grid-cols-3 md:auto-cols-auto gap-6 pb-4 md:pb-0 md:mx-0" style={{
+            marginLeft: '24px',
+            marginRight: '24px'
           }}>
-                <div className="bg-white rounded-2xl overflow-hidden flex flex-col min-w-[280px] md:min-w-0" style={{
+                <div className="bg-white rounded-2xl overflow-hidden flex flex-col" style={{
               scrollSnapAlign: 'center'
             }}>
                   <div className="w-full">
@@ -1351,7 +1353,7 @@ const disconnectWallet = async () => {
                     <p className="text-gray-600">Fund anything. From anyone. Instantly. No banks, no borders.</p>
                   </div>
                 </div>
-                <div className="bg-white rounded-2xl overflow-hidden flex flex-col min-w-[280px] md:min-w-0" style={{
+                <div className="bg-white rounded-2xl overflow-hidden flex flex-col" style={{
               scrollSnapAlign: 'center'
             }}>
                   <div className="w-full">
@@ -1362,7 +1364,7 @@ const disconnectWallet = async () => {
                     <p className="text-gray-600">Accept SOL from anywhere. Near-zero payment processor fees.</p>
                   </div>
                 </div>
-                <div className="bg-white rounded-2xl overflow-hidden flex flex-col min-w-[280px] md:min-w-0" style={{
+                <div className="bg-white rounded-2xl overflow-hidden flex flex-col" style={{
               scrollSnapAlign: 'center'
             }}>
                   <div className="w-full">
@@ -1372,6 +1374,7 @@ const disconnectWallet = async () => {
                     <h3 className="text-xl font-bold text-black mb-3">Full Transparency</h3>
                     <p className="text-gray-600">Every transaction on-chain. See exactly where funds go.</p>
                   </div>
+                </div>
                 </div>
               </div>
             </div>
