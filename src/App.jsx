@@ -11,6 +11,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 
 // Local utils
 import { sendDonationTransaction } from './utils/donations';
+import { isMobileDevice, canConnectWalletInBrowser } from './utils/wallet';
 
 // React + Hooks
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -248,6 +249,15 @@ function App() {
 
 
 const connectWallet = async () => {
+  // Check if mobile and not in Phantom app
+  if (isMobileDevice() && !canConnectWalletInBrowser()) {
+    setToast({ 
+      type: 'error', 
+      message: 'On mobile, please open DropFund in the Phantom app browser' 
+    });
+    return;
+  }
+  
   // Trigger wallet connection via the hook
   try {
     await connect(); //
