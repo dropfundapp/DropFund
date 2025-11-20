@@ -1416,7 +1416,7 @@ const disconnectWallet = async () => {
                 {filteredCampaigns.map(campaign => {
             const progress = campaign.raised / campaign.goal * 100;
             return <div key={campaign.id} className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all group relative flex flex-row md:flex-col">
-                      {campaign.image && <div className="w-32 md:w-full md:h-64 overflow-hidden cursor-pointer flex-shrink-0" onClick={() => loadCampaignDetails(campaign.id)}>
+                      {campaign.image && <div className="w-32 aspect-square md:w-full md:h-64 md:aspect-auto overflow-hidden cursor-pointer flex-shrink-0 self-stretch" onClick={() => loadCampaignDetails(campaign.id)}>
                         <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       </div>}
                       <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => loadCampaignDetails(campaign.id)}>
@@ -1505,7 +1505,7 @@ const disconnectWallet = async () => {
                   {userCampaigns.map(campaign => {
               const progress = campaign.raised / campaign.goal * 100;
               return <div key={campaign.id} className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all group relative flex flex-row md:flex-col">
-                        {campaign.image && <div className="w-32 md:w-full md:h-64 overflow-hidden cursor-pointer flex-shrink-0" onClick={() => loadCampaignDetails(campaign.id)}>
+                        {campaign.image && <div className="w-32 aspect-square md:w-full md:h-64 md:aspect-auto overflow-hidden cursor-pointer flex-shrink-0 self-stretch" onClick={() => loadCampaignDetails(campaign.id)}>
                           <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                         </div>}
                         <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => loadCampaignDetails(campaign.id)}>
