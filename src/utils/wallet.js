@@ -1,24 +1,6 @@
 import { Transaction } from '@solana/web3.js';
 
 /**
- * Detects if user is on mobile device
- */
-export function isMobileDevice() {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-}
-
-/**
- * Checks if wallet connection will work in current environment
- */
-export function canConnectWalletInBrowser() {
-  // Desktop browsers with extensions work fine
-  if (!isMobileDevice()) return true;
-  
-  // Mobile: only works if already in Phantom's in-app browser
-  return Boolean(window.solana?.isPhantom);
-}
-
-/**
  * Normalizes different wallet adapter behaviors for transaction signing.
  * Some adapters return a signed Transaction, others return just the signature.
  */
