@@ -309,6 +309,9 @@ const disconnectWallet = async () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('featured');
   const [profileFilter, setProfileFilter] = useState('campaigns');
+  const walletDropdownRef = useRef(null);
+  const backdropClickTimeRef = useRef(0);
+  const walletClickTimeRef = useRef(0);
   const [, setUserTwitterUsername] = useState(null);
   const [dynamicWord, setDynamicWord] = useState('anything');
   const [viewedUserId, setViewedUserId] = useState(null);
@@ -326,6 +329,11 @@ const disconnectWallet = async () => {
       return () => clearTimeout(timer);
     }
   }, [toast]);
+
+  // Debug mobile menu state changes
+  useEffect(() => {
+    console.log('📱 Mobile menu state changed to:', mobileMenuOpen);
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     loadCampaigns();
@@ -748,17 +756,30 @@ const disconnectWallet = async () => {
     .wallet-adapter-dropdown-list {
       position: absolute !important;
       transition: none !important;
+      z-index: 110 !important;
     }
     .wallet-adapter-dropdown-list.wallet-adapter-dropdown-list-active {
       position: static !important;
     }
     .wallet-adapter-dropdown:has(.wallet-adapter-dropdown-list-active) {
       padding-bottom: 10px;
+      position: relative !important;
+      z-index: 110 !important;
     }
-    /* Hide "Change Wallet" and "Copy Address" on mobile - only show "Disconnect" */
-    .wallet-adapter-dropdown-list-item:first-child,
-    .wallet-adapter-dropdown-list-item:nth-child(2) {
-      display: none !important;
+    .wallet-adapter-button-trigger {
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
+      user-select: none !important;
+      -webkit-user-select: none !important;
+    }
+    .wallet-adapter-dropdown {
+      -webkit-tap-highlight-color: transparent !important;
+      touch-action: manipulation !important;
+      user-select: none !important;
+    }
+    .wallet-adapter-dropdown-list-item {
+      touch-action: manipulation !important;
+      user-select: none !important;
     }
   }
         .wallet-adapter-dropdown-list-item {
@@ -853,12 +874,32 @@ const disconnectWallet = async () => {
             <UserButton />
           </div>
         </div>
-          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-all relative z-[70]">
+          <button onClick={() => {
+            console.log('🟣 Menu button clicked, current state:', mobileMenuOpen, '-> toggling to:', !mobileMenuOpen);
+            setMobileMenuOpen(!mobileMenuOpen);
+          }} className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-all relative z-[70]">
             <Menu className="w-6 h-6 text-gray-900" />
           </button>
         </div>
       </nav>
-      <div className={`fixed inset-0 bg-black/50 z-[60] md:hidden transition-opacity duration-200 ${mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setMobileMenuOpen(false)} />
+      <div className={`fixed inset-0 bg-black/50 z-[60] md:hidden transition-opacity duration-200 ${mobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={(e) => {
+        console.log('🔴 Backdrop clicked', e.target);
+        // Don't close if clicking on wallet adapter elements or within the wallet dropdown area
+        if (e.target.closest('.wallet-adapter-dropdown, .wallet-adapter-modal-wrapper') || 
+            walletDropdownRef.current?.contains(e.target)) {
+          console.log('🟡 Ignoring - wallet element clicked');
+          return;
+        }
+        // Debounce to prevent rapid toggling
+        const now = Date.now();
+        if (now - backdropClickTimeRef.current < 300) {
+          console.log('🟡 Ignoring - too soon');
+          return;
+        }
+        backdropClickTimeRef.current = now;
+        console.log('🟢 Closing mobile menu');
+        setMobileMenuOpen(false);
+      }} />
       <div className={`fixed top-20 right-4 w-72 bg-white rounded-2xl shadow-2xl z-[100] md:hidden transition-all duration-200 ${mobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}`}>
           <div className="p-3">
             <div className="flex flex-col gap-1">
@@ -883,9 +924,14 @@ const disconnectWallet = async () => {
                     <Plus className="w-5 h-5" />
                     Launch Campaign
                   </button>
-                  
+                  <div className="h-px bg-gray-200 my-1"></div>
                 </>}
-              <div onClick={(e) => e.stopPropagation()} className={`w-full ${connected && publicKey ?'[&_button]:!bg-transparent [&_button]:hover:!bg-transparent [&_button_span]:hidden [&_button_svg]:!text-gray-900 [&>*]:!w-full [&_button]:!w-full [&_.wallet-adapter-button-trigger]:!w-full [&_.wallet-adapter-button-trigger_button]:!w-full [&_.wallet-adapter-dropdown]:!w-full [&_.wallet-adapter-dropdown-list]:!w-full [&_button]:!justify-center [&_button]:!px-4' : '[&_button_span]:font-medium [&_button]:!bg-[#ebebeb] [&_button]:!rounded-[50px] [&_button]:hover:!opacity-70 [&_button]:transition-opacity [&>*]:!w-full [&_button]:!w-full [&_.wallet-adapter-button-trigger]:!w-full [&_.wallet-adapter-button-trigger_button]:!w-full [&_.wallet-adapter-dropdown]:!w-full [&_.wallet-adapter-dropdown-list]:!w-full'}`}>
+              <div ref={walletDropdownRef} 
+                onClick={(e) => {
+                  console.log('� Wallet wrapper clicked', e.target);
+                  e.stopPropagation();
+                }} 
+                className={`w-full relative z-[110] [&_.wallet-adapter-button-trigger]:!pointer-events-auto ${connected && publicKey ?'[&_button]:!bg-transparent [&_button]:hover:!bg-transparent [&_button_span]:hidden [&_button_svg]:!text-gray-900 [&>*]:!w-full [&_button]:!w-full [&_.wallet-adapter-button-trigger]:!w-full [&_.wallet-adapter-button-trigger_button]:!w-full [&_.wallet-adapter-dropdown]:!w-full [&_.wallet-adapter-dropdown-list]:!w-full [&_button]:!justify-center [&_button]:!px-4' : '[&_button_span]:font-medium [&_button]:!bg-[#ebebeb] [&_button]:!rounded-[50px] [&_button]:hover:!opacity-70 [&_button]:transition-opacity [&>*]:!w-full [&_button]:!w-full [&_.wallet-adapter-button-trigger]:!w-full [&_.wallet-adapter-button-trigger_button]:!w-full [&_.wallet-adapter-dropdown]:!w-full [&_.wallet-adapter-dropdown-list]:!w-full'}`}>
                 <UserButton />
               </div>
             </div>
