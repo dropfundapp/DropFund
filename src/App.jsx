@@ -1855,10 +1855,10 @@ const disconnectWallet = async () => {
         </div>
       </footer>
 
-      {showFeatureModal && selectedFeature && <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-6" onClick={() => setShowFeatureModal(false)}>
-          <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-bold text-black">
+      {showFeatureModal && selectedFeature && <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end md:items-center md:justify-center z-50 md:p-6" onClick={() => setShowFeatureModal(false)}>
+          <div className="bg-white rounded-t-2xl md:rounded-2xl w-full md:max-w-2xl shadow-2xl max-h-[75vh] md:max-h-none flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-8 pb-4 md:pb-8 border-b md:border-b-0 border-gray-200">
+              <h2 className="text-2xl md:text-3xl font-bold text-black">
                 {selectedFeature === 'global' && 'Global Access'}
                 {selectedFeature === 'crypto' && 'Crypto Native'}
                 {selectedFeature === 'transparency' && 'Full Transparency'}
@@ -1870,7 +1870,7 @@ const disconnectWallet = async () => {
               </button>
             </div>
             
-            <div className="space-y-6">
+            <div className="overflow-y-auto p-8 md:pt-0 space-y-6">
               {selectedFeature === 'global' && <>
                 <p className="text-lg text-gray-700">Break free from traditional financial boundaries. DropFund enables truly global crowdfunding without the limitations of legacy banking systems.</p>
                 <div className="space-y-6">
