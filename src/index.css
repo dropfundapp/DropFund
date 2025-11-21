@@ -20,6 +20,9 @@
       "GRAD" 0,
       "ROND" 0;
   }
+  .font-bold {
+    font-weight: 600 !important;
+}
 }
 
 @layer utilities {

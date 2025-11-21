@@ -822,7 +822,7 @@ const disconnectWallet = async () => {
           </div>
           </>
         )}
-        <div className="max-w-8xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-8xl mx-auto px-6 pt-6 pb-4 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => {
           setView('home');
           setSelectedCampaign(null);
@@ -1315,7 +1315,7 @@ const disconnectWallet = async () => {
               </div>
             </div>
           </div>}
-        {view === 'home' && <div className="pt-12">
+        {view === 'home' && <div className="pt-6 md:pt-12">
             <div className="text-center mb-16">
               <h1 className="text-[4rem] md:text-[8rem] font-bold mb-6 leading-none">
                 <span className="text-gray-900">Fund</span>
