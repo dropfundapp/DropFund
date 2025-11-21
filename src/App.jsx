@@ -21,7 +21,7 @@ import { useDevapp, UserButton } from "@devfunlabs/web-sdk";
 // UI Icons
 import {
   Rocket, TrendingUp, DollarSign, Users, User, Target, CheckCircle, ArrowRight,
-  Plus, X, Coins, Menu, Search, Upload, Star, Clock, Zap, Share2, Copy, Check, Globe, Send, Droplets
+  Plus, X, Coins, Menu, Search, Upload, Star, Clock, Zap, Share2, Copy, Check, Globe, Send, Droplets, Eye, Shield
 } from "lucide-react";
 
 // Needed for Buffer in browsers
@@ -316,6 +316,8 @@ const disconnectWallet = async () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [toast, setToast] = useState(null);
+  const [showFeatureModal, setShowFeatureModal] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState(null);
   const fileInputRef = useRef(null);
   const filterScrollRef = useRef(null);
 
@@ -1337,48 +1339,80 @@ const disconnectWallet = async () => {
                   <UserButton />
                 </div>}
             </div>
-            <div className="mb-20 mt-20 -mx-6">
-              <div className="overflow-x-scroll scrollbar-hide md:overflow-visible md:px-0" style={{
+            <div className="mb-20 mt-20" style={{ marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)' }}>
+              <div className="overflow-x-scroll scrollbar-hide md:overflow-x-auto" style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
           scrollSnapType: 'x mandatory'
         }}>
-                <div className="inline-grid grid-flow-col auto-cols-[280px] md:grid md:grid-flow-row md:grid-cols-3 md:auto-cols-auto gap-6 pb-4 md:pb-0 md:mx-0" style={{
-            marginLeft: '24px',
-            marginRight: '24px'
+                <div className="inline-grid grid-flow-col auto-cols-[340px] gap-6 pb-4 md:pb-0" style={{
+            paddingLeft: 'max(24px, calc((100vw - 1440px) / 2 + 24px))',
+            paddingRight: 'max(24px, calc((100vw - 1440px) / 2 + 24px))'
           }}>
-                <div className="bg-white rounded-2xl overflow-hidden flex flex-col" style={{
-              scrollSnapAlign: 'center'
+                <div className="bg-gray-200 p-8 flex flex-col" style={{
+              scrollSnapAlign: 'center',
+              borderRadius: '2rem'
             }}>
-                  <div className="w-full">
-                    <img src="/03a41308-1ed6-4f90-938b-8063ab568e78.png" alt="Global Access" className="w-full h-auto" />
+                  <div className="w-12 h-12 mb-6">
+                    <Globe className="w-12 h-12 text-black" strokeWidth={1} />
                   </div>
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-black mb-3">Global Access</h3>
-                    <p className="text-gray-600">Fund anything. From anyone. Instantly. No banks, no borders.</p>
-                  </div>
+                  <h3 className="text-xl font-bold text-black mb-3">Global Access</h3>
+                  <p className="text-sm text-gray-600 mb-6">Fund anything. From anyone. Instantly. No banks, no borders.</p>
+                  <button onClick={() => { setSelectedFeature('global'); setShowFeatureModal(true); }} className="mt-auto w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
+                    <Plus className="w-5 h-5 text-black" strokeWidth={1} />
+                  </button>
                 </div>
-                <div className="bg-white rounded-2xl overflow-hidden flex flex-col" style={{
-              scrollSnapAlign: 'center'
+                <div className="bg-gray-200 p-8 flex flex-col" style={{
+              scrollSnapAlign: 'center',
+              borderRadius: '2rem'
             }}>
-                  <div className="w-full">
-                    <img src="/4af6b5fe-41a3-4061-85b9-2e7dfaff54d5.png" alt="Crypto Native" className="w-full h-auto" />
+                  <div className="w-12 h-12 mb-6">
+                    <DollarSign className="w-12 h-12 text-black" strokeWidth={1} />
                   </div>
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-black mb-3">Crypto Native</h3>
-                    <p className="text-gray-600">Accept SOL from anywhere. Near-zero payment processor fees.</p>
-                  </div>
+                  <h3 className="text-xl font-bold text-black mb-3">Crypto Native</h3>
+                  <p className="text-sm text-gray-600 mb-6">Accept SOL from anywhere. Near-zero payment processor fees.</p>
+                  <button onClick={() => { setSelectedFeature('crypto'); setShowFeatureModal(true); }} className="mt-auto w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
+                    <Plus className="w-5 h-5 text-black" strokeWidth={1} />
+                  </button>
                 </div>
-                <div className="bg-white rounded-2xl overflow-hidden flex flex-col" style={{
-              scrollSnapAlign: 'center'
+                <div className="bg-gray-200 p-8 flex flex-col" style={{
+              scrollSnapAlign: 'center',
+              borderRadius: '2rem'
             }}>
-                  <div className="w-full">
-                    <img src="/54ea0507-b216-4bf9-b1bf-de211403ff38.png" alt="Full Transparency" className="w-full h-auto" />
+                  <div className="w-12 h-12 mb-6">
+                    <Eye className="w-12 h-12 text-black" strokeWidth={1} />
                   </div>
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-black mb-3">Full Transparency</h3>
-                    <p className="text-gray-600">Every transaction on-chain. See exactly where funds go.</p>
+                  <h3 className="text-xl font-bold text-black mb-3">Full Transparency</h3>
+                  <p className="text-sm text-gray-600 mb-6">Every transaction on-chain. See exactly where funds go.</p>
+                  <button onClick={() => { setSelectedFeature('transparency'); setShowFeatureModal(true); }} className="mt-auto w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
+                    <Plus className="w-5 h-5 text-black" strokeWidth={1} />
+                  </button>
+                </div>
+                <div className="bg-gray-200 p-8 flex flex-col" style={{
+              scrollSnapAlign: 'center',
+              borderRadius: '2rem'
+            }}>
+                  <div className="w-12 h-12 mb-6">
+                    <Zap className="w-12 h-12 text-black" strokeWidth={1} />
                   </div>
+                  <h3 className="text-xl font-bold text-black mb-3">Lightning Fast</h3>
+                  <p className="text-sm text-gray-600 mb-6">Built on Solana. Transactions confirmed in seconds, not minutes.</p>
+                  <button onClick={() => { setSelectedFeature('fast'); setShowFeatureModal(true); }} className="mt-auto w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
+                    <Plus className="w-5 h-5 text-black" strokeWidth={1} />
+                  </button>
+                </div>
+                <div className="bg-gray-200 p-8 flex flex-col" style={{
+              scrollSnapAlign: 'center',
+              borderRadius: '2rem'
+            }}>
+                  <div className="w-12 h-12 mb-6">
+                    <Shield className="w-12 h-12 text-black" strokeWidth={1} />
+                  </div>
+                  <h3 className="text-xl font-bold text-black mb-3">Secure & Trustless</h3>
+                  <p className="text-sm text-gray-600 mb-6">Smart contracts ensure funds are safe. No intermediaries needed.</p>
+                  <button onClick={() => { setSelectedFeature('secure'); setShowFeatureModal(true); }} className="mt-auto w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
+                    <Plus className="w-5 h-5 text-black" strokeWidth={1} />
+                  </button>
                 </div>
                 </div>
               </div>
@@ -1820,6 +1854,115 @@ const disconnectWallet = async () => {
           </div>
         </div>
       </footer>
+
+      {showFeatureModal && selectedFeature && <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-6" onClick={() => setShowFeatureModal(false)}>
+          <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl font-bold text-black">
+                {selectedFeature === 'global' && 'Global Access'}
+                {selectedFeature === 'crypto' && 'Crypto Native'}
+                {selectedFeature === 'transparency' && 'Full Transparency'}
+                {selectedFeature === 'fast' && 'Lightning Fast'}
+                {selectedFeature === 'secure' && 'Secure & Trustless'}
+              </h2>
+              <button onClick={() => setShowFeatureModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              {selectedFeature === 'global' && <>
+                <p className="text-lg text-gray-700">Break free from traditional financial boundaries. DropFund enables truly global crowdfunding without the limitations of legacy banking systems.</p>
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">No Geographic Restrictions</h4>
+                    <p className="text-gray-600">Accept contributions from anyone, anywhere in the world. No country restrictions, no complicated international wire transfers.</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">Instant Settlement</h4>
+                    <p className="text-gray-600">Funds arrive in your wallet immediately. No waiting days for bank transfers or dealing with currency conversion delays.</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">Borderless by Design</h4>
+                    <p className="text-gray-600">Built on Solana's global network, enabling seamless cross-border transactions without intermediaries.</p>
+                  </div>
+                </div>
+              </>}
+              
+              {selectedFeature === 'crypto' && <>
+                <p className="text-lg text-gray-700">Leverage the power of cryptocurrency for efficient, low-cost fundraising that puts you in control of your funds.</p>
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">Near-Zero Fees</h4>
+                    <p className="text-gray-600">Pay only 1% protocol fee plus minimal Solana network fees (typically $0.00025). Compare that to traditional platforms charging 5-10%.</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">Direct Wallet-to-Wallet</h4>
+                    <p className="text-gray-600">Funds go directly to your wallet. No payment processors, no holds, no unexpected fees eating into your campaign funds.</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">SOL & Future Tokens</h4>
+                    <p className="text-gray-600">Accept SOL today, with support for more tokens coming soon. True crypto-native fundraising.</p>
+                  </div>
+                </div>
+              </>}
+              
+              {selectedFeature === 'transparency' && <>
+                <p className="text-lg text-gray-700">Every transaction is recorded on the Solana blockchain, creating an immutable, publicly verifiable record of all campaign activity.</p>
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">On-Chain Verification</h4>
+                    <p className="text-gray-600">Every donation is permanently recorded on Solana. Anyone can verify transactions using blockchain explorers.</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">Real-Time Tracking</h4>
+                    <p className="text-gray-600">See funds flow in real-time. No hidden fees, no mysterious deductions. What you see is what you get.</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">Build Trust</h4>
+                    <p className="text-gray-600">Backers can verify exactly where their money goes, building confidence and encouraging more support.</p>
+                  </div>
+                </div>
+              </>}
+              
+              {selectedFeature === 'fast' && <>
+                <p className="text-lg text-gray-700">Powered by Solana, one of the fastest blockchains in the world. Experience near-instant confirmations and blazing-fast performance.</p>
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">Sub-Second Confirmations</h4>
+                    <p className="text-gray-600">Transactions typically confirm in 400-600 milliseconds. That's faster than most credit card payments.</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">Solana's Speed</h4>
+                    <p className="text-gray-600">Built on Solana's high-performance blockchain with 65,000+ TPS capacity. No congestion, no delays.</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">Instant Access</h4>
+                    <p className="text-gray-600">Creators get immediate access to funds. No waiting periods, no settlement delays. Your money, instantly available.</p>
+                  </div>
+                </div>
+              </>}
+              
+              {selectedFeature === 'secure' && <>
+                <p className="text-lg text-gray-700">Smart contracts eliminate the need for intermediaries, ensuring your funds are secure and campaigns operate exactly as intended.</p>
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">Smart Contract Security</h4>
+                    <p className="text-gray-600">Funds are protected by audited smart contracts. No human can interfere with or redirect your donations.</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">No Middlemen</h4>
+                    <p className="text-gray-600">Direct peer-to-peer transactions. No payment processors that can freeze accounts or hold funds.</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h4 className="font-bold text-black mb-2">You Control Your Keys</h4>
+                    <p className="text-gray-600">Your wallet, your keys, your funds. True self-custody means nobody can lock you out of your own money.</p>
+                  </div>
+                </div>
+              </>}
+            </div>
+          </div>
+        </div>}
 
       {showShareModal && selectedCampaign && <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-6" onClick={() => setShowShareModal(false)}>
           <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
