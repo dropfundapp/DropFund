@@ -1429,8 +1429,9 @@ const disconnectWallet = async () => {
                             <span className="text-xs md:text-sm font-semibold text-black">{campaign.raised.toFixed(2)} / {campaign.goal} {campaign.token || 'SOL'}</span>
                           </div>
                           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-500 transition-all duration-500" style={{
-                      width: `${Math.min(progress, 100)}%`
+                            <div className="h-full transition-all duration-500" style={{
+                      width: `${Math.min(progress, 100)}%`,
+                      backgroundColor: '#58d16e'
                     }} />
                           </div>
                         </div>
@@ -1518,8 +1519,9 @@ const disconnectWallet = async () => {
                               <span className="text-xs md:text-sm font-semibold text-black">{campaign.raised.toFixed(2)} / {campaign.goal} {campaign.token || 'SOL'}</span>
                             </div>
                             <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                              <div className="h-full bg-blue-500 transition-all duration-500" style={{
-                        width: `${Math.min(progress, 100)}%`
+                              <div className="h-full transition-all duration-500" style={{
+                        width: `${Math.min(progress, 100)}%`,
+                        backgroundColor: '#58d16e'
                       }} />
                             </div>
                           </div>
@@ -1719,8 +1721,9 @@ const disconnectWallet = async () => {
                       </div>
                     </div>
                     <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500" style={{
-                    width: `${Math.min(selectedCampaign.raised / selectedCampaign.goal * 100, 100)}%`
+                      <div className="h-full" style={{
+                    width: `${Math.min(selectedCampaign.raised / selectedCampaign.goal * 100, 100)}%`,
+                    backgroundColor: '#58d16e'
                   }} />
                     </div>
                   </div>
