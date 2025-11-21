@@ -1679,7 +1679,7 @@ const disconnectWallet = async () => {
                     Recent Backers
                   </h2>
                   {selectedCampaign.donations && selectedCampaign.donations.length > 0 ? <div className="space-y-2">
-                      {selectedCampaign.donations.slice(-10).reverse().map(donation => <div key={donation.id} className="bg-white rounded-xl p-4">
+                      {selectedCampaign.donations.slice(-10).reverse().map(donation => <div key={donation.id} className="rounded-xl p-4 hover:bg-gray-50 transition-colors cursor-pointer">
                   <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
@@ -1695,6 +1695,13 @@ const disconnectWallet = async () => {
                             <div className="font-bold text-black">{donation.amount} {selectedCampaign.token || 'SOL'}</div>
                           </div>
                         </div>)}
+                      {selectedCampaign.donations.length > 10 && (
+                        <div className="text-center py-3">
+                          <p className="text-sm text-gray-500">
+                            + {selectedCampaign.donations.length - 10} more backer{selectedCampaign.donations.length - 10 > 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      )}
                     </div> : <p className="text-gray-600">No backers yet. Be the first!</p>}
                 </div>
               </div>
@@ -1740,7 +1747,7 @@ const disconnectWallet = async () => {
                     Recent Backers
                   </h2>
                   {selectedCampaign.donations && selectedCampaign.donations.length > 0 ? <div className="space-y-2">
-                      {selectedCampaign.donations.slice(-10).reverse().map(donation => <div key={donation.id} className="bg-white rounded-xl p-4">
+                      {selectedCampaign.donations.slice(-10).reverse().map(donation => <div key={donation.id} className="rounded-xl p-4 hover:bg-gray-50 transition-colors cursor-pointer">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
@@ -1756,6 +1763,13 @@ const disconnectWallet = async () => {
                             <div className="font-bold text-black">{donation.amount} {selectedCampaign.token || 'SOL'}</div>
                           </div>
                         </div>)}
+                      {selectedCampaign.donations.length > 10 && (
+                        <div className="text-center py-3">
+                          <p className="text-sm text-gray-500">
+                            + {selectedCampaign.donations.length - 10} more backer{selectedCampaign.donations.length - 10 > 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      )}
                     </div> : <p className="text-gray-600">No backers yet. Be the first!</p>}
                 </div>
               </div>
