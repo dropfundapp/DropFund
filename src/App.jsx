@@ -1873,16 +1873,16 @@ const disconnectWallet = async () => {
             <div className="space-y-6">
               {selectedFeature === 'global' && <>
                 <p className="text-lg text-gray-700">Break free from traditional financial boundaries. DropFund enables truly global crowdfunding without the limitations of legacy banking systems.</p>
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-xl p-6">
+                <div className="space-y-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">No Geographic Restrictions</h4>
                     <p className="text-gray-600">Accept contributions from anyone, anywhere in the world. No country restrictions, no complicated international wire transfers.</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">Instant Settlement</h4>
                     <p className="text-gray-600">Funds arrive in your wallet immediately. No waiting days for bank transfers or dealing with currency conversion delays.</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">Borderless by Design</h4>
                     <p className="text-gray-600">Built on Solana's global network, enabling seamless cross-border transactions without intermediaries.</p>
                   </div>
@@ -1891,16 +1891,16 @@ const disconnectWallet = async () => {
               
               {selectedFeature === 'crypto' && <>
                 <p className="text-lg text-gray-700">Leverage the power of cryptocurrency for efficient, low-cost fundraising that puts you in control of your funds.</p>
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-xl p-6">
+                <div className="space-y-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">Near-Zero Fees</h4>
                     <p className="text-gray-600">Pay only 1% protocol fee plus minimal Solana network fees (typically $0.00025). Compare that to traditional platforms charging 5-10%.</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">Direct Wallet-to-Wallet</h4>
                     <p className="text-gray-600">Funds go directly to your wallet. No payment processors, no holds, no unexpected fees eating into your campaign funds.</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">SOL & Future Tokens</h4>
                     <p className="text-gray-600">Accept SOL today, with support for more tokens coming soon. True crypto-native fundraising.</p>
                   </div>
@@ -1909,16 +1909,16 @@ const disconnectWallet = async () => {
               
               {selectedFeature === 'transparency' && <>
                 <p className="text-lg text-gray-700">Every transaction is recorded on the Solana blockchain, creating an immutable, publicly verifiable record of all campaign activity.</p>
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-xl p-6">
+                <div className="space-y-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">On-Chain Verification</h4>
                     <p className="text-gray-600">Every donation is permanently recorded on Solana. Anyone can verify transactions using blockchain explorers.</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">Real-Time Tracking</h4>
                     <p className="text-gray-600">See funds flow in real-time. No hidden fees, no mysterious deductions. What you see is what you get.</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">Build Trust</h4>
                     <p className="text-gray-600">Backers can verify exactly where their money goes, building confidence and encouraging more support.</p>
                   </div>
@@ -1927,16 +1927,16 @@ const disconnectWallet = async () => {
               
               {selectedFeature === 'fast' && <>
                 <p className="text-lg text-gray-700">Powered by Solana, one of the fastest blockchains in the world. Experience near-instant confirmations and blazing-fast performance.</p>
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-xl p-6">
+                <div className="space-y-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">Sub-Second Confirmations</h4>
                     <p className="text-gray-600">Transactions typically confirm in 400-600 milliseconds. That's faster than most credit card payments.</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">Solana's Speed</h4>
                     <p className="text-gray-600">Built on Solana's high-performance blockchain with 65,000+ TPS capacity. No congestion, no delays.</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">Instant Access</h4>
                     <p className="text-gray-600">Creators get immediate access to funds. No waiting periods, no settlement delays. Your money, instantly available.</p>
                   </div>
@@ -1945,16 +1945,16 @@ const disconnectWallet = async () => {
               
               {selectedFeature === 'secure' && <>
                 <p className="text-lg text-gray-700">Smart contracts eliminate the need for intermediaries, ensuring your funds are secure and campaigns operate exactly as intended.</p>
-                <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-xl p-6">
+                <div className="space-y-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">Smart Contract Security</h4>
                     <p className="text-gray-600">Funds are protected by audited smart contracts. No human can interfere with or redirect your donations.</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">No Middlemen</h4>
                     <p className="text-gray-600">Direct peer-to-peer transactions. No payment processors that can freeze accounts or hold funds.</p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-6">
+                  <div>
                     <h4 className="font-bold text-black mb-2">You Control Your Keys</h4>
                     <p className="text-gray-600">Your wallet, your keys, your funds. True self-custody means nobody can lock you out of your own money.</p>
                   </div>
