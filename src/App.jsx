@@ -1345,7 +1345,7 @@ const disconnectWallet = async () => {
           msOverflowStyle: 'none',
           scrollSnapType: 'x mandatory'
         }}>
-                <div className="inline-grid grid-flow-col auto-cols-[340px] gap-6 pb-4 md:pb-0" style={{
+                <div className="inline-grid grid-flow-col auto-cols-[300px] md:auto-cols-[340px] gap-6 pb-4 md:pb-0" style={{
             paddingLeft: 'max(24px, calc((100vw - 1440px) / 2 + 24px))',
             paddingRight: 'max(24px, calc((100vw - 1440px) / 2 + 24px))'
           }}>
@@ -1357,7 +1357,7 @@ const disconnectWallet = async () => {
                     <Globe className="w-12 h-12 text-black" strokeWidth={1} />
                   </div>
                   <h3 className="text-xl font-bold text-black mb-3">Global Access</h3>
-                  <p className="text-sm text-gray-600 mb-6">Fund anything. From anyone. Instantly. No banks, no borders.</p>
+                  <p className="text-base text-gray-600 mb-6">Fund anything. From anyone. Instantly. No banks, no borders.</p>
                   <button onClick={() => { setSelectedFeature('global'); setShowFeatureModal(true); }} className="mt-auto w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
                     <Plus className="w-5 h-5 text-black" strokeWidth={1} />
                   </button>
@@ -1370,7 +1370,7 @@ const disconnectWallet = async () => {
                     <DollarSign className="w-12 h-12 text-black" strokeWidth={1} />
                   </div>
                   <h3 className="text-xl font-bold text-black mb-3">Crypto Native</h3>
-                  <p className="text-sm text-gray-600 mb-6">Accept SOL from anywhere. Near-zero payment processor fees.</p>
+                  <p className="text-base text-gray-600 mb-6">Accept SOL from anywhere. Near-zero payment processor fees.</p>
                   <button onClick={() => { setSelectedFeature('crypto'); setShowFeatureModal(true); }} className="mt-auto w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
                     <Plus className="w-5 h-5 text-black" strokeWidth={1} />
                   </button>
@@ -1383,7 +1383,7 @@ const disconnectWallet = async () => {
                     <Eye className="w-12 h-12 text-black" strokeWidth={1} />
                   </div>
                   <h3 className="text-xl font-bold text-black mb-3">Full Transparency</h3>
-                  <p className="text-sm text-gray-600 mb-6">Every transaction on-chain. See exactly where funds go.</p>
+                  <p className="text-base text-gray-600 mb-6">Every transaction on-chain. See exactly where funds go.</p>
                   <button onClick={() => { setSelectedFeature('transparency'); setShowFeatureModal(true); }} className="mt-auto w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
                     <Plus className="w-5 h-5 text-black" strokeWidth={1} />
                   </button>
@@ -1396,7 +1396,7 @@ const disconnectWallet = async () => {
                     <Zap className="w-12 h-12 text-black" strokeWidth={1} />
                   </div>
                   <h3 className="text-xl font-bold text-black mb-3">Lightning Fast</h3>
-                  <p className="text-sm text-gray-600 mb-6">Built on Solana. Transactions confirmed in seconds, not minutes.</p>
+                  <p className="text-base text-gray-600 mb-6">Built on Solana. Transactions confirmed in seconds, not minutes.</p>
                   <button onClick={() => { setSelectedFeature('fast'); setShowFeatureModal(true); }} className="mt-auto w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
                     <Plus className="w-5 h-5 text-black" strokeWidth={1} />
                   </button>
@@ -1409,7 +1409,7 @@ const disconnectWallet = async () => {
                     <Shield className="w-12 h-12 text-black" strokeWidth={1} />
                   </div>
                   <h3 className="text-xl font-bold text-black mb-3">Secure & Trustless</h3>
-                  <p className="text-sm text-gray-600 mb-6">Smart contracts ensure funds are safe. No intermediaries needed.</p>
+                  <p className="text-base text-gray-600 mb-6">Smart contracts ensure funds are safe. No intermediaries needed.</p>
                   <button onClick={() => { setSelectedFeature('secure'); setShowFeatureModal(true); }} className="mt-auto w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
                     <Plus className="w-5 h-5 text-black" strokeWidth={1} />
                   </button>
