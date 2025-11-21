@@ -904,7 +904,7 @@ const disconnectWallet = async () => {
                 New to crypto? No worries! Follow these simple steps to start funding dreams on the blockchain.
               </p>
               <div className="space-y-6">
-                <div className="bg-gray-50 rounded-2xl p-8">
+                <div className="bg-white rounded-2xl p-8">
                   <div className="flex flex-col">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 text-xl font-bold text-white">
@@ -935,7 +935,7 @@ const disconnectWallet = async () => {
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded-2xl p-8">
+                <div className="bg-white rounded-2xl p-8">
                   <div className="flex flex-col">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 text-xl font-bold text-white">
@@ -973,7 +973,7 @@ const disconnectWallet = async () => {
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded-2xl p-8">
+                <div className="bg-white rounded-2xl p-8">
                   <div className="flex flex-col">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 text-xl font-bold text-white">
@@ -1004,7 +1004,7 @@ const disconnectWallet = async () => {
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded-2xl p-8">
+                <div className="bg-white rounded-2xl p-8">
                   <div className="flex flex-col">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 text-xl font-bold text-white">
@@ -1037,7 +1037,7 @@ const disconnectWallet = async () => {
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded-2xl p-8">
+                <div className="bg-white rounded-2xl p-8">
                   <div className="flex flex-col">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 text-xl font-bold text-white">
@@ -1073,7 +1073,7 @@ const disconnectWallet = async () => {
                   </div>
                 </div>
               </div>
-              <div className="mt-12 bg-gray-50 rounded-2xl p-8 text-center">
+              <div className="mt-12 bg-white rounded-2xl p-8 text-center">
                 <h3 className="text-2xl font-bold mb-3 text-black">Ready to Start?</h3>
                 <p className="text-gray-600 mb-6">
                   Jump into the world of transparent, blockchain-powered crowdfunding!
@@ -1406,7 +1406,7 @@ const disconnectWallet = async () => {
               </div>
             </div>
             {filteredCampaigns.length === 0 ? <div className="text-center py-20">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
                   <Rocket className="w-10 h-10 text-gray-400" />
                 </div>
                 <p className="text-xl text-gray-600">
@@ -1494,7 +1494,7 @@ const disconnectWallet = async () => {
             </div>
             {profileFilter === 'campaigns' ? <>
               {userCampaigns.length === 0 ? <div className="text-center py-20">
-                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
                     <Rocket className="w-10 h-10 text-gray-400" />
                   </div>
                   <p className="text-xl text-gray-600 mb-4">You haven't created any campaigns yet</p>
@@ -1553,7 +1553,7 @@ const disconnectWallet = async () => {
                 </div>}
             </> : <>
               {userDonations.length === 0 ? <div className="text-center py-20">
-                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
                     <DollarSign className="w-10 h-10 text-gray-400" />
                   </div>
                   <p className="text-xl text-gray-600">No donations yet</p>
