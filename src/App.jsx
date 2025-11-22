@@ -483,13 +483,19 @@ const disconnectWallet = async () => {
         userId: viewedUserId || currentUser
       });
       const donationsWithCampaigns = await Promise.all(donations.map(async donation => {
-        const campaign = await devbaseClient.getEntity('campaigns', donation.campaignId);
-        return {
-          ...donation,
-          campaign
-        };
+        try {
+          const campaign = await devbaseClient.getEntity('campaigns', donation.campaignId);
+          return {
+            ...donation,
+            campaign
+          };
+        } catch (error) {
+          // Campaign doesn't exist, return null
+          return null;
+        }
       }));
-      setUserDonations(donationsWithCampaigns);
+      // Filter out null values (campaigns that don't exist)
+      setUserDonations(donationsWithCampaigns.filter(d => d !== null && d.campaign));
     } catch (error) {
       console.error('Error loading user donations:', error);
     }
