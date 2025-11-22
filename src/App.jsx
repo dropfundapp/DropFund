@@ -320,6 +320,7 @@ const disconnectWallet = async () => {
   const [selectedFeature, setSelectedFeature] = useState(null);
   const fileInputRef = useRef(null);
   const filterScrollRef = useRef(null);
+  const scrollPositionRef = useRef(0);
 
   // Auto-dismiss toast after 3 seconds
   useEffect(() => {
@@ -332,17 +333,17 @@ const disconnectWallet = async () => {
   // Block body scroll when feature modal is open
   useEffect(() => {
     if (showFeatureModal) {
+      scrollPositionRef.current = window.scrollY;
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
       document.body.style.width = '100%';
-      document.body.style.top = `-${window.scrollY}px`;
+      document.body.style.top = `-${scrollPositionRef.current}px`;
     } else {
-      const scrollY = document.body.style.top;
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.width = '';
       document.body.style.top = '';
-      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      window.scrollTo(0, scrollPositionRef.current);
     }
     return () => {
       document.body.style.overflow = '';
@@ -1879,8 +1880,8 @@ const disconnectWallet = async () => {
       </footer>
 
       {showFeatureModal && selectedFeature && <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-end md:items-center md:justify-center z-50 md:p-6 overflow-hidden overscroll-none" onClick={() => setShowFeatureModal(false)}>
-          <div className="bg-white rounded-t-2xl md:rounded-2xl w-full md:max-w-2xl shadow-2xl max-h-[75vh] md:max-h-none flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-8 pb-4 md:pb-8 border-b md:border-b-0 border-gray-200">
+          <div className="bg-white rounded-t-2xl md:rounded-2xl w-full md:max-w-2xl shadow-2xl max-h-[75vh] md:max-h-none overflow-y-auto scrollbar-hide" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-8 pb-6">
               <h2 className="text-2xl md:text-3xl font-bold text-black">
                 {selectedFeature === 'global' && 'Global Access'}
                 {selectedFeature === 'crypto' && 'Crypto Native'}
@@ -1893,7 +1894,7 @@ const disconnectWallet = async () => {
               </button>
             </div>
             
-            <div className="overflow-y-auto p-8 md:pt-0 space-y-6">
+            <div className="px-8 pb-8 space-y-6">
               {selectedFeature === 'global' && <>
                 <p className="text-lg text-gray-700">Break free from traditional financial boundaries. DropFund enables truly global crowdfunding without the limitations of legacy banking systems.</p>
                 <div className="space-y-6">

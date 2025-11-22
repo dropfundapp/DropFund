@@ -35,17 +35,15 @@
   }
   
   .animate-slide-up {
-    animation: slideUp 0.3s ease-out;
+    animation: slideUp 0.1s ease-out;
   }
   
   @keyframes slideUp {
     from {
-      transform: translateY(100px);
-      opacity: 0;
+      transform: translateY(100%);
     }
     to {
       transform: translateY(0);
-      opacity: 1;
     }
   }
 }
