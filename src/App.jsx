@@ -757,19 +757,30 @@ const disconnectWallet = async () => {
       {DEBUG && <DebugPanel />}
       <style>{`
         .wallet-adapter-modal-wrapper {
-          background-color: #16181d !important;
-          border-radius: 8px !important;
+          background-color: #f0f1f2 !important;
+          border-radius: 1rem !important;
         }
         .wallet-adapter-modal-wrapper .wallet-adapter-button:hover {
-          background-color: #33373d !important;
+          background-color: #e5e7eb !important;
         }
         .wallet-adapter-modal-list .wallet-adapter-button {
-          border-radius: 8px !important;
+          border-radius: 0.5rem !important;
         }
+          .wallet-adapter-modal-list {
+          padding-left: 1rem !important;
+          padding-right: 1rem !important;
+      }
         .wallet-adapter-button {
           justify-content: center !important;
           color: #545454 !important;
           font-weight: 500 !important;
+        }
+          .wallet-adapter-modal-title {
+          color: #545454 !important;
+        }
+          .wallet-adapter-modal-button-close {
+          background-color: #ffffffff !important;
+          color: #545454; !important;
         }
         .wallet-adapter-dropdown-list {
           box-shadow: none !important;
