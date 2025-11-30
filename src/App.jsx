@@ -858,6 +858,9 @@ const disconnectWallet = async () => {
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => {
           setView('home');
           setSelectedCampaign(null);
+          setTimeout(() => {
+            document.getElementById('campaigns-section')?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
         }}>
             <img src="/Dropfund logo drop lines 2.png" alt="DropFund" className="w-10 h-10 rounded-lg" />
             <span className="text-2xl font-bold text-black">DropFund</span>
@@ -1110,7 +1113,12 @@ const disconnectWallet = async () => {
                 <p className="text-gray-600 mb-6">
                   Jump into the world of transparent, blockchain-powered crowdfunding!
                 </p>
-                <button onClick={() => setView('home')} className="px-8 py-3 bg-blue-500 text-white rounded-full font-semibold hover:bg-blue-600 transition-all inline-flex items-center gap-2">
+                <button onClick={() => {
+                  setView('home');
+                  setTimeout(() => {
+                    document.getElementById('campaigns-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }} className="px-8 py-3 bg-blue-500 text-white rounded-full font-semibold hover:bg-blue-600 transition-all inline-flex items-center gap-2">
                   Explore Campaigns
                   <ArrowRight className="w-5 h-5" />
                 </button>
@@ -1448,7 +1456,7 @@ const disconnectWallet = async () => {
               </div>
             </div>
             <h2 className="text-3xl font-bold mb-6 text-black text-center">Active Campaigns</h2>
-            <div className="sticky top-0 z-40 bg-page pb-4 -mx-6 px-6 md:px-0">
+            <div id="campaigns-section" className="sticky top-0 z-40 bg-page pb-4 -mx-6 px-6 md:px-0">
               <div className="mb-4 pt-4">
                 <div className="relative max-w-2xl mx-auto">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -1664,6 +1672,9 @@ const disconnectWallet = async () => {
             <button onClick={() => {
           setView('home');
           setSelectedCampaign(null);
+          setTimeout(() => {
+            document.getElementById('campaigns-section')?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
         }} className="text-blue-500 hover:text-blue-600 flex items-center gap-2 mb-6">
               ← Back to campaigns
             </button>
@@ -1694,7 +1705,7 @@ const disconnectWallet = async () => {
                   {selectedCampaign.title}
                 </h1>
                 
-                <p className="text-lg text-gray-600 mb-6">{selectedCampaign.description}</p>
+                <p className="text-lg text-gray-600 mb-6 whitespace-pre-wrap">{selectedCampaign.description}</p>
                 
                 {(selectedCampaign.websiteUrl || selectedCampaign.xUrl || selectedCampaign.telegramUrl) && <div className="flex flex-wrap gap-3 mb-6">
                     {selectedCampaign.websiteUrl && <a href={selectedCampaign.websiteUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white hover:bg-gray-200 rounded-lg flex items-center gap-2 transition-colors group">
@@ -1843,7 +1854,7 @@ const disconnectWallet = async () => {
             </div>
           </div>}
       </div>
-      <footer className="bg-white mt-20">
+      <footer className="bg-white">
         <div className="max-w-8xl mx-auto px-6 py-12">
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>
