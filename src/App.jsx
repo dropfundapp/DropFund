@@ -884,9 +884,6 @@ const disconnectWallet = async () => {
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => {
           setView('home');
           setSelectedCampaign(null);
-          setTimeout(() => {
-            document.getElementById('campaigns-section')?.scrollIntoView({ behavior: 'smooth' });
-          }, 100);
         }}>
             <img src="/Dropfund logo drop lines 2.png" alt="DropFund" className="w-10 h-10 rounded-lg" />
             <span className="text-2xl font-bold text-black">DropFund</span>
