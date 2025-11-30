@@ -787,6 +787,21 @@ const disconnectWallet = async () => {
           border-radius: 8px !important;
           background-color: #fff !important;
         }
+          .wallet-install-steps {
+          color: #545454 !important;
+          font-family: Google Sans Flex, sans-serif;
+          }
+          .wallet-adapter-modal-button-circle {
+          background-color: #ffffff !important;
+          color: #545454 !important;
+        }
+          .wallet-modal-primary-button {
+          background-color: #3b82f6 !important;
+          border-radius: 5rem !important;
+          }
+          .wallet-install-steps-item a, .wallet-install-steps-item svg {
+    color: #3b82f6;
+}
 @media (max-width: 767px) {
     .wallet-adapter-dropdown-list {
       position: absolute !important;
