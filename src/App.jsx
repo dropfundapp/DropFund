@@ -1585,7 +1585,7 @@ const disconnectWallet = async () => {
                         <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       </div>}
                       <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => navigate(`/campaign/${campaign.id}`)}>
-                        <h3 className="md:text-xl font-bold mb-2 md:mb-3 text-black" style={{ fontSize: '1.1rem' }}>
+                        <h3 className="text-[1.1rem] md:text-xl font-bold mb-2 md:mb-3 text-black">
                           {campaign.title}
                         </h3>
                         <div className="mb-3 md:mb-4 mt-auto">
@@ -1675,7 +1675,7 @@ const disconnectWallet = async () => {
                           <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                         </div>}
                         <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => navigate(`/campaign/${campaign.id}`)}>
-                          <h3 className="md:text-xl font-bold mb-2 md:mb-3 text-black" style={{ fontSize: '1.1rem' }}>
+                          <h3 className="text-[1.1rem] md:text-xl font-bold mb-2 md:mb-3 text-black">
                             {campaign.title}
                           </h3>
                           <div className="mb-3 md:mb-4 mt-auto">
@@ -1793,7 +1793,7 @@ const disconnectWallet = async () => {
                 {selectedCampaign.image && <div className="w-full aspect-video rounded-2xl overflow-hidden mb-6">
                   <img src={selectedCampaign.image} alt={selectedCampaign.title} className="w-full h-full object-cover" />
                 </div>}
-                <h1 className="font-bold text-black mb-4" style={{ fontSize: '1.5rem', lineHeight: '2rem' }}>
+                <h1 className="text-2xl md:text-4xl font-bold text-black mb-4">
                   {selectedCampaign.title}
                 </h1>
                 
