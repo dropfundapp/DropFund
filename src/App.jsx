@@ -294,6 +294,7 @@ const disconnectWallet = async () => {
       setView('home');
       setSelectedCampaign(null);
       lastLoadedCampaignRef.current = null;
+      updateMetaTags(null);
     } else if (campaignIdFromPath) {
       // Always load campaign details when URL changes to a campaign
       if (lastLoadedCampaignRef.current !== campaignIdFromPath) {
@@ -304,15 +305,19 @@ const disconnectWallet = async () => {
       setView('profile');
       setViewedUserId(userIdFromPath);
       lastLoadedCampaignRef.current = null;
+      updateMetaTags(null);
     } else if (path === '/getting-started') {
       setView('getting-started');
       lastLoadedCampaignRef.current = null;
+      updateMetaTags(null);
     } else if (path === '/terms') {
       setView('terms');
       lastLoadedCampaignRef.current = null;
+      updateMetaTags(null);
     } else if (path === '/privacy') {
       setView('privacy');
       lastLoadedCampaignRef.current = null;
+      updateMetaTags(null);
     }
   }, [location.pathname]);
 
@@ -705,12 +710,41 @@ const disconnectWallet = async () => {
     setLoading(false);
   };
   
+  const updateMetaTags = (campaign) => {
+    // Update page title
+    document.title = campaign ? `${campaign.title} - DropFund` : 'DropFund - Decentralized Crowdfunding on Solana';
+    
+    // Update or create Open Graph meta tags
+    const updateMetaTag = (property, content) => {
+      let element = document.querySelector(`meta[property="${property}"]`);
+      if (!element) {
+        element = document.createElement('meta');
+        element.setAttribute('property', property);
+        document.head.appendChild(element);
+      }
+      element.setAttribute('content', content);
+    };
+    
+    if (campaign) {
+      updateMetaTag('og:title', campaign.title);
+      updateMetaTag('og:description', campaign.description.slice(0, 200));
+      updateMetaTag('og:image', campaign.image || '/Dropfund logo drop lines 2.png');
+      updateMetaTag('og:url', `${window.location.origin}/campaign/${campaign.id}`);
+    } else {
+      updateMetaTag('og:title', 'DropFund - Decentralized Crowdfunding on Solana');
+      updateMetaTag('og:description', 'Launch and support crowdfunding campaigns on Solana. Decentralized, transparent, and secure.');
+      updateMetaTag('og:image', '/Dropfund logo drop lines 2.png');
+      updateMetaTag('og:url', window.location.origin);
+    }
+  };
+
   const loadCampaignDetails = async (campaignId, existingCampaign = null) => {
     try {
       // If we have existing campaign data, show it immediately
       if (existingCampaign) {
         setSelectedCampaign(existingCampaign);
         setView('details');
+        updateMetaTags(existingCampaign);
       }
       
       // Fetch full details (campaign, donations, milestones)
@@ -721,14 +755,16 @@ const disconnectWallet = async () => {
       ]);
       
       const raised = donations.reduce((sum, d) => sum + d.amount, 0);
-      setSelectedCampaign({
+      const campaignWithDetails = {
         ...campaign,
         raised,
         backers: donations.length,
         donations,
         milestones
-      });
+      };
+      setSelectedCampaign(campaignWithDetails);
       setView('details');
+      updateMetaTags(campaignWithDetails);
     } catch (error) {
       console.error('Error loading campaign details:', error);
     }
@@ -1535,8 +1571,8 @@ const disconnectWallet = async () => {
               </div> : <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCampaigns.map(campaign => {
             const progress = campaign.raised / campaign.goal * 100;
-            return <div key={campaign.id} className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all group relative flex flex-row md:flex-col">
-                      {campaign.image && <div className="w-32 aspect-square md:w-full md:h-64 md:aspect-auto overflow-hidden cursor-pointer flex-shrink-0 self-stretch" onClick={() => navigate(`/campaign/${campaign.id}`)}>
+            return <div key={campaign.id} className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all group relative flex flex-col">
+                      {campaign.image && <div className="w-full h-64 overflow-hidden cursor-pointer flex-shrink-0" onClick={() => navigate(`/campaign/${campaign.id}`)}>
                         <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       </div>}
                       <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => navigate(`/campaign/${campaign.id}`)}>
@@ -1625,8 +1661,8 @@ const disconnectWallet = async () => {
                 </div> : <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {userCampaigns.map(campaign => {
               const progress = campaign.raised / campaign.goal * 100;
-              return <div key={campaign.id} className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all group relative flex flex-row md:flex-col">
-                        {campaign.image && <div className="w-32 aspect-square md:w-full md:h-64 md:aspect-auto overflow-hidden cursor-pointer flex-shrink-0 self-stretch" onClick={() => navigate(`/campaign/${campaign.id}`)}>
+              return <div key={campaign.id} className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all group relative flex flex-col">
+                        {campaign.image && <div className="w-full h-64 overflow-hidden cursor-pointer flex-shrink-0" onClick={() => navigate(`/campaign/${campaign.id}`)}>
                           <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                         </div>}
                         <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => navigate(`/campaign/${campaign.id}`)}>
@@ -1748,7 +1784,7 @@ const disconnectWallet = async () => {
                 {selectedCampaign.image && <div className="w-full aspect-video rounded-2xl overflow-hidden mb-6">
                   <img src={selectedCampaign.image} alt={selectedCampaign.title} className="w-full h-full object-cover" />
                 </div>}
-                <h1 className="text-4xl font-bold text-black mb-4">
+                <h1 className="text-3xl font-bold text-black mb-4">
                   {selectedCampaign.title}
                 </h1>
                 
