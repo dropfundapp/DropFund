@@ -1,16 +1,11 @@
 {
+  "functions": {
+    "api/og-campaign.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
   "rewrites": [
-    {
-      "source": "/campaign/:id",
-      "destination": "/api/og-campaign?id=:id",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(.*bot.*|.*crawler.*|.*spider.*|.*Telegram.*|.*Twitter.*|.*Facebook.*|.*LinkedIn.*|.*WhatsApp.*)"
-        }
-      ]
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
