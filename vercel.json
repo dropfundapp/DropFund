@@ -1,10 +1,16 @@
 {
-  "functions": {
-    "api/og-campaign.js": {
-      "memory": 1024,
-      "maxDuration": 10
+  "buildCommand": "npm run build",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "all"
+        }
+      ]
     }
-  },
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
