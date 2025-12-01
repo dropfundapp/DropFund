@@ -361,6 +361,20 @@ const disconnectWallet = async () => {
   const fileInputRef = useRef(null);
   const filterScrollRef = useRef(null);
   const scrollPositionRef = useRef(0);
+  const campaignsSectionRef = useRef(null);
+  const campaignsGridRef = useRef(null);
+
+  // Scroll to campaigns grid when filter changes
+  useEffect(() => {
+    if (campaignsGridRef.current && campaignsSectionRef.current) {
+      const sectionRect = campaignsSectionRef.current.getBoundingClientRect();
+      const sectionHeight = sectionRect.height;
+      const gridTop = campaignsGridRef.current.getBoundingClientRect().top + window.scrollY;
+      const scrollTo = gridTop - sectionHeight - 20; // 20px extra padding
+      
+      window.scrollTo({ top: scrollTo, behavior: 'smooth' });
+    }
+  }, [activeFilter]);
 
   // Auto-dismiss toast after 3 seconds
   useEffect(() => {
@@ -596,15 +610,10 @@ const disconnectWallet = async () => {
     icon: DollarSign
   }];
   const handleFilterChange = filterValue => {
-    // Preserve the current vertical scroll position
-    const currentScrollY = window.scrollY;
-    
     setActiveFilter(filterValue);
+    
     if (filterScrollRef.current) {
       requestAnimationFrame(() => {
-        // Restore vertical scroll position
-        window.scrollTo(0, currentScrollY);
-        
         const activeButton = filterScrollRef.current.querySelector(`[data-filter="${filterValue}"]`);
         if (activeButton) {
           const container = filterScrollRef.current;
@@ -1540,7 +1549,7 @@ const disconnectWallet = async () => {
               </div>
             </div>
             <h2 className="text-3xl font-bold mb-6 text-black text-center">Active Campaigns</h2>
-            <div id="campaigns-section" className="sticky top-0 z-40 bg-page pb-4 -mx-6 px-6 md:px-0">
+            <div ref={campaignsSectionRef} id="campaigns-section" className="sticky top-0 z-40 bg-page pb-4 -mx-6 px-6 md:px-0">
               <div className="mb-4 pt-4">
                 <div className="relative max-w-2xl mx-auto">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -1568,7 +1577,7 @@ const disconnectWallet = async () => {
                 <p className="text-xl text-gray-600">
                   {searchQuery ? 'No campaigns match your search.' : 'No campaigns yet. Be the first to launch!'}
                 </p>
-              </div> : <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              </div> : <div ref={campaignsGridRef} key={activeFilter} className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCampaigns.map(campaign => {
             const progress = campaign.raised / campaign.goal * 100;
             return <div key={campaign.id} className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all group relative flex flex-col">
@@ -1576,7 +1585,7 @@ const disconnectWallet = async () => {
                         <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       </div>}
                       <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => navigate(`/campaign/${campaign.id}`)}>
-                        <h3 className="text-base md:text-xl font-bold mb-2 md:mb-3 text-black">
+                        <h3 className="md:text-xl font-bold mb-2 md:mb-3 text-black" style={{ fontSize: '1.1rem' }}>
                           {campaign.title}
                         </h3>
                         <div className="mb-3 md:mb-4 mt-auto">
@@ -1666,7 +1675,7 @@ const disconnectWallet = async () => {
                           <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                         </div>}
                         <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => navigate(`/campaign/${campaign.id}`)}>
-                          <h3 className="text-base md:text-xl font-bold mb-2 md:mb-3 text-black">
+                          <h3 className="md:text-xl font-bold mb-2 md:mb-3 text-black" style={{ fontSize: '1.1rem' }}>
                             {campaign.title}
                           </h3>
                           <div className="mb-3 md:mb-4 mt-auto">
@@ -1784,7 +1793,7 @@ const disconnectWallet = async () => {
                 {selectedCampaign.image && <div className="w-full aspect-video rounded-2xl overflow-hidden mb-6">
                   <img src={selectedCampaign.image} alt={selectedCampaign.title} className="w-full h-full object-cover" />
                 </div>}
-                <h1 className="text-3xl font-bold text-black mb-4">
+                <h1 className="font-bold text-black mb-4" style={{ fontSize: '1.5rem', lineHeight: '2rem' }}>
                   {selectedCampaign.title}
                 </h1>
                 
