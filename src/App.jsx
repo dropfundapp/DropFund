@@ -15,6 +15,9 @@ import { sendDonationTransaction } from './utils/donations';
 // React + Hooks
 import { useState, useEffect, useRef, useMemo } from "react";
 
+// React Router
+import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
+
 // DevFun SDK
 import { useDevapp, UserButton } from "@devfunlabs/web-sdk";
 
@@ -137,9 +140,11 @@ function DebugPanel() {
   );
 }
 
-function App() {
+function AppContent() {
   const { devbaseClient, userWallet } = useDevapp();
   const { publicKey, connected, connect, disconnect, wallet, wallets, select } = useWallet();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Memoize expensive objects
   const connection = useMemo(() => new Connection(NETWORK, "confirmed"), []);
@@ -277,9 +282,39 @@ const disconnectWallet = async () => {
 };
 
 
-  
+  // Sync URL with view state
+  const lastLoadedCampaignRef = useRef(null);
 
-  
+  useEffect(() => {
+    const path = location.pathname;
+    const campaignIdFromPath = path.startsWith('/campaign/') ? path.split('/campaign/')[1] : null;
+    const userIdFromPath = path.startsWith('/profile/') ? path.split('/profile/')[1] : null;
+    
+    if (path === '/' || path === '/home') {
+      setView('home');
+      setSelectedCampaign(null);
+      lastLoadedCampaignRef.current = null;
+    } else if (campaignIdFromPath) {
+      // Always load campaign details when URL changes to a campaign
+      if (lastLoadedCampaignRef.current !== campaignIdFromPath) {
+        lastLoadedCampaignRef.current = campaignIdFromPath;
+        loadCampaignDetails(campaignIdFromPath);
+      }
+    } else if (userIdFromPath) {
+      setView('profile');
+      setViewedUserId(userIdFromPath);
+      lastLoadedCampaignRef.current = null;
+    } else if (path === '/getting-started') {
+      setView('getting-started');
+      lastLoadedCampaignRef.current = null;
+    } else if (path === '/terms') {
+      setView('terms');
+      lastLoadedCampaignRef.current = null;
+    } else if (path === '/privacy') {
+      setView('privacy');
+      lastLoadedCampaignRef.current = null;
+    }
+  }, [location.pathname]);
 
  const [view, setView] = useState('home');
   const [campaigns, setCampaigns] = useState([]);
@@ -363,20 +398,7 @@ const disconnectWallet = async () => {
     window.scrollTo(0, 0);
   }, [view]);
 
-  // Check for campaign query parameter when campaigns are loaded
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const campaignId = urlParams.get('campaign');
-    if (campaignId && campaigns.length > 0) {
-      const campaign = campaigns.find(c => c.id === campaignId);
-      if (campaign) {
-        setSelectedCampaign(campaign);
-        setView('details');
-        // Clean up URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    }
-  }, [campaigns]);
+  // Campaign loading is now handled by the URL sync useEffect above
   useEffect(() => {
     if ((viewedUserId || (connected && publicKey)) && campaigns.length > 0) {
       const targetUserId = viewedUserId || publicKey.toBase58();
@@ -683,15 +705,21 @@ const disconnectWallet = async () => {
     setLoading(false);
   };
   
-  const loadCampaignDetails = async campaignId => {
+  const loadCampaignDetails = async (campaignId, existingCampaign = null) => {
     try {
-      const campaign = await devbaseClient.getEntity('campaigns', campaignId);
-      const donations = await devbaseClient.listEntities('donations', {
-        campaignId
-      });
-      const milestones = await devbaseClient.listEntities('milestones', {
-        campaignId
-      });
+      // If we have existing campaign data, show it immediately
+      if (existingCampaign) {
+        setSelectedCampaign(existingCampaign);
+        setView('details');
+      }
+      
+      // Fetch full details (campaign, donations, milestones)
+      const [campaign, donations, milestones] = await Promise.all([
+        devbaseClient.getEntity('campaigns', campaignId),
+        devbaseClient.listEntities('donations', { campaignId }),
+        devbaseClient.listEntities('milestones', { campaignId })
+      ]);
+      
       const raised = donations.reduce((sum, d) => sum + d.amount, 0);
       setSelectedCampaign({
         ...campaign,
@@ -740,13 +768,13 @@ const disconnectWallet = async () => {
     });
   };
   const copyShareLink = () => {
-    const shareUrl = `${window.location.origin}${window.location.pathname}?campaign=${selectedCampaign?.id}`;
+    const shareUrl = `${window.location.origin}/campaign/${selectedCampaign?.id}`;
     navigator.clipboard.writeText(shareUrl);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
   };
   const shareOnX = () => {
-    const shareUrl = `${window.location.origin}${window.location.pathname}?campaign=${selectedCampaign?.id}`;
+    const shareUrl = `${window.location.origin}/campaign/${selectedCampaign?.id}`;
     const text = `Check out this campaign: ${selectedCampaign?.title}`;
     const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
     window.open(xUrl, '_blank');
@@ -881,21 +909,18 @@ const disconnectWallet = async () => {
           </>
         )}
         <div className="max-w-8xl mx-auto px-6 pt-6 pb-4 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => {
-          setView('home');
-          setSelectedCampaign(null);
-        }}>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
             <img src="/Dropfund logo drop lines 2.png" alt="DropFund" className="w-10 h-10 rounded-lg" />
             <span className="text-2xl font-bold text-black">DropFund</span>
           </div>
           <div className="hidden md:flex items-center gap-4">
-            <button onClick={() => setView('getting-started')} className="text-gray-600 hover:text-black transition-colors font-medium">
+            <button onClick={() => navigate('/getting-started')} className="text-gray-600 hover:text-black transition-colors font-medium">
               Getting Started
             </button>
             {connected && publicKey && <>
             <button onClick={() => {
               setViewedUserId(publicKey.toBase58());
-              setView('profile');
+              navigate(`/profile/${publicKey.toBase58()}`);
             }} className="text-gray-600 hover:text-black transition-colors font-medium">
               Profile
             </button>
@@ -921,7 +946,7 @@ const disconnectWallet = async () => {
           <div className="p-3">
             <div className="flex flex-col gap-1">
               <button onClick={() => {
-            setView('getting-started');
+            navigate('/getting-started');
             setMobileMenuOpen(false);
           }} className="w-full px-4 py-3 bg-white hover:bg-gray-50 text-gray-800 rounded-lg transition-all text-center font-medium">
                 Getting Started
@@ -952,7 +977,7 @@ const disconnectWallet = async () => {
       <div className="max-w-8xl mx-auto px-6 py-12">
         {view === 'getting-started' && <div>
             <div className="max-w-4xl mx-auto">
-              <button onClick={() => setView('home')} className="text-blue-500 hover:text-blue-600 mb-6 flex items-center gap-2">
+              <button onClick={() => navigate('/')} className="text-blue-500 hover:text-blue-600 mb-6 flex items-center gap-2">
                 ← Back to home
               </button>
               <h1 className="text-[2rem] md:text-5xl font-bold mb-4 text-black">
@@ -1150,7 +1175,7 @@ const disconnectWallet = async () => {
           </div>}
         {view === 'terms' && <div>
             <div className="max-w-4xl mx-auto">
-              <button onClick={() => setView('home')} className="text-blue-500 hover:text-blue-600 mb-6 flex items-center gap-2">
+              <button onClick={() => navigate('/')} className="text-blue-500 hover:text-blue-600 mb-6 flex items-center gap-2">
                 ← Back to home
               </button>
               <h1 className="text-[2rem] md:text-5xl font-bold mb-4 text-black">
@@ -1261,7 +1286,7 @@ const disconnectWallet = async () => {
           </div>}
         {view === 'privacy' && <div>
             <div className="max-w-4xl mx-auto">
-              <button onClick={() => setView('home')} className="text-blue-500 hover:text-blue-600 mb-6 flex items-center gap-2">
+              <button onClick={() => navigate('/')} className="text-blue-500 hover:text-blue-600 mb-6 flex items-center gap-2">
                 ← Back to home
               </button>
               <h1 className="text-[2rem] md:text-5xl font-bold mb-4 text-black">
@@ -1511,10 +1536,10 @@ const disconnectWallet = async () => {
                 {filteredCampaigns.map(campaign => {
             const progress = campaign.raised / campaign.goal * 100;
             return <div key={campaign.id} className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all group relative flex flex-row md:flex-col">
-                      {campaign.image && <div className="w-32 aspect-square md:w-full md:h-64 md:aspect-auto overflow-hidden cursor-pointer flex-shrink-0 self-stretch" onClick={() => loadCampaignDetails(campaign.id)}>
+                      {campaign.image && <div className="w-32 aspect-square md:w-full md:h-64 md:aspect-auto overflow-hidden cursor-pointer flex-shrink-0 self-stretch" onClick={() => navigate(`/campaign/${campaign.id}`)}>
                         <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       </div>}
-                      <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => loadCampaignDetails(campaign.id)}>
+                      <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => navigate(`/campaign/${campaign.id}`)}>
                         <h3 className="text-base md:text-xl font-bold mb-2 md:mb-3 text-black">
                           {campaign.title}
                         </h3>
@@ -1559,7 +1584,7 @@ const disconnectWallet = async () => {
           </div>}
         {view === 'profile' && <div>
             <button onClick={() => {
-          setView('home');
+          navigate('/');
           setViewedUserId(null);
         }} className="text-blue-500 hover:text-blue-600 flex items-center gap-2 mb-6">
               ← Back to home
@@ -1601,10 +1626,10 @@ const disconnectWallet = async () => {
                   {userCampaigns.map(campaign => {
               const progress = campaign.raised / campaign.goal * 100;
               return <div key={campaign.id} className="bg-white rounded-2xl overflow-hidden hover:shadow-lg transition-all group relative flex flex-row md:flex-col">
-                        {campaign.image && <div className="w-32 aspect-square md:w-full md:h-64 md:aspect-auto overflow-hidden cursor-pointer flex-shrink-0 self-stretch" onClick={() => loadCampaignDetails(campaign.id)}>
+                        {campaign.image && <div className="w-32 aspect-square md:w-full md:h-64 md:aspect-auto overflow-hidden cursor-pointer flex-shrink-0 self-stretch" onClick={() => navigate(`/campaign/${campaign.id}`)}>
                           <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                         </div>}
-                        <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => loadCampaignDetails(campaign.id)}>
+                        <div className="p-4 md:p-6 cursor-pointer flex-1 flex flex-col" onClick={() => navigate(`/campaign/${campaign.id}`)}>
                           <h3 className="text-base md:text-xl font-bold mb-2 md:mb-3 text-black">
                             {campaign.title}
                           </h3>
@@ -1665,7 +1690,7 @@ const disconnectWallet = async () => {
                     </div>
                     <p className="text-blue-100 text-sm mt-1">Across {userDonations.length} {userDonations.length === 1 ? 'campaign' : 'campaigns'}</p>
                   </div>
-                  {userDonations.map(donation => <div key={donation.id} className="bg-white rounded-2xl p-4 hover:shadow-lg transition-all group cursor-pointer" onClick={() => loadCampaignDetails(donation.campaignId)}>
+                  {userDonations.map(donation => <div key={donation.id} className="bg-white rounded-2xl p-4 hover:shadow-lg transition-all group cursor-pointer" onClick={() => navigate(`/campaign/${donation.campaignId}`)}>
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-4 flex-1 min-w-0">
                           {donation.campaign?.image ? <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
@@ -1693,8 +1718,7 @@ const disconnectWallet = async () => {
           </div>}
         {view === 'details' && selectedCampaign && <div>
             <button onClick={() => {
-          setView('home');
-          setSelectedCampaign(null);
+          navigate('/');
           setTimeout(() => {
             document.getElementById('campaigns-section')?.scrollIntoView({ behavior: 'smooth' });
           }, 100);
@@ -1710,7 +1734,7 @@ const disconnectWallet = async () => {
                   </div>
                   <button onClick={() => {
                   setViewedUserId(selectedCampaign.userId);
-                  setView('profile');
+                  navigate(`/profile/${selectedCampaign.userId}`);
                 }} className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors">
                       {selectedCampaign.userId.slice(0, 4)}...{selectedCampaign.userId.slice(-4)}
                     </button>
@@ -1787,7 +1811,7 @@ const disconnectWallet = async () => {
                               </div>
                               <button onClick={() => {
                         setViewedUserId(donation.userId);
-                        setView('profile');
+                        navigate(`/profile/${donation.userId}`);
                       }} className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                                 {donation.userId.slice(0, 4)}...{donation.userId.slice(-4)}
                               </button>
@@ -1856,7 +1880,7 @@ const disconnectWallet = async () => {
                               </div>
                               <button onClick={() => {
                         setViewedUserId(donation.userId);
-                        setView('profile');
+                        navigate(`/profile/${donation.userId}`);
                       }} className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
                                 {donation.userId.slice(0, 4)}...{donation.userId.slice(-4)}
                               </button>
@@ -1892,10 +1916,10 @@ const disconnectWallet = async () => {
             <div>
               <h4 className="font-semibold text-black mb-4">Legal</h4>
               <div className="space-y-2">
-                <button onClick={() => setView('terms')} className="block text-sm text-gray-600 hover:text-blue-500 transition-colors text-left">
+                <button onClick={() => navigate('/terms')} className="block text-sm text-gray-600 hover:text-blue-500 transition-colors text-left">
                   Terms of Use
                 </button>
-                <button onClick={() => setView('privacy')} className="block text-sm text-gray-600 hover:text-blue-500 transition-colors text-left">
+                <button onClick={() => navigate('/privacy')} className="block text-sm text-gray-600 hover:text-blue-500 transition-colors text-left">
                   Privacy Policy
                 </button>
               </div>
@@ -2215,6 +2239,15 @@ const disconnectWallet = async () => {
         </div>
       )}
     </div>
+  );
+}
+
+// Router wrapper
+function App() {
+  return (
+    <Routes>
+      <Route path="*" element={<AppContent />} />
+    </Routes>
   );
 }
 

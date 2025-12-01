@@ -5,6 +5,9 @@ import App from "./App.jsx";
 import { DevappProvider } from "@devfunlabs/web-sdk";
 import "./index.css";
 
+// React Router
+import { BrowserRouter } from 'react-router-dom';
+
 // Solana Wallet Adapter imports
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
@@ -32,19 +35,21 @@ function Root() {
 
   return (
     <React.StrictMode>
-      <ConnectionProvider endpoint={endpoint}>
-        <WalletProvider wallets={wallets}>
-          <WalletModalProvider>
-            <DevappProvider
-              rpcEndpoint="https://api.devnet.solana.com"
-              devbaseEndpoint="https://devbase.dev.fun"
-              appId="38814e870dd403686aba"
-            >
-              <App />
-            </DevappProvider>
-          </WalletModalProvider>
-        </WalletProvider>
-      </ConnectionProvider>
+      <BrowserRouter>
+        <ConnectionProvider endpoint={endpoint}>
+          <WalletProvider wallets={wallets}>
+            <WalletModalProvider>
+              <DevappProvider
+                rpcEndpoint="https://api.devnet.solana.com"
+                devbaseEndpoint="https://devbase.dev.fun"
+                appId="38814e870dd403686aba"
+              >
+                <App />
+              </DevappProvider>
+            </WalletModalProvider>
+          </WalletProvider>
+        </ConnectionProvider>
+      </BrowserRouter>
     </React.StrictMode>
   );
 }
