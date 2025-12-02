@@ -407,6 +407,29 @@ const disconnectWallet = async () => {
     };
   }, [showFeatureModal]);
 
+  // Block body scroll when campaign creation modal is open
+  useEffect(() => {
+    if (isCreating) {
+      scrollPositionRef.current = window.scrollY;
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${scrollPositionRef.current}px`;
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+      window.scrollTo(0, scrollPositionRef.current);
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+    };
+  }, [isCreating]);
+
   useEffect(() => {
     loadCampaigns();
     checkOAuthCallback();
