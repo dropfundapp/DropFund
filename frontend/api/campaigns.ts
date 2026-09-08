@@ -1,5 +1,5 @@
-import { getDatabase } from './_lib/db';
-import { requireWallet } from './_lib/auth';
+import { getDatabase } from './_lib/db.js';
+import { requireWallet } from './_lib/auth.js';
 
 const walletPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 

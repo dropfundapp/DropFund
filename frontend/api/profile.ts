@@ -1,5 +1,5 @@
-import { getDatabase } from './_lib/db';
-import { requireWallet } from './_lib/auth';
+import { getDatabase } from './_lib/db.js';
+import { requireWallet } from './_lib/auth.js';
 
 function json(res: any, body: unknown, status = 200) {
   return res.status(status).setHeader('Content-Type', 'application/json').json(body);
