@@ -177,9 +177,13 @@ export default function CampaignPage() {
         campaignId,
         donorWalletAddress: solanaAddress,
       });
-      await queryClient.invalidateQueries({ queryKey: ['donations', campaignId] });
-      await queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] });
-      await queryClient.invalidateQueries({ queryKey: ['privy-balances'] });
+      void Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['donations', campaignId] }),
+        queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] }),
+        queryClient.invalidateQueries({ queryKey: ['userDonations', solanaAddress] }),
+        queryClient.invalidateQueries({ queryKey: ['myCampaigns', solanaAddress] }),
+        queryClient.invalidateQueries({ queryKey: ['privy-balances'] }),
+      ]);
       setDonationAmount('');
       toast.success('USDC donation sent successfully.');
     } catch (error: any) {
