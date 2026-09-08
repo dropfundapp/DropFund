@@ -27,37 +27,37 @@ async function getTransaction(signature: string) {
   return payload.result;
 }
 
-async function tokenAccountOwner(rpcUrl: string, transaction: any, accountIndex: number, cache: Map<string, string | null>) {
-  const accountKey = transaction.transaction?.message?.accountKeys?.[accountIndex];
-  const address = typeof accountKey === 'string' ? accountKey : accountKey?.pubkey;
-  if (!address) return null;
-  if (cache.has(address)) return cache.get(address) || null;
+async function tokenAccountInfo(rpcUrl: string, address: string, cache: Map<string, any>) {
+  if (cache.has(address)) return cache.get(address);
   const response = await fetch(rpcUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'getAccountInfo', params: [address, { encoding: 'jsonParsed', commitment: 'confirmed' }] }),
   });
   const payload = await response.json();
-  const owner = payload.result?.value?.data?.parsed?.info?.owner || null;
-  cache.set(address, owner);
-  return owner;
+  const info = payload.result?.value?.data?.parsed?.info || null;
+  cache.set(address, info);
+  return info;
 }
 
-async function tokenDelta(transaction: any, walletAddress: string, rpcUrl: string) {
-  const cache = new Map<string, string | null>();
-  let before = 0n;
-  let after = 0n;
-  for (const [balances, target] of [[transaction.meta?.preTokenBalances || [], 'before'], [transaction.meta?.postTokenBalances || [], 'after']] as const) {
-    for (const item of balances) {
-      if (item.mint !== USDC_MINT) continue;
-      const owner = item.owner || await tokenAccountOwner(rpcUrl, transaction, item.accountIndex, cache);
-      if (owner !== walletAddress) continue;
-      const value = BigInt(item.uiTokenAmount?.amount || 0);
-      if (target === 'before') before += value;
-      else after += value;
+async function hasMatchingTransfer(transaction: any, rpcUrl: string, donorWalletAddress: string, creatorWalletAddress: string, amount: bigint) {
+  const cache = new Map<string, any>();
+  const instructions = [
+    ...(transaction.transaction?.message?.instructions || []),
+    ...(transaction.meta?.innerInstructions || []).flatMap((group: any) => group.instructions || []),
+  ];
+  for (const instruction of instructions) {
+    const parsed = instruction.parsed;
+    if (!parsed || instruction.program !== 'spl-token' || !['transfer', 'transferChecked'].includes(parsed.type)) continue;
+    const info = parsed.info || {};
+    const sourceInfo = await tokenAccountInfo(rpcUrl, info.source, cache);
+    const destinationInfo = await tokenAccountInfo(rpcUrl, info.destination, cache);
+    const transferredAmount = BigInt(info.tokenAmount?.amount || info.amount || 0);
+    if (sourceInfo?.mint === USDC_MINT && destinationInfo?.mint === USDC_MINT && transferredAmount === amount && sourceInfo.owner === donorWalletAddress && destinationInfo.owner === creatorWalletAddress) {
+      return true;
     }
   }
-  return after - before;
+  return false;
 }
 
 export default async function handler(req: any, res: any) {
@@ -101,9 +101,7 @@ export default async function handler(req: any, res: any) {
     if (!rpcUrl) return json(res, { error: 'SOLANA_RPC_URL is not configured' }, 503);
     const transaction = await getTransaction(signature);
     if (transaction.meta?.err) return json(res, { error: 'Solana transaction failed' }, 400);
-    const donorDelta = await tokenDelta(transaction, donorWalletAddress, rpcUrl);
-    const recipientDelta = await tokenDelta(transaction, campaign.creator_wallet_address, rpcUrl);
-    if (donorDelta > -amount || recipientDelta < amount) {
+    if (!await hasMatchingTransfer(transaction, rpcUrl, donorWalletAddress, campaign.creator_wallet_address, amount)) {
       return json(res, { error: 'Transaction does not match the requested USDC donation' }, 400);
     }
 
