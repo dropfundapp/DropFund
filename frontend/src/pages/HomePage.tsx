@@ -3,16 +3,18 @@ import { useGetCampaigns } from '../hooks/useQueries';
 import CampaignCard from '../components/CampaignCard';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { Clock, AlertCircle, RefreshCw, Loader2, Search, Star, Rocket, ArrowUp, Zap } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Clock, Search, Star, Rocket, ArrowUp, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
 import '../override-accent.css';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
+import { usePrivyAuth } from '../components/PrivyAuthProvider';
 
 export default function HomePage() {
-  const { data: campaigns, isLoading, error, refetch, isRefetching } = useGetCampaigns();
+  const { data: campaigns, isLoading, error, isRefetching } = useGetCampaigns();
+  const { authenticated, login } = usePrivyAuth();
+  const navigate = useNavigate();
   const [sortBy, setSortBy] = useState<'featured' | 'last-funded' | 'just-launched' | 'highest-goal' | 'top-gainers'>('featured');
   const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
@@ -26,14 +28,6 @@ export default function HomePage() {
   };
 
   // ...
-
-  const handleRetry = () => {
-    toast.promise(refetch(), {
-      loading: 'Loading campaigns...',
-      success: (data) => `Loaded ${data.data?.length || 0} campaigns`,
-      error: 'Failed to load campaigns',
-    });
-  };
 
   // Category keywords mapping
   const categoryKeywords: Record<string, string[]> = {
@@ -307,29 +301,7 @@ export default function HomePage() {
       </div>
 
       <div className="container">
-        {error ? (
-          <Alert variant="destructive" className="mb-8">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error Loading Campaigns</AlertTitle>
-            <AlertDescription className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <span>Failed to load campaigns. Please try again.</span>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleRetry}
-                disabled={isRefetching}
-                className="w-full sm:w-auto"
-              >
-                {isRefetching ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                )}
-                Retry
-              </Button>
-            </AlertDescription>
-          </Alert>
-        ) : isLoading || isRefetching || campaigns === undefined ? (
+        {isLoading || isRefetching || (campaigns === undefined && !error) ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="space-y-4">
@@ -347,7 +319,7 @@ export default function HomePage() {
               <CampaignCard key={campaign.id} campaign={campaign} />
             ))}
           </div>
-        ) : (Array.isArray(filteredAndSortedCampaigns) && filteredAndSortedCampaigns.length === 0 && !isLoading && !isRefetching) ? (
+        ) : (error || (Array.isArray(filteredAndSortedCampaigns) && filteredAndSortedCampaigns.length === 0 && !isLoading && !isRefetching)) ? (
           <div className="text-center py-20 space-y-4">
             <div className="mb-4 flex items-center justify-center">
               <span className="rounded-full p-4" style={{ background: '#282b30' }}>
@@ -357,7 +329,7 @@ export default function HomePage() {
             <p className="text-xl text-muted-foreground mb-4">
               {searchQuery ? `No campaigns found matching "${searchQuery}"` : 'No campaigns yet. Be the first to create one!'}
             </p>
-            {!searchQuery && <p className="text-sm text-muted-foreground">Connect your wallet to start creating campaigns</p>}
+            {!searchQuery && <Button onClick={() => authenticated ? navigate({ to: '/create' }) : login()}>{authenticated ? 'Create campaign' : 'Login to create campaign'}</Button>}
             {searchQuery && (
               <Button variant="outline" onClick={() => setSearchQuery('')}>
                 Clear Search

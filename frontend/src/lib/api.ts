@@ -3,7 +3,7 @@ import type { Campaign, CampaignSummary, Donation, UserProfile } from '../types'
 async function request<T>(path: string, options: RequestInit = {}) {
   const response = await fetch(path, { ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
   const body = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(body?.error || 'API request failed');
+  if (!response.ok) throw new Error(body?.error || body?.message || `API request failed (${response.status})`);
   return body as T;
 }
 

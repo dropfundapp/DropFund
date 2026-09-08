@@ -150,10 +150,13 @@ export default function CreateCampaignPage() {
             reject(new Error('Canvas not supported'));
             return;
           }
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
-          const webpDataUrl = canvas.toDataURL('image/webp', 0.8); // Compress to 80% quality
+          const maxWidth = 1600;
+          const maxHeight = 1200;
+          const scale = Math.min(1, maxWidth / img.width, maxHeight / img.height);
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const webpDataUrl = canvas.toDataURL('image/webp', 0.72);
           resolve(webpDataUrl);
         };
         img.onerror = reject;
@@ -198,7 +201,7 @@ export default function CreateCampaignPage() {
       } else if (error.message?.includes('Unauthorized')) {
         toast.error('Unauthorized. Please try reconnecting your wallet.');
       } else {
-        toast.error('Failed to create campaign. Please try again.');
+        toast.error(error.message || 'Failed to create campaign. Please try again.');
       }
     } finally {
       setIsUploading(false);

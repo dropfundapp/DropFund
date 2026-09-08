@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:vercel": "npx vercel dev",
     "build": "vite build && node copy-well-known.cjs",
     "preview": "vite preview"
   },

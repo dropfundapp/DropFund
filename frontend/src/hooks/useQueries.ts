@@ -68,9 +68,7 @@ export function useGetCampaigns() {
         return await api.campaigns();
       } catch (error: any) {
         console.error('❌ Error fetching campaigns:', error);
-        toast.error('Failed to load campaigns', {
-          description: 'Please check your connection and try again.'
-        });
+        console.warn('Failed to load campaigns:', error);
         throw error;
       }
     },
