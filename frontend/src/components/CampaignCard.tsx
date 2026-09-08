@@ -21,6 +21,13 @@ const categoryColors: Record<string, string> = {
   'Sports': 'bg-[#282b30] text-red-500',
 };
 
+function getFunnyName(address: string) {
+  const adjectives = ['Cosmic', 'Tiny', 'Lucky', 'Chaotic', 'Turbo', 'Sneaky', 'Mighty', 'Bouncy'];
+  const nouns = ['Byte', 'Pickle', 'Wizard', 'Noodle', 'Rocket', 'Mango', 'Legend', 'Comet'];
+  const seed = address.split('').reduce((total, character) => total + character.charCodeAt(0), 0);
+  return `${adjectives[seed % adjectives.length]} ${nouns[(seed * 7) % nouns.length]}`;
+}
+
 export default function CampaignCard({ campaign }: CampaignCardProps) {
   // Use data from CampaignSummary instead of fetching donations separately for performance
   const donationCount = Number(campaign.donationCount);
@@ -36,7 +43,7 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
   const avatarColors = ['#4b54ff', '#e05d8f', '#e08b3e', '#36a269', '#8b62d9', '#2d9cdb'];
   const avatarSeed = campaign.creatorWalletAddress.split('').reduce((total, character) => total + character.charCodeAt(0), 0);
   const avatarColor = avatarColors[avatarSeed % avatarColors.length];
-  const avatarInitials = campaign.creatorWalletAddress.slice(0, 2).toUpperCase();
+  const avatarInitials = getFunnyName(campaign.creatorWalletAddress).split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
 
   const getTimeRemaining = () => {
     if (!campaign.endTimestamp || Number(campaign.endTimestamp) <= 0) {
