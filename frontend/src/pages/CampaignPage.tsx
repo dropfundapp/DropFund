@@ -177,13 +177,33 @@ export default function CampaignPage() {
         campaignId,
         donorWalletAddress: solanaAddress,
       });
-      void Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['donations', campaignId] }),
-        queryClient.invalidateQueries({ queryKey: ['campaign', campaignId] }),
-        queryClient.invalidateQueries({ queryKey: ['userDonations', solanaAddress] }),
-        queryClient.invalidateQueries({ queryKey: ['myCampaigns', solanaAddress] }),
-        queryClient.invalidateQueries({ queryKey: ['privy-balances'] }),
-      ]);
+      const donationUnits = BigInt(Math.floor(result.amount * 1e6));
+      const optimisticDonation = {
+        mainTransactionSignature: result.signature,
+        feeTransactionSignature: '',
+        amount: donationUnits,
+        feeAmount: 0n,
+        campaignId,
+        donorWalletAddress: solanaAddress,
+        timestamp: BigInt(Date.now() * 1e6),
+      };
+      queryClient.setQueryData(['donations', campaignId], (current: typeof donations) => {
+        const existing = current || [];
+        return existing.some((donation) => donation.mainTransactionSignature === result.signature)
+          ? existing
+          : [optimisticDonation, ...existing];
+      });
+      queryClient.setQueryData(['campaign', campaignId], (current: typeof campaign) => current ? {
+        ...current,
+        totalRaised: current.totalRaised + donationUnits,
+        donationCount: current.donationCount + 1n,
+      } : current);
+      queryClient.setQueryData(['userDonations', solanaAddress], (current: any[] | undefined) => {
+        const existing = current || [];
+        return existing.some((donation) => donation.mainTransactionSignature === result.signature)
+          ? existing
+          : [optimisticDonation, ...existing];
+      });
       setDonationAmount('');
       toast.success('USDC donation sent successfully.');
     } catch (error: any) {
