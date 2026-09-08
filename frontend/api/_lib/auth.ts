@@ -15,7 +15,10 @@ function getClient() {
 }
 
 export async function requirePrivyUser(request: Request) {
-  const authorization = request.headers.get('authorization');
+  const headers = request.headers as any;
+  const authorization = typeof headers?.get === 'function'
+    ? headers.get('authorization')
+    : headers?.authorization;
   if (!authorization?.startsWith('Bearer ')) throw new Response('Unauthorized', { status: 401 });
   try {
     const claims = await getClient().verifyAuthToken(authorization.slice(7));
