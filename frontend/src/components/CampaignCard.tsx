@@ -74,7 +74,7 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
     ), label: 'Twitter' },
     { url: campaign.websiteUrl, icon: Globe, label: 'Website' },
     { url: campaign.telegramUrl, icon: MessageCircle, label: 'Telegram' },
-  ].filter(social => social.url && social.url.length > 0);
+  ].filter(social => Array.isArray(social.url) && typeof social.url[0] === 'string' && social.url[0].trim().length > 0);
 
   return (
     <Link to="/campaign/$campaignId" params={{ campaignId: campaign.id }} className="block">

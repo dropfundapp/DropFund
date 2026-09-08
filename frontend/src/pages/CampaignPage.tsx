@@ -300,11 +300,11 @@ export default function CampaignPage() {
               <pre className="text-lg whitespace-pre-wrap break-words font-sans bg-transparent border-0 p-0 m-0">{campaign.description}</pre>
             </div>
 
-            {((campaign.websiteUrl && campaign.websiteUrl.length > 0) || 
-              (campaign.twitterUrl && campaign.twitterUrl.length > 0) || 
-              (campaign.telegramUrl && campaign.telegramUrl.length > 0)) && (
+            {((campaign.websiteUrl?.some((url) => url.trim().length > 0)) || 
+              (campaign.twitterUrl?.some((url) => url.trim().length > 0)) || 
+              (campaign.telegramUrl?.some((url) => url.trim().length > 0))) && (
               <div className="flex flex-wrap gap-3 pt-4">
-                {campaign.websiteUrl && campaign.websiteUrl.length > 0 && (
+                {campaign.websiteUrl?.some((url) => url.trim().length > 0) && (
                   <Button asChild variant="outline" size="sm" className="bg-[#282b30] border-[#282b30] hover:bg-[#282b30] text-[#7a8189] hover:text-white">
                     <a href={campaign.websiteUrl[0]} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
                       <Globe className="h-4 w-4" />
@@ -312,7 +312,7 @@ export default function CampaignPage() {
                     </a>
                   </Button>
                 )}
-                {campaign.twitterUrl && campaign.twitterUrl.length > 0 && (
+                {campaign.twitterUrl?.some((url) => url.trim().length > 0) && (
                   <Button asChild variant="outline" size="sm" className="bg-[#282b30] border-[#282b30] hover:bg-[#282b30] text-[#7a8189] hover:text-white">
                     <a href={campaign.twitterUrl[0]} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
                       <svg
@@ -328,7 +328,7 @@ export default function CampaignPage() {
                     </a>
                   </Button>
                 )}
-                {campaign.telegramUrl && campaign.telegramUrl.length > 0 && (
+                {campaign.telegramUrl?.some((url) => url.trim().length > 0) && (
                   <Button asChild variant="outline" size="sm" className="bg-[#282b30] border-[#282b30] hover:bg-[#282b30] text-[#7a8189] hover:text-white">
                     <a href={campaign.telegramUrl[0]} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
                       <Send className="h-4 w-4" />
