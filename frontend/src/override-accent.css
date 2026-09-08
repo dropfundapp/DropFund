@@ -1,0 +1,28 @@
+/* Add gap only between filter buttons, not before first or after last */
+.filter-btn:not(:first-child) {
+  margin-left: 0.5rem;
+}
+/* Filter button styles for campaign filter bar */
+.filter-btn {
+  background: #282b30 !important;
+  color: #7a8189;
+  transition: background 0.15s, color 0.15s;
+}
+.filter-btn[data-state="active"] {
+  background: #282b30 !important;
+  background-color: #282b30 !important;
+  color: #fff;
+}
+.filter-btn:hover {
+  color: #fff;
+}
+.tabs-list, [role="tablist"] {
+  background: none !important;
+  background-color: transparent !important;
+  
+}
+
+/* Match Privy's confirmation button hover state to the app's button blue. */
+.gIoykx:hover {
+  background-color: #4149e6 !important;
+}

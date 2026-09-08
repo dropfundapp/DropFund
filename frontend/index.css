@@ -1,0 +1,195 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Humant';
+  src: url('/fonts/Humant-Black-BF676238135ce6c.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@layer base {
+    :root {
+        --radius: 0.75rem;
+        --background: 0.15 0.02 250;
+        --foreground: 0.98 0.005 250;
+        --card: 0.18 0.025 250;
+        --card-foreground: 0.98 0.005 250;
+        --popover: 0.18 0.025 250;
+        --popover-foreground: 0.98 0.005 250;
+        --primary: 75 84 255;
+        --primary-foreground: 0.98 0.005 250;
+        --secondary: 0.25 0.04 250;
+        --secondary-foreground: 0.98 0.005 250;
+        --muted: 0.22 0.03 250;
+        --muted-foreground: 0.65 0.015 250;
+        --accent: 0.65 0.25 280;
+        --accent-foreground: 0.98 0.005 250;
+        --destructive: 0.577 0.245 27.325;
+        --destructive-foreground: 0.98 0.005 250;
+        --border: 0.28 0.04 250;
+        --input: 0.28 0.04 250;
+        --ring: 0.55 0.22 250;
+        --chart-1: 0.55 0.22 250;
+        --chart-2: 0.65 0.25 280;
+        --chart-3: 0.45 0.18 220;
+        --chart-4: 0.70 0.28 300;
+        --chart-5: 0.60 0.20 260;
+    }
+
+    .dark {
+        --background: 0.12 0.02 250;
+        --foreground: 0.98 0.005 250;
+        --card: 0.16 0.025 250;
+        --card-foreground: 0.98 0.005 250;
+        --popover: 0.16 0.025 250;
+        --popover-foreground: 0.98 0.005 250;
+        --primary: 75 84 255;
+        --primary-foreground: 0.98 0.005 250;
+        --secondary: 0.22 0.035 250;
+        --secondary-foreground: 0.98 0.005 250;
+        --muted: 0.20 0.03 250;
+        --muted-foreground: 0.60 0.015 250;
+        --accent: 0.70 0.28 280;
+        --accent-foreground: 0.98 0.005 250;
+        --destructive: 0.577 0.245 27.325;
+        --destructive-foreground: 0.98 0.005 250;
+        --border: 0.25 0.035 250;
+        --input: 0.25 0.035 250;
+        --ring: 0.60 0.24 250;
+        --chart-1: 0.60 0.24 250;
+        --chart-2: 0.70 0.28 280;
+        --chart-3: 0.50 0.20 220;
+        --chart-4: 0.75 0.30 300;
+        --chart-5: 0.65 0.22 260;
+    }
+
+    * {
+        @apply border-border;
+    }
+    
+    body {
+        @apply bg-background text-foreground;
+        font-family: 'Google Sans Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .logo-title {
+    font-family: 'Humant', 'Google Sans Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  }
+}
+
+/* Custom theme overrides */
+:root {
+  --secondary: #282b30;
+  --muted: #282b30;
+  --border: #282b30;
+}
+
+.dark {
+  --secondary: #282b30;
+  --muted: #282b30;
+  --border: #282b30;
+}
+
+.border {
+  border-width: 0px !important;
+}
+
+* {
+  border-color: #282b30 !important;
+}
+
+.filter-btn {
+  background-color: #282b30 !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+.bg-secondary {
+  background-color: #282b30 !important;
+}
+
+.bg-muted {
+  background-color: #282b30 !important;
+}
+
+.bg-card, .bg-popover {
+  background-color: #1d1e1f !important;
+}
+
+.bg-background {
+  background-color: #131313 !important;
+}
+
+@layer utilities {
+    .animate-glow {
+        animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+        from {
+            box-shadow: 0 0 10px oklch(var(--primary) / 0.5), 0 0 20px oklch(var(--primary) / 0.3);
+        }
+        to {
+            box-shadow: 0 0 20px oklch(var(--primary) / 0.8), 0 0 30px oklch(var(--primary) / 0.5);
+        }
+    }
+
+    /* Mobile menu animations */
+    @keyframes slide-in-right {
+        from {
+            transform: translateX(100%);
+        }
+        to {
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slide-out-right {
+        from {
+            transform: translateX(0);
+        }
+        to {
+            transform: translateX(100%);
+        }
+    }
+}
+.hover\:text-accent-foreground:hover {
+    color: black !important;
+}
+
+.hover\:bg-accent:hover {
+   
+    background-color: white !important;
+}
+.focus\:text-accent-foreground:focus {
+    color: black !important;
+}
+
+.focus\:bg-accent:focus {
+   
+    background-color: white !important;
+}
+
+[data-radix-popper-content-wrapper] {
+  margin-left: 0 !important;
+}
