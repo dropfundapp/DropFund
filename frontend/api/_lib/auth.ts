@@ -6,7 +6,9 @@ function getClient() {
   if (!client) {
     const appId = process.env.PRIVY_APP_ID;
     const appSecret = process.env.PRIVY_APP_SECRET;
-    if (!appId || !appSecret) throw new Error('Privy server credentials are not configured');
+    if (!appId || !appSecret) {
+      throw new Response('Privy server credentials are not configured. Add PRIVY_APP_ID and PRIVY_APP_SECRET to the local Vercel environment.', { status: 503 });
+    }
     client = new PrivyClient(appId, appSecret);
   }
   return client;

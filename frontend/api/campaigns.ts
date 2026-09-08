@@ -65,7 +65,7 @@ export default async function handler(req: any, res: any) {
     return json(res, { id: rows[0].id });
   } catch (error: any) {
     if (error instanceof Response) return error;
-    console.error(error);
-    return json(res, { error: 'Internal server error' }, 500);
+    console.error('Campaign API error:', error);
+    return json(res, { error: error instanceof Error ? error.message : 'Internal server error' }, 500);
   }
 }
