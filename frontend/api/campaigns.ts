@@ -7,6 +7,10 @@ function json(res: any, body: unknown, status = 200) {
   return res.status(status).setHeader('Content-Type', 'application/json').json(body);
 }
 
+function optionalUrl(value: unknown) {
+  return typeof value === 'string' && value.trim().length > 0 ? [value] : [];
+}
+
 function campaign(row: any) {
   return {
     id: row.id, title: row.title, description: row.description,
@@ -15,8 +19,8 @@ function campaign(row: any) {
     createdAt: String(new Date(row.created_at).getTime() * 1_000_000),
     endTimestamp: row.end_at ? [String(new Date(row.end_at).getTime() * 1_000_000)] : [],
     status: row.status, totalRaised: String(row.total_raised), donationCount: String(row.donation_count),
-    websiteUrl: row.website_url ? [row.website_url] : [], twitterUrl: row.twitter_url ? [row.twitter_url] : [],
-    telegramUrl: row.telegram_url ? [row.telegram_url] : [], category: row.category,
+    websiteUrl: optionalUrl(row.website_url), twitterUrl: optionalUrl(row.twitter_url),
+    telegramUrl: optionalUrl(row.telegram_url), category: row.category,
   };
 }
 
