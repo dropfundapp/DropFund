@@ -36,7 +36,7 @@ export function parseDonation(raw: any): Donation {
 }
 
 export const api = {
-  campaigns: async () => (await request<any[]>('/api/campaigns')).map(parseSummary),
+  campaigns: async () => ((await request<any[]>('/api/campaigns')) || []).map(parseSummary),
   campaign: async (id: string) => {
     const rows = await request<any[]>(`/api/campaigns?id=${encodeURIComponent(id)}`);
     return rows[0] ? parseCampaign(rows[0]) : null;
