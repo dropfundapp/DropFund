@@ -1,7 +1,9 @@
 import { neon } from '@neondatabase/serverless';
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is not configured. Add it to the local Vercel environment.');
+export function getDatabase() {
+  const connectionString = process.env.DATABASE_URL || process.env.DATABASE_URL_UNPOOLED;
+  if (!connectionString) {
+    throw new Response('DATABASE_URL is not configured for this Vercel environment.', { status: 503 });
+  }
+  return neon(connectionString);
 }
-
-export const sql = neon(process.env.DATABASE_URL);

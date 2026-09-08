@@ -1,4 +1,4 @@
-import { sql } from './_lib/db';
+import { getDatabase } from './_lib/db';
 import { requireWallet } from './_lib/auth';
 
 const walletPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
@@ -22,6 +22,7 @@ function campaign(row: any) {
 
 export default async function handler(req: any, res: any) {
   try {
+    const sql = getDatabase();
     if (req.method === 'GET') {
       const id = typeof req.query?.id === 'string' ? req.query.id : '';
       const creator = typeof req.query?.creator === 'string' ? req.query.creator : '';

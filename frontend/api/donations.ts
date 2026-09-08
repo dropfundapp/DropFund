@@ -1,4 +1,4 @@
-import { sql } from './_lib/db';
+import { getDatabase } from './_lib/db';
 import { requireWallet } from './_lib/auth';
 
 const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
@@ -41,6 +41,7 @@ function tokenDelta(transaction: any, walletAddress: string) {
 
 export default async function handler(req: any, res: any) {
   try {
+    const sql = getDatabase();
     if (req.method === 'GET') {
       const campaignId = typeof req.query?.campaignId === 'string' ? req.query.campaignId : '';
       const donorWalletAddress = typeof req.query?.donorWalletAddress === 'string' ? req.query.donorWalletAddress : '';

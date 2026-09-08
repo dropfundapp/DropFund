@@ -1,4 +1,4 @@
-import { sql } from './_lib/db';
+import { getDatabase } from './_lib/db';
 import { requireWallet } from './_lib/auth';
 
 function json(res: any, body: unknown, status = 200) {
@@ -7,6 +7,7 @@ function json(res: any, body: unknown, status = 200) {
 
 export default async function handler(req: any, res: any) {
   try {
+    const sql = getDatabase();
     const walletAddress = String(req.query?.walletAddress || req.body?.walletAddress || '');
     if (!walletAddress) return json(res, { error: 'Wallet address is required' }, 400);
     if (req.method === 'GET') {
