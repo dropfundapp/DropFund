@@ -301,7 +301,7 @@ export default function HomePage() {
       </div>
 
       <div className="container">
-        {isLoading || isRefetching || (campaigns === undefined && !error) ? (
+        {isLoading || (campaigns === undefined && !error) ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="space-y-4">

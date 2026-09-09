@@ -73,10 +73,13 @@ export function useGetCampaigns() {
       }
     },
     enabled: true,
-    staleTime: 60000, // 1 minute
+    staleTime: 0,
     gcTime: 0,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 3000,
+    refetchIntervalInBackground: true,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
