@@ -281,6 +281,17 @@ export default function CampaignPage() {
         totalRaised: current.totalRaised + donationUnits,
         donationCount: current.donationCount + 1n,
       } : current);
+      queryClient.setQueryData(['campaigns'], (current: any[] | undefined) => {
+        if (!current) return current;
+        return current.map((item) => {
+          if (item.id !== campaignId) return item;
+          return {
+            ...item,
+            totalRaised: item.totalRaised + donationUnits,
+            donationCount: item.donationCount + 1n,
+          };
+        });
+      });
       queryClient.setQueryData(['userDonations', solanaAddress], (current: any[] | undefined) => {
         const existing = current || [];
         return existing.some((donation) => donation.mainTransactionSignature === result.signature)

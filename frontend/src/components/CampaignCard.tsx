@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import type { CampaignSummary } from '../types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -47,6 +48,61 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
   const goalNumber = Number(campaign.goal);
   const raisedNumber = totalRaised;
   const progressPercentage = goalNumber > 0 ? (raisedNumber / goalNumber) * 100 : 0;
+  const hasInitializedStatsRef = useRef(false);
+  const statsAnimationRef = useRef<number | null>(null);
+  const [animatedRaisedNumber, setAnimatedRaisedNumber] = useState(raisedNumber);
+  const [animatedProgressPercentage, setAnimatedProgressPercentage] = useState(progressPercentage);
+  const [animatedDonationCount, setAnimatedDonationCount] = useState(donationCount);
+
+  useEffect(() => {
+    if (!hasInitializedStatsRef.current) {
+      setAnimatedRaisedNumber(raisedNumber);
+      setAnimatedProgressPercentage(progressPercentage);
+      setAnimatedDonationCount(donationCount);
+      hasInitializedStatsRef.current = true;
+      return;
+    }
+
+    if (statsAnimationRef.current !== null) {
+      window.cancelAnimationFrame(statsAnimationRef.current);
+    }
+
+    const startRaised = animatedRaisedNumber;
+    const startProgress = animatedProgressPercentage;
+    const startCount = animatedDonationCount;
+    const targetRaised = raisedNumber;
+    const targetProgress = progressPercentage;
+    const targetCount = donationCount;
+    const durationMs = 700;
+    const startTime = performance.now();
+
+    const tick = (now: number) => {
+      const elapsed = Math.min((now - startTime) / durationMs, 1);
+      const eased = 1 - Math.pow(1 - elapsed, 3);
+
+      setAnimatedRaisedNumber(startRaised + (targetRaised - startRaised) * eased);
+      setAnimatedProgressPercentage(startProgress + (targetProgress - startProgress) * eased);
+      setAnimatedDonationCount(Math.round(startCount + (targetCount - startCount) * eased));
+
+      if (elapsed < 1) {
+        statsAnimationRef.current = window.requestAnimationFrame(tick);
+      } else {
+        setAnimatedRaisedNumber(targetRaised);
+        setAnimatedProgressPercentage(targetProgress);
+        setAnimatedDonationCount(targetCount);
+        statsAnimationRef.current = null;
+      }
+    };
+
+    statsAnimationRef.current = window.requestAnimationFrame(tick);
+
+    return () => {
+      if (statsAnimationRef.current !== null) {
+        window.cancelAnimationFrame(statsAnimationRef.current);
+        statsAnimationRef.current = null;
+      }
+    };
+  }, [raisedNumber, progressPercentage, donationCount]);
 
   const isEnded = campaign.status === 'ended';
   const isFunded = campaign.status === 'funded';
@@ -126,12 +182,12 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Raised</span>
-            <span className="font-semibold">${formatUsdc(raisedNumber / 1000000)} USDC</span>
+            <span className="font-semibold">${formatUsdc(animatedRaisedNumber / 1000000)} USDC</span>
           </div>
-          <Progress value={progressPercentage} className="h-2 [&>div]:bg-[#58d16e]" />
+          <Progress value={animatedProgressPercentage} className="h-2 [&>div]:bg-[#58d16e]" />
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Goal: ${formatUsdc(goalNumber / 1000000)} USDC</span>
-            <span className="font-semibold" style={{ color: '#58d16e' }}>{progressPercentage.toFixed(0)}%</span>
+            <span className="font-semibold" style={{ color: '#58d16e' }}>{animatedProgressPercentage.toFixed(0)}%</span>
           </div>
         </div>
         <div className="flex items-center justify-between text-sm">
@@ -141,7 +197,7 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
           </div>
           <div className="flex items-center gap-1 text-muted-foreground">
             <TrendingUp className="h-4 w-4" />
-            <span>{donationCount} donations</span>
+            <span>{animatedDonationCount} donations</span>
           </div>
         </div>
 
