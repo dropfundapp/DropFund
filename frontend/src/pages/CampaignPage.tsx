@@ -86,6 +86,10 @@ export default function CampaignPage() {
   const { donate: donateUsdc } = useSolanaDonation();
   const addDonation = useAddDonation();
   const queryClient = useQueryClient();
+  const goalNumber = campaign ? Number(campaign.goal) : 0;
+  const raisedNumber = campaign ? donations.reduce((sum, d) => sum + Number(d.amount), 0) : 0;
+  const progressPercentage = goalNumber > 0 ? (raisedNumber / goalNumber) * 100 : 0;
+  const donationCount = donations.length;
 
   // Reset sticky measurements/state when navigating between campaigns
   useEffect(() => {
@@ -135,52 +139,11 @@ export default function CampaignPage() {
     if (!mobileButtonWidth) setMobileButtonWidth(rect.width);
   }, [mobileButtonHeight, mobileButtonWidth, campaignId, campaignLoading, campaignFetching, donationsLoading]);
 
-  if (campaignLoading || campaignFetching || campaign === undefined) {
-    return (
-      <div className="container py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <Skeleton className="aspect-video w-full" />
-            <Skeleton className="h-12 w-3/4" />
-            <Skeleton className="h-32 w-full" />
-          </div>
-          <div className="space-y-6">
-            <Skeleton className="h-64 w-full" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (campaign === null) {
-    return (
-      <div className="container py-12">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">Campaign Not Found</h1>
-          <p className="text-muted-foreground">The campaign you're looking for doesn't exist.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const goalNumber = Number(campaign.goal);
-  const raisedNumber = donations.reduce((sum, d) => sum + Number(d.amount), 0);
-  const progressPercentage = goalNumber > 0 ? (raisedNumber / goalNumber) * 100 : 0;
-  const isEnded = campaign.status === 'ended';
-  const isFunded = campaign.status === 'funded';
-  const isGoalReachedStatus = campaign.status === 'goal_reached';
-  const disableDonate = isEnded || isFunded;
-  const isCampaignCreator = authenticated && !!solanaAddress && solanaAddress === campaign.creatorWalletAddress;
-  const creatorDisplayName = getStoredProfileName(campaign.creatorWalletAddress) || getFunnyName(campaign.creatorWalletAddress);
-  const donationValue = Number(donationAmount);
-  const hasInsufficientBalance = authenticated && usdcBalance !== null && donationValue > usdcBalance;
-  const isGoalReachedAmount = raisedNumber >= goalNumber;
-
   useEffect(() => {
     if (!hasInitializedStatsRef.current) {
       setAnimatedRaisedNumber(raisedNumber);
       setAnimatedProgressPercentage(progressPercentage);
-      setAnimatedDonationCount(donations.length);
+      setAnimatedDonationCount(donationCount);
       hasInitializedStatsRef.current = true;
       return;
     }
@@ -194,7 +157,7 @@ export default function CampaignPage() {
     const startCount = animatedDonationCount;
     const targetRaised = raisedNumber;
     const targetProgress = progressPercentage;
-    const targetCount = donations.length;
+    const targetCount = donationCount;
     const durationMs = 700;
     const startTime = performance.now();
 
@@ -224,7 +187,45 @@ export default function CampaignPage() {
         statsAnimationRef.current = null;
       }
     };
-  }, [raisedNumber, progressPercentage, donations.length, campaignId]);
+  }, [raisedNumber, progressPercentage, donationCount, campaignId]);
+
+  if (campaignLoading || campaignFetching || campaign === undefined) {
+    return (
+      <div className="container py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <Skeleton className="aspect-video w-full" />
+            <Skeleton className="h-12 w-3/4" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (campaign === null) {
+    return (
+      <div className="container py-12">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-4">Campaign Not Found</h1>
+          <p className="text-muted-foreground">The campaign you're looking for doesn't exist.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isEnded = campaign.status === 'ended';
+  const isFunded = campaign.status === 'funded';
+  const isGoalReachedStatus = campaign.status === 'goal_reached';
+  const disableDonate = isEnded || isFunded;
+  const isCampaignCreator = authenticated && !!solanaAddress && solanaAddress === campaign.creatorWalletAddress;
+  const creatorDisplayName = getStoredProfileName(campaign.creatorWalletAddress) || getFunnyName(campaign.creatorWalletAddress);
+  const donationValue = Number(donationAmount);
+  const hasInsufficientBalance = authenticated && usdcBalance !== null && donationValue > usdcBalance;
+  const isGoalReachedAmount = raisedNumber >= goalNumber;
 
   const sortedDonations = [...donations].sort((a, b) => {
     if (donationSort === 'highest') {
