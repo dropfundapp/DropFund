@@ -8,7 +8,10 @@ async function request<T>(path: string, options: RequestInit = {}) {
 }
 
 function optionalValue(value: unknown) {
-  return value ? [String(value)] as [] | [string] : [] as [] | [string];
+  const normalized = Array.isArray(value) ? value[0] : value;
+  return typeof normalized === 'string' && normalized.trim().length > 0
+    ? [normalized] as [] | [string]
+    : [] as [] | [string];
 }
 
 export function parseCampaign(raw: any): Campaign {

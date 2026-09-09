@@ -3,9 +3,25 @@ import { requireWallet } from './_lib/auth.js';
 
 const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 const walletPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+const requestCounts = new Map<string, { count: number; resetAt: number }>();
 
 function json(res: any, body: unknown, status = 200) {
-  return res.status(status).setHeader('Content-Type', 'application/json').json(body);
+  return res.status(status)
+    .setHeader('Content-Type', 'application/json')
+    .setHeader('X-Content-Type-Options', 'nosniff')
+    .json(body);
+}
+
+function rateLimit(req: any) {
+  const key = String(req.headers?.['x-forwarded-for'] || req.headers?.['x-real-ip'] || 'unknown').split(',')[0];
+  const now = Date.now();
+  const current = requestCounts.get(key);
+  if (!current || current.resetAt <= now) {
+    requestCounts.set(key, { count: 1, resetAt: now + 60_000 });
+    return false;
+  }
+  current.count += 1;
+  return current.count > 60;
 }
 
 async function getTransaction(signature: string) {
@@ -82,6 +98,7 @@ export default async function handler(req: any, res: any) {
       })));
     }
     if (req.method !== 'POST') return json(res, { error: 'Method not allowed' }, 405);
+    if (rateLimit(req)) return json(res, { error: 'Too many donation requests' }, 429);
     const body = req.body || {};
     const signature = String(body.mainTransactionSignature || '');
     const donorWalletAddress = String(body.donorWalletAddress || '');
@@ -95,6 +112,7 @@ export default async function handler(req: any, res: any) {
     const campaigns = await sql`select * from campaigns where id = ${campaignId} limit 1`;
     const campaign = campaigns[0];
     if (!campaign) return json(res, { error: 'Campaign not found' }, 404);
+    if (donorWalletAddress === campaign.creator_wallet_address) return json(res, { error: 'Campaign creators cannot donate to their own campaign' }, 403);
     if (campaign.status === 'funded' || campaign.status === 'ended') return json(res, { error: 'Campaign is not accepting donations' }, 409);
 
     const rpcUrl = process.env.SOLANA_RPC_URL;
@@ -105,18 +123,30 @@ export default async function handler(req: any, res: any) {
       return json(res, { error: 'Transaction does not match the requested USDC donation' }, 400);
     }
 
-    const inserted = await sql`
-      insert into donations (transaction_signature, amount, donor_wallet_address, campaign_id, created_at)
-      values (${signature}, ${amount.toString()}, ${donorWalletAddress}, ${campaignId}, now())
-      on conflict (transaction_signature) do nothing
-      returning *
+    const result = await sql`
+      with inserted as (
+        insert into donations (transaction_signature, amount, donor_wallet_address, campaign_id, created_at)
+        select ${signature}, ${amount.toString()}, ${donorWalletAddress}, ${campaignId}, now()
+        where exists (
+          select 1 from campaigns
+          where id = ${campaignId} and status not in ('funded', 'ended')
+        )
+        on conflict (transaction_signature) do nothing
+        returning transaction_signature
+      ), updated as (
+        update campaigns
+        set total_raised = total_raised + ${amount.toString()},
+            donation_count = donation_count + 1,
+            status = case when total_raised + ${amount.toString()} >= goal then 'goal_reached' else status end
+        where id = ${campaignId} and exists (select 1 from inserted)
+        returning id
+      )
+      select
+        (select count(*)::int from inserted) as inserted_count,
+        (select count(*)::int from updated) as updated_count
     `;
-    if (!inserted.length) return json(res, { error: 'Donation transaction already recorded' }, 409);
-
-    const nextRaised = BigInt(campaign.total_raised) + amount;
-    const nextStatus = nextRaised >= BigInt(campaign.goal) ? 'goal_reached' : campaign.status;
-    await sql`update campaigns set total_raised = ${nextRaised.toString()}, donation_count = donation_count + 1, status = ${nextStatus} where id = ${campaignId}`;
-    return json(res, { ok: true, donation: inserted[0] }, 201);
+    if (!result[0]?.inserted_count) return json(res, { error: 'Donation transaction already recorded or campaign is closed' }, 409);
+    return json(res, { ok: true }, 201);
   } catch (error: any) {
     if (error instanceof Response) return error;
     console.error(error);
