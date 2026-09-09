@@ -405,7 +405,6 @@ export default function CampaignPage() {
                     {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                       <span className="mr-2 text-2xl text-white/45">$</span>
                       <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="Enter USDC amount" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
-                      {isCampaignCreator && <span className="ml-3 shrink-0 text-right text-sm text-[#ff641f]">Creators can't fund</span>}
                       {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : `Available: ${usdcBalance.toFixed(2)} USDC`}</span>}
                     </div>}
                     <Button
@@ -426,6 +425,8 @@ export default function CampaignPage() {
                     >
                       {disableDonate
                         ? 'Campaign Ended'
+                        : isCampaignCreator
+                          ? "Creators can't fund"
                         : !authenticated || !solanaAddress
                           ? 'Login to Donate'
                           : isGoalReachedStatus || isGoalReachedAmount
@@ -549,7 +550,6 @@ export default function CampaignPage() {
                 {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                   <span className="mr-2 text-2xl text-white/45">$</span>
                   <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="Enter USDC amount" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
-                  {isCampaignCreator && <span className="ml-3 shrink-0 text-right text-sm text-[#ff641f]">Creators can't fund</span>}
                   {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : `Available: ${usdcBalance.toFixed(2)} USDC`}</span>}
                 </div>}
                 <Button
@@ -560,6 +560,8 @@ export default function CampaignPage() {
                 >
                   {disableDonate
                     ? 'Campaign Ended'
+                    : isCampaignCreator
+                      ? "Creators can't fund"
                     : !authenticated || !solanaAddress
                       ? 'Login to Donate'
                       : isGoalReachedStatus || isGoalReachedAmount
