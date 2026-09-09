@@ -463,7 +463,7 @@ export default function CampaignPage() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium font-mono text-sm flex items-center gap-1">
+                        <div className="font-medium text-sm flex items-center gap-1">
                           {donation.donorWalletAddress ? getFunnyName(donation.donorWalletAddress) : 'Unknown donor'}
                         </div>
                         <div className="text-xs text-muted-foreground">
@@ -594,7 +594,7 @@ export default function CampaignPage() {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                        <div className="font-medium font-mono text-sm flex items-center gap-1">
+                        <div className="font-medium text-sm flex items-center gap-1">
                               {donation.donorWalletAddress ? getFunnyName(donation.donorWalletAddress) : 'Unknown donor'}
                             </div>
                             <div className="text-xs text-muted-foreground">
