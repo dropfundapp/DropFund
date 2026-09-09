@@ -42,6 +42,18 @@ function getNameInitials(name: string) {
   return name.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
 }
 
+function getStoredProfileName(walletAddress: string) {
+  if (typeof window === 'undefined') return '';
+  try {
+    const raw = localStorage.getItem(`dropfund-profile-${walletAddress}`);
+    if (!raw) return '';
+    const parsed = JSON.parse(raw) as { name?: string };
+    return typeof parsed.name === 'string' ? parsed.name.trim() : '';
+  } catch {
+    return '';
+  }
+}
+
 export default function CampaignPage() {
   const { campaignId } = useParams({ from: '/campaign/$campaignId' });
   // Scroll to top on mount or when campaignId changes
@@ -62,9 +74,15 @@ export default function CampaignPage() {
   const mobileDonateButtonRef = useRef<HTMLButtonElement | null>(null);
   const donateSentinelRef = useRef<HTMLDivElement | null>(null);
   const selfDonationWarningShownRef = useRef(false);
+  const hasInitializedStatsRef = useRef(false);
+  const statsAnimationRef = useRef<number | null>(null);
   const [donationSort, setDonationSort] = useState<'recent' | 'highest'>('recent');
   const [shareOpen, setShareOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [, forceProfileRefresh] = useState(0);
+  const [animatedRaisedNumber, setAnimatedRaisedNumber] = useState(0);
+  const [animatedProgressPercentage, setAnimatedProgressPercentage] = useState(0);
+  const [animatedDonationCount, setAnimatedDonationCount] = useState(0);
   const { donate: donateUsdc } = useSolanaDonation();
   const addDonation = useAddDonation();
   const queryClient = useQueryClient();
@@ -81,6 +99,12 @@ export default function CampaignPage() {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const refreshProfile = () => forceProfileRefresh((value) => value + 1);
+    window.addEventListener('dropfund-profile-updated', refreshProfile);
+    return () => window.removeEventListener('dropfund-profile-updated', refreshProfile);
   }, []);
 
   useEffect(() => {
@@ -147,9 +171,61 @@ export default function CampaignPage() {
   const isGoalReachedStatus = campaign.status === 'goal_reached';
   const disableDonate = isEnded || isFunded;
   const isCampaignCreator = authenticated && !!solanaAddress && solanaAddress === campaign.creatorWalletAddress;
+  const creatorDisplayName = getStoredProfileName(campaign.creatorWalletAddress) || getFunnyName(campaign.creatorWalletAddress);
   const donationValue = Number(donationAmount);
   const hasInsufficientBalance = authenticated && usdcBalance !== null && donationValue > usdcBalance;
   const isGoalReachedAmount = raisedNumber >= goalNumber;
+
+  useEffect(() => {
+    if (!hasInitializedStatsRef.current) {
+      setAnimatedRaisedNumber(raisedNumber);
+      setAnimatedProgressPercentage(progressPercentage);
+      setAnimatedDonationCount(donations.length);
+      hasInitializedStatsRef.current = true;
+      return;
+    }
+
+    if (statsAnimationRef.current !== null) {
+      window.cancelAnimationFrame(statsAnimationRef.current);
+    }
+
+    const startRaised = animatedRaisedNumber;
+    const startProgress = animatedProgressPercentage;
+    const startCount = animatedDonationCount;
+    const targetRaised = raisedNumber;
+    const targetProgress = progressPercentage;
+    const targetCount = donations.length;
+    const durationMs = 700;
+    const startTime = performance.now();
+
+    const tick = (now: number) => {
+      const elapsed = Math.min((now - startTime) / durationMs, 1);
+      const eased = 1 - Math.pow(1 - elapsed, 3);
+
+      setAnimatedRaisedNumber(startRaised + (targetRaised - startRaised) * eased);
+      setAnimatedProgressPercentage(startProgress + (targetProgress - startProgress) * eased);
+      setAnimatedDonationCount(Math.round(startCount + (targetCount - startCount) * eased));
+
+      if (elapsed < 1) {
+        statsAnimationRef.current = window.requestAnimationFrame(tick);
+      } else {
+        setAnimatedRaisedNumber(targetRaised);
+        setAnimatedProgressPercentage(targetProgress);
+        setAnimatedDonationCount(targetCount);
+        statsAnimationRef.current = null;
+      }
+    };
+
+    statsAnimationRef.current = window.requestAnimationFrame(tick);
+
+    return () => {
+      if (statsAnimationRef.current !== null) {
+        window.cancelAnimationFrame(statsAnimationRef.current);
+        statsAnimationRef.current = null;
+      }
+    };
+  }, [raisedNumber, progressPercentage, donations.length, campaignId]);
+
   const sortedDonations = [...donations].sort((a, b) => {
     if (donationSort === 'highest') {
       return Number(b.amount) - Number(a.amount);
@@ -282,11 +358,11 @@ export default function CampaignPage() {
                 <div className="flex items-center gap-2">
                   <Avatar className="h-10 w-10" style={{ backgroundColor: campaign.creatorWalletAddress ? getAvatarColor(campaign.creatorWalletAddress) : '#4b54ff' }}>
                     <AvatarFallback className="bg-transparent text-xs text-white">
-                      {campaign.creatorWalletAddress ? getNameInitials(getFunnyName(campaign.creatorWalletAddress)) : 'U'}
+                      {campaign.creatorWalletAddress ? getNameInitials(creatorDisplayName) : 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="text-sm font-semibold text-foreground">
-                    {campaign.creatorWalletAddress ? getFunnyName(campaign.creatorWalletAddress) : 'Unknown creator'}
+                    {campaign.creatorWalletAddress ? creatorDisplayName : 'Unknown creator'}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
@@ -365,12 +441,12 @@ export default function CampaignPage() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Raised</span>
-                      <span className="font-bold text-lg">${formatUsdc(raisedNumber / 1000000)} USDC</span>
+                      <span className="font-bold text-lg">${formatUsdc(animatedRaisedNumber / 1000000)} USDC</span>
                     </div>
-                    <Progress value={progressPercentage} className="h-3 [&>div]:bg-[#58d16e]" />
+                    <Progress value={animatedProgressPercentage} className="h-3 [&>div]:bg-[#58d16e]" />
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>Goal: ${formatUsdc(goalNumber / 1000000)} USDC</span>
-                      <span className="font-semibold" style={{ color: '#58d16e' }}>{progressPercentage.toFixed(0)}%</span>
+                      <span className="font-semibold" style={{ color: '#58d16e' }}>{animatedProgressPercentage.toFixed(0)}%</span>
                     </div>
                   </div>
 
@@ -380,7 +456,7 @@ export default function CampaignPage() {
                         <TrendingUp className="h-4 w-4" />
                         <span>Donations</span>
                       </div>
-                      <div className="text-2xl font-bold">{donations.length}</div>
+                      <div className="text-2xl font-bold">{animatedDonationCount}</div>
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-muted-foreground text-sm">
@@ -404,8 +480,8 @@ export default function CampaignPage() {
                     {showStickyCTA && mobileButtonHeight && <div style={{ height: mobileButtonHeight }} />}
                     {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                       <span className="mr-2 text-2xl text-white/45">$</span>
-                      <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="Enter USDC amount" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
-                      {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : `Available: ${usdcBalance.toFixed(2)} USDC`}</span>}
+                      <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="Enter amount" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
+                      {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : `$${usdcBalance.toFixed(2)} available`}</span>}
                     </div>}
                     <Button
                       ref={mobileDonateButtonRef}
@@ -512,12 +588,12 @@ export default function CampaignPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Raised</span>
-                    <span className="font-bold text-lg">${formatUsdc(raisedNumber / 1000000)} USDC</span>
+                    <span className="font-bold text-lg">${formatUsdc(animatedRaisedNumber / 1000000)} USDC</span>
                   </div>
-                  <Progress value={progressPercentage} className="h-3 [&>div]:bg-[#58d16e]" />
+                  <Progress value={animatedProgressPercentage} className="h-3 [&>div]:bg-[#58d16e]" />
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Goal: ${formatUsdc(goalNumber / 1000000)} USDC</span>
-                    <span className="font-semibold" style={{ color: '#58d16e' }}>{progressPercentage.toFixed(0)}%</span>
+                    <span className="font-semibold" style={{ color: '#58d16e' }}>{animatedProgressPercentage.toFixed(0)}%</span>
                   </div>
                 </div>
 
@@ -527,7 +603,7 @@ export default function CampaignPage() {
                         <TrendingUp className="h-4 w-4" />
                         <span>Donations</span>
                       </div>
-                      <div className="text-2xl font-bold">{donations.length}</div>
+                      <div className="text-2xl font-bold">{animatedDonationCount}</div>
                     </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-muted-foreground text-sm">
@@ -549,8 +625,8 @@ export default function CampaignPage() {
 
                 {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                   <span className="mr-2 text-2xl text-white/45">$</span>
-                  <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="Enter USDC amount" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
-                  {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : `Available: ${usdcBalance.toFixed(2)} USDC`}</span>}
+                  <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="Enter amount" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
+                  {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : `$${usdcBalance.toFixed(2)} available`}</span>}
                 </div>}
                 <Button
                   className="h-[3.2rem] w-full text-lg font-semibold"
