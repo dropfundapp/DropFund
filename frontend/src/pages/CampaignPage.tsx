@@ -61,6 +61,7 @@ export default function CampaignPage() {
   const [mobileButtonWidth, setMobileButtonWidth] = useState<number | null>(null);
   const mobileDonateButtonRef = useRef<HTMLButtonElement | null>(null);
   const donateSentinelRef = useRef<HTMLDivElement | null>(null);
+  const selfDonationWarningShownRef = useRef(false);
   const [donationSort, setDonationSort] = useState<'recent' | 'highest'>('recent');
   const [shareOpen, setShareOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -145,6 +146,7 @@ export default function CampaignPage() {
   const isFunded = campaign.status === 'funded';
   const isGoalReachedStatus = campaign.status === 'goal_reached';
   const disableDonate = isEnded || isFunded;
+  const isCampaignCreator = authenticated && !!solanaAddress && solanaAddress === campaign.creatorWalletAddress;
   const donationValue = Number(donationAmount);
   const hasInsufficientBalance = authenticated && usdcBalance !== null && donationValue > usdcBalance;
   const isGoalReachedAmount = raisedNumber >= goalNumber;
@@ -157,6 +159,10 @@ export default function CampaignPage() {
 
   const handleDonateClick = async () => {
     try {
+      if (isCampaignCreator) {
+        toast.error("You can't fund your own campaign.");
+        return;
+      }
       if (!authenticated || !solanaAddress) {
         login();
         return;
@@ -218,6 +224,17 @@ export default function CampaignPage() {
     } finally {
       setIsDonating(false);
     }
+  };
+
+  const handleDonationAmountChange = (value: string) => {
+    if (isCampaignCreator) {
+      if (!selfDonationWarningShownRef.current) {
+        toast.error("You can't fund your own campaign.");
+        selfDonationWarningShownRef.current = true;
+      }
+      return;
+    }
+    setDonationAmount(value);
   };
 
   const getTimeRemaining = () => {
@@ -387,7 +404,8 @@ export default function CampaignPage() {
                     {showStickyCTA && mobileButtonHeight && <div style={{ height: mobileButtonHeight }} />}
                     {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                       <span className="mr-2 text-2xl text-white/45">$</span>
-                      <input value={donationAmount} onChange={(event) => setDonationAmount(event.target.value)} inputMode="decimal" type="text" placeholder="Enter USDC amount" disabled={isDonating} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
+                      <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="Enter USDC amount" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
+                      {isCampaignCreator && <span className="ml-3 shrink-0 text-right text-sm text-[#ff641f]">Creators can't fund</span>}
                       {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : `Available: ${usdcBalance.toFixed(2)} USDC`}</span>}
                     </div>}
                     <Button
@@ -403,7 +421,7 @@ export default function CampaignPage() {
                           : undefined
                       }
                       size="lg"
-                      disabled={disableDonate || isDonating || !donationAmount || hasInsufficientBalance}
+                      disabled={disableDonate || isDonating || !donationAmount || hasInsufficientBalance || isCampaignCreator}
                       onClick={handleDonateClick}
                     >
                       {disableDonate
@@ -530,13 +548,14 @@ export default function CampaignPage() {
 
                 {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                   <span className="mr-2 text-2xl text-white/45">$</span>
-                  <input value={donationAmount} onChange={(event) => setDonationAmount(event.target.value)} inputMode="decimal" type="text" placeholder="Enter USDC amount" disabled={isDonating} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
+                  <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="Enter USDC amount" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
+                  {isCampaignCreator && <span className="ml-3 shrink-0 text-right text-sm text-[#ff641f]">Creators can't fund</span>}
                   {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : `Available: ${usdcBalance.toFixed(2)} USDC`}</span>}
                 </div>}
                 <Button
                   className="h-[3.2rem] w-full text-lg font-semibold"
                   size="lg"
-                  disabled={disableDonate || isDonating || !donationAmount || hasInsufficientBalance}
+                  disabled={disableDonate || isDonating || !donationAmount || hasInsufficientBalance || isCampaignCreator}
                   onClick={handleDonateClick}
                 >
                   {disableDonate
