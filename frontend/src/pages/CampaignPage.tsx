@@ -249,7 +249,9 @@ export default function CampaignPage() {
   const isCampaignCreator = authenticated && !!solanaAddress && solanaAddress === campaign.creatorWalletAddress;
   const creatorDisplayName = getStoredProfileName(campaign.creatorWalletAddress) || getFunnyName(campaign.creatorWalletAddress);
   const donationValue = Number(donationAmount);
-  const hasInsufficientBalance = authenticated && usdcBalance !== null && donationValue > usdcBalance;
+  const donationUnits = Number.isFinite(donationValue) ? Math.floor(donationValue * 1e6) : 0;
+  const availableUnits = usdcBalance !== null ? Math.floor(usdcBalance * 1e6) : 0;
+  const hasInsufficientBalance = authenticated && usdcBalance !== null && donationUnits > availableUnits;
   const isGoalReachedAmount = raisedNumber >= goalNumber;
 
   const sortedDonations = [...donations].sort((a, b) => {
