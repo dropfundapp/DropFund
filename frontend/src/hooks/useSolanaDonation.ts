@@ -79,6 +79,10 @@ function getUsdcSourceAccounts(tokenAccounts: any[]) {
     .sort((left, right) => (left.amount > right.amount ? -1 : left.amount < right.amount ? 1 : 0));
 }
 
+function formatUsdcUnits(amount: bigint) {
+  return (Number(amount) / 10 ** USDC_DECIMALS).toFixed(6);
+}
+
 function addSplitTransfers(
   transaction: Transaction,
   sources: ReturnType<typeof getUsdcSourceAccounts>,
@@ -167,6 +171,13 @@ export function useSolanaDonation() {
       const donorTokenAccounts = await connection.getParsedTokenAccountsByOwner(donor, { mint: USDC_MINT });
       const donorTokenAccount = donorTokenAccounts.value.find((account) => BigInt(account.account.data.parsed.info.tokenAmount.amount) > 0n);
       if (!donorTokenAccount) throw new Error('Insufficient USDC balance.');
+      const availableUnits = donorTokenAccounts.value.reduce(
+        (total, account) => total + BigInt(account.account.data.parsed.info.tokenAmount.amount || '0'),
+        0n,
+      );
+      if (availableUnits < totalUnits) {
+        throw new Error(`Insufficient USDC balance. Available: ${formatUsdcUnits(availableUnits)} USDC.`);
+      }
 
       const feePayerAddress = USE_KORA ? await getKoraSignerAddress() : donor.toBase58();
       const feePayer = new PublicKey(feePayerAddress);
