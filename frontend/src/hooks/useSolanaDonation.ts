@@ -12,6 +12,12 @@ const USE_KORA = import.meta.env.VITE_USE_KORA === 'true';
 const USER_PAYS_KORA_FEE = import.meta.env.VITE_KORA_USER_PAYS_USDC === 'true';
 type DonationPhase = 'idle' | 'preparing' | 'awaiting_signature' | 'submitting';
 
+export interface DonationFeeQuote {
+  total: number;
+  campaignAmount: number;
+  fee: number;
+}
+
 let koraSignerAddress: string | null = null;
 let koraSignerRequest: Promise<string> | null = null;
 
@@ -122,6 +128,7 @@ export function useSolanaDonation() {
     _campaignId: string,
     amount: number,
     creatorWallet: string,
+    confirmFeeQuote?: (quote: DonationFeeQuote) => Promise<boolean>,
   ) => {
     if (!wallet?.address) {
       throw new Error('Your embedded Solana wallet is not ready. Please sign in again.');
@@ -183,6 +190,12 @@ export function useSolanaDonation() {
             TOKEN_PROGRAM_ID,
           );
           fee = Number(feeInToken) / 10 ** USDC_DECIMALS;
+          const confirmed = await confirmFeeQuote?.({
+            total: amount,
+            campaignAmount: amount - fee,
+            fee,
+          }) ?? true;
+          if (!confirmed) throw new Error('User cancelled');
         }
 
         setDonationPhase('awaiting_signature');
@@ -190,6 +203,7 @@ export function useSolanaDonation() {
           transaction: transaction.serialize({ requireAllSignatures: false, verifySignatures: false }),
           wallet,
           chain: 'solana:mainnet',
+          options: { uiOptions: { showWalletUIs: false } },
         });
         const token = await getAccessToken();
         if (!token) throw new Error('Authentication required');

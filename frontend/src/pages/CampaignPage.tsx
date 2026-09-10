@@ -11,7 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useSolanaDonation } from '@/hooks/useSolanaDonation';
+import { useSolanaDonation, type DonationFeeQuote } from '@/hooks/useSolanaDonation';
 import { usePrivyBalances } from '@/hooks/usePrivyBalances';
 import { useAddDonation } from '../hooks/useQueries';
 import { Clock, TrendingUp, Calendar, Globe, Send, ThumbsUp, Share2, Copy, X } from 'lucide-react';
@@ -68,12 +68,14 @@ export default function CampaignPage() {
   const [donationAmount, setDonationAmount] = useState('');
   const [isDonating, setIsDonating] = useState(false);
   const [networkFee, setNetworkFee] = useState<number | null>(null);
+  const [feeQuote, setFeeQuote] = useState<DonationFeeQuote | null>(null);
   const [showStickyCTA, setShowStickyCTA] = useState(false);
   const [mobileButtonHeight, setMobileButtonHeight] = useState<number | null>(null);
   const [mobileButtonWidth, setMobileButtonWidth] = useState<number | null>(null);
   const mobileDonateButtonRef = useRef<HTMLButtonElement | null>(null);
   const donateSentinelRef = useRef<HTMLDivElement | null>(null);
   const selfDonationWarningShownRef = useRef(false);
+  const feeConfirmationRef = useRef<((confirmed: boolean) => void) | null>(null);
   const hasInitializedStatsRef = useRef(false);
   const statsAnimationRef = useRef<number | null>(null);
   const [donationSort, setDonationSort] = useState<'recent' | 'highest'>('recent');
@@ -275,7 +277,10 @@ export default function CampaignPage() {
         return;
       }
       setIsDonating(true);
-      const result = await donateUsdc(campaignId, amount, campaign.creatorWalletAddress);
+      const result = await donateUsdc(campaignId, amount, campaign.creatorWalletAddress, (quote) => new Promise((resolve) => {
+        feeConfirmationRef.current = resolve;
+        setFeeQuote(quote);
+      }));
       await addDonation.mutateAsync({
         mainTransactionSignature: result.signature,
         feeTransactionSignature: '',
@@ -336,6 +341,12 @@ export default function CampaignPage() {
     } finally {
       setIsDonating(false);
     }
+  };
+
+  const resolveFeeConfirmation = (confirmed: boolean) => {
+    feeConfirmationRef.current?.(confirmed);
+    feeConfirmationRef.current = null;
+    setFeeQuote(null);
   };
 
   const handleDonationAmountChange = (value: string) => {
@@ -918,6 +929,29 @@ export default function CampaignPage() {
           </DialogContent>
         </Dialog>
       )}
+      <Dialog open={!!feeQuote} onOpenChange={(open) => !open && resolveFeeConfirmation(false)}>
+        <DialogContent className="w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6">
+          <DialogHeader className="mb-6 pr-10">
+            <DialogTitle className="text-lg font-semibold tracking-tight">Confirm donation</DialogTitle>
+            <DialogDescription className="text-white/50">Review your USDC transfer before confirming.</DialogDescription>
+          </DialogHeader>
+          {feeQuote && campaign && (
+            <div className="space-y-4">
+              <div className="rounded-[22px] bg-[#282b30] p-5">
+                <div className="flex items-center justify-between text-sm text-white/55"><span>You pay</span><span className="font-semibold text-white">${feeQuote.total.toFixed(6)} USDC</span></div>
+                <div className="my-4 border-t border-white/10" />
+                <div className="flex items-center justify-between text-sm text-white/55"><span>Campaign receives</span><span className="font-semibold text-white">${feeQuote.campaignAmount.toFixed(6)} USDC</span></div>
+                <div className="mt-3 flex items-center justify-between text-sm text-white/55"><span>Kora network fee</span><span>${feeQuote.fee.toFixed(6)} USDC</span></div>
+              </div>
+              <div className="text-sm text-white/55">Funding <span className="font-medium text-white">{campaign.title}</span></div>
+              <div className="grid grid-cols-2 gap-3">
+                <Button type="button" variant="secondary" className="h-14 rounded-2xl bg-[#282b30] text-base font-semibold text-white hover:bg-[#34383e]" onClick={() => resolveFeeConfirmation(false)}>Cancel</Button>
+                <Button type="button" className="h-14 rounded-2xl bg-[#4b54ff] text-base font-semibold text-white hover:bg-[#4149e6]" onClick={() => resolveFeeConfirmation(true)}>Confirm</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
