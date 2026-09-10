@@ -98,7 +98,7 @@ export function useSolanaDonation() {
     const totalUnits = BigInt(Math.floor(amount * 10 ** USDC_DECIMALS));
     const creatorTokenAccount = await getAssociatedTokenAddress(USDC_MINT, creator);
     const donorTokenAccounts = await connection.getParsedTokenAccountsByOwner(donor, { mint: USDC_MINT });
-    const donorTokenAccount = donorTokenAccounts.value.find((account) => BigInt(account.account.data.parsed.info.tokenAmount.amount) >= totalUnits);
+    const donorTokenAccount = donorTokenAccounts.value.find((account) => BigInt(account.account.data.parsed.info.tokenAmount.amount) > 0n);
     if (!donorTokenAccount) throw new Error('Insufficient USDC balance.');
 
     const paymentAddress = await getKoraSignerAddress();
