@@ -817,7 +817,7 @@ export default function CampaignPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="h-14 w-full justify-center rounded-2xl bg-[#282b30] text-lg font-semibold text-white hover:bg-[#34383e]"
+                className="h-14 w-full justify-center rounded-2xl bg-white text-lg font-semibold text-black hover:bg-white/85"
                 asChild
               >
                 <a
@@ -891,7 +891,7 @@ export default function CampaignPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-14 w-full justify-center rounded-2xl bg-[#282b30] text-lg font-semibold text-white hover:bg-[#34383e]"
+                  className="h-14 w-full justify-center rounded-2xl bg-white text-lg font-semibold text-black hover:bg-white/85"
                   asChild
                 >
                   <a
