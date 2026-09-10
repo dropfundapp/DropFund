@@ -96,6 +96,7 @@ export function useSolanaDonation() {
     const creator = new PublicKey(creatorWallet);
     const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
     const totalUnits = BigInt(Math.floor(amount * 10 ** USDC_DECIMALS));
+    if (totalUnits < 1n) return null;
     const creatorTokenAccount = await getAssociatedTokenAddress(USDC_MINT, creator);
     const donorTokenAccounts = await connection.getParsedTokenAccountsByOwner(donor, { mint: USDC_MINT });
     const donorTokenAccount = donorTokenAccounts.value.find((account) => BigInt(account.account.data.parsed.info.tokenAmount.amount) > 0n);
@@ -112,7 +113,7 @@ export function useSolanaDonation() {
       transaction.add(createAssociatedTokenAccountInstruction(donor, creatorTokenAccount, creator, USDC_MINT));
     }
 
-    transaction.add(createTransferInstruction(donorTokenAccount.pubkey, creatorTokenAccount, donor, totalUnits, [], TOKEN_PROGRAM_ID));
+    transaction.add(createTransferInstruction(donorTokenAccount.pubkey, creatorTokenAccount, donor, 1n, [], TOKEN_PROGRAM_ID));
     transaction.add(createTransferInstruction(donorTokenAccount.pubkey, paymentTokenAccount, donor, 0n, [], TOKEN_PROGRAM_ID));
     const { feeInToken } = await getKoraFeeEstimate(donor.toBase58(), transaction, getAccessToken);
     return Number(feeInToken) / 10 ** USDC_DECIMALS;
