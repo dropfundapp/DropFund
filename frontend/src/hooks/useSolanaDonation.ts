@@ -97,10 +97,10 @@ export function useSolanaDonation() {
       const donor = new PublicKey(wallet.address);
       const creator = new PublicKey(creatorWallet);
       const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
-      const donationUnits = BigInt(Math.floor(amount * 10 ** USDC_DECIMALS));
+      const totalUnits = BigInt(Math.floor(amount * 10 ** USDC_DECIMALS));
       const creatorTokenAccount = await getAssociatedTokenAddress(USDC_MINT, creator);
       const donorTokenAccounts = await connection.getParsedTokenAccountsByOwner(donor, { mint: USDC_MINT });
-      const donorTokenAccount = donorTokenAccounts.value.find((account) => BigInt(account.account.data.parsed.info.tokenAmount.amount) >= donationUnits);
+      const donorTokenAccount = donorTokenAccounts.value.find((account) => BigInt(account.account.data.parsed.info.tokenAmount.amount) >= totalUnits);
       if (!donorTokenAccount) throw new Error('Insufficient USDC balance.');
 
       const feePayerAddress = USE_KORA ? await getKoraSignerAddress() : donor.toBase58();
@@ -114,7 +114,7 @@ export function useSolanaDonation() {
         transaction.add(createAssociatedTokenAccountInstruction(donor, creatorTokenAccount, creator, USDC_MINT));
       }
 
-      transaction.add(createTransferInstruction(donorTokenAccount.pubkey, creatorTokenAccount, donor, donationUnits, [], TOKEN_PROGRAM_ID));
+      transaction.add(createTransferInstruction(donorTokenAccount.pubkey, creatorTokenAccount, donor, totalUnits, [], TOKEN_PROGRAM_ID));
 
       let signature = '';
       let fee = 0;
@@ -128,10 +128,18 @@ export function useSolanaDonation() {
           transaction.add(placeholderPaymentInstruction);
 
           const { feeInToken } = await getKoraFeeEstimate(donor.toBase58(), transaction, getAccessToken);
-          const availableUnits = BigInt(donorTokenAccount.account.data.parsed.info.tokenAmount.amount);
-          if (availableUnits < donationUnits + feeInToken) {
-            throw new Error('Insufficient USDC balance to cover the donation and network fee.');
+          if (feeInToken >= totalUnits) {
+            throw new Error('Donation amount is too small to cover the network fee.');
           }
+          const donationUnits = totalUnits - feeInToken;
+          transaction.instructions[transaction.instructions.length - 2] = createTransferInstruction(
+            donorTokenAccount.pubkey,
+            creatorTokenAccount,
+            donor,
+            donationUnits,
+            [],
+            TOKEN_PROGRAM_ID,
+          );
           transaction.instructions[transaction.instructions.length - 1] = createTransferInstruction(
             donorTokenAccount.pubkey,
             paymentTokenAccount,
@@ -178,7 +186,7 @@ export function useSolanaDonation() {
         signature = bs58.encode(result.signature);
       }
 
-      return { success: true, signature, amount, fee };
+      return { success: true, signature, amount: amount - fee, fee };
     } finally {
       setDonationPhase('idle');
     }
