@@ -69,6 +69,35 @@ async function getKoraFeeEstimate(donorWalletAddress: string, transaction: Trans
   return { feeInToken: BigInt(body.feeInToken), paymentAddress: body.paymentAddress };
 }
 
+function getUsdcSourceAccounts(tokenAccounts: any[]) {
+  return tokenAccounts
+    .map((account) => ({
+      account,
+      amount: BigInt(account.account.data.parsed.info.tokenAmount.amount),
+    }))
+    .filter(({ amount }) => amount > 0n)
+    .sort((left, right) => (left.amount > right.amount ? -1 : left.amount < right.amount ? 1 : 0));
+}
+
+function addSplitTransfers(
+  transaction: Transaction,
+  sources: ReturnType<typeof getUsdcSourceAccounts>,
+  donor: PublicKey,
+  destination: PublicKey,
+  amount: bigint,
+) {
+  let remaining = amount;
+  for (const source of sources) {
+    if (remaining === 0n) break;
+    const transferAmount = source.amount < remaining ? source.amount : remaining;
+    if (transferAmount === 0n) continue;
+    transaction.add(createTransferInstruction(source.account.pubkey, destination, donor, transferAmount, [], TOKEN_PROGRAM_ID));
+    source.amount -= transferAmount;
+    remaining -= transferAmount;
+  }
+  if (remaining > 0n) throw new Error('Insufficient USDC balance.');
+}
+
 export function useSolanaDonation() {
   const { wallets } = useSolanaWallets();
   const { signAndSendTransaction } = useSignAndSendTransaction();
@@ -136,7 +165,7 @@ export function useSolanaDonation() {
       const totalUnits = BigInt(Math.floor(amount * 10 ** USDC_DECIMALS));
       const creatorTokenAccount = await getAssociatedTokenAddress(USDC_MINT, creator);
       const donorTokenAccounts = await connection.getParsedTokenAccountsByOwner(donor, { mint: USDC_MINT });
-      const donorTokenAccount = donorTokenAccounts.value.find((account) => BigInt(account.account.data.parsed.info.tokenAmount.amount) >= totalUnits);
+      const donorTokenAccount = donorTokenAccounts.value.find((account) => BigInt(account.account.data.parsed.info.tokenAmount.amount) > 0n);
       if (!donorTokenAccount) throw new Error('Insufficient USDC balance.');
 
       const feePayerAddress = USE_KORA ? await getKoraSignerAddress() : donor.toBase58();
@@ -150,8 +179,6 @@ export function useSolanaDonation() {
         transaction.add(createAssociatedTokenAccountInstruction(donor, creatorTokenAccount, creator, USDC_MINT));
       }
 
-      transaction.add(createTransferInstruction(donorTokenAccount.pubkey, creatorTokenAccount, donor, totalUnits, [], TOKEN_PROGRAM_ID));
-
       let signature = '';
       let fee = 0;
 
@@ -160,6 +187,7 @@ export function useSolanaDonation() {
           const paymentAddress = await getKoraSignerAddress();
           const paymentTokenAccount = await getAssociatedTokenAddress(USDC_MINT, new PublicKey(paymentAddress));
           const placeholderPaymentInstruction = createTransferInstruction(donorTokenAccount.pubkey, paymentTokenAccount, donor, 0n, [], TOKEN_PROGRAM_ID);
+          transaction.add(createTransferInstruction(donorTokenAccount.pubkey, creatorTokenAccount, donor, 1n, [], TOKEN_PROGRAM_ID));
           transaction.add(placeholderPaymentInstruction);
 
           const { feeInToken } = await getKoraFeeEstimate(donor.toBase58(), transaction, getAccessToken);
@@ -167,23 +195,13 @@ export function useSolanaDonation() {
             throw new Error('Donation amount is too small to cover the network fee.');
           }
           const donationUnits = totalUnits - feeInToken;
-          transaction.instructions[transaction.instructions.length - 2] = createTransferInstruction(
-            donorTokenAccount.pubkey,
-            creatorTokenAccount,
-            donor,
-            donationUnits,
-            [],
-            TOKEN_PROGRAM_ID,
-          );
-          transaction.instructions[transaction.instructions.length - 1] = createTransferInstruction(
-            donorTokenAccount.pubkey,
-            paymentTokenAccount,
-            donor,
-            feeInToken,
-            [],
-            TOKEN_PROGRAM_ID,
-          );
+          transaction.instructions.splice(-2, 2);
+          const sources = getUsdcSourceAccounts(donorTokenAccounts.value);
+          addSplitTransfers(transaction, sources, donor, creatorTokenAccount, donationUnits);
+          addSplitTransfers(transaction, sources, donor, paymentTokenAccount, feeInToken);
           fee = Number(feeInToken) / 10 ** USDC_DECIMALS;
+        } else {
+          addSplitTransfers(transaction, getUsdcSourceAccounts(donorTokenAccounts.value), donor, creatorTokenAccount, totalUnits);
         }
 
         setDonationPhase('awaiting_signature');
@@ -213,6 +231,7 @@ export function useSolanaDonation() {
         }
         signature = relayBody.signature;
       } else {
+        addSplitTransfers(transaction, getUsdcSourceAccounts(donorTokenAccounts.value), donor, creatorTokenAccount, totalUnits);
         const result = await signAndSendTransaction({
           transaction: transaction.serialize({ requireAllSignatures: false, verifySignatures: false }),
           wallet,
