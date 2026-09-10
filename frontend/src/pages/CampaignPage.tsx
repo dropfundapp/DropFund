@@ -83,7 +83,7 @@ export default function CampaignPage() {
   const [animatedRaisedNumber, setAnimatedRaisedNumber] = useState(0);
   const [animatedProgressPercentage, setAnimatedProgressPercentage] = useState(0);
   const [animatedDonationCount, setAnimatedDonationCount] = useState(0);
-  const { donate: donateUsdc } = useSolanaDonation();
+  const { donate: donateUsdc, donationPhase } = useSolanaDonation();
   const addDonation = useAddDonation();
   const queryClient = useQueryClient();
   const goalNumber = campaign ? Number(campaign.goal) : 0;
@@ -519,7 +519,15 @@ export default function CampaignPage() {
                           ? 'Login to Donate'
                           : isGoalReachedStatus || isGoalReachedAmount
                             ? 'Goal Reached (Still Accepting)'
-                            : isDonating ? 'Confirming...' : 'Fund It'}
+                            : isDonating
+                              ? donationPhase === 'preparing'
+                                ? 'Preparing...'
+                                : donationPhase === 'awaiting_signature'
+                                  ? 'Confirm in wallet...'
+                                  : donationPhase === 'submitting'
+                                    ? 'Sending...'
+                                    : 'Confirming...'
+                              : 'Fund It'}
                     </Button>
                   </div>
                 </div>
@@ -654,7 +662,15 @@ export default function CampaignPage() {
                       ? 'Login to Donate'
                       : isGoalReachedStatus || isGoalReachedAmount
                         ? 'Goal Reached (Still Accepting)'
-                        : isDonating ? 'Confirming...' : 'Fund It'}
+                        : isDonating
+                          ? donationPhase === 'preparing'
+                            ? 'Preparing...'
+                            : donationPhase === 'awaiting_signature'
+                              ? 'Confirm in wallet...'
+                              : donationPhase === 'submitting'
+                                ? 'Sending...'
+                                : 'Confirming...'
+                          : 'Fund It'}
                 </Button>
             </CardContent>
           </Card>
