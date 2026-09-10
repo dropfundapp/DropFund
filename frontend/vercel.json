@@ -9,6 +9,9 @@
     "api/donations.ts": {
       "maxDuration": 30
     },
+    "api/kora.ts": {
+      "maxDuration": 30
+    },
     "api/profile.ts": {
       "maxDuration": 30
     }
