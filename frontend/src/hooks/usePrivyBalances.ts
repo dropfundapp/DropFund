@@ -25,23 +25,19 @@ export function usePrivyBalances() {
     queryKey: ['privy-balances', address],
     enabled: authReady && !!address,
     queryFn: async () => {
-      if (!address) return { sol: 0, usdc: 0, usdcUnits: 0n };
+      if (!address) return { sol: 0, usdc: 0 };
       const owner = new PublicKey(address);
       const lamports = await rpcRequest('getBalance', [owner.toBase58(), { commitment: 'confirmed' }]);
       let usdc = 0;
-      let usdcUnits = 0n;
       try {
         const tokenAccounts = await rpcRequest('getTokenAccountsByOwner', [owner.toBase58(), { mint: USDC_MINT.toBase58() }, { encoding: 'jsonParsed', commitment: 'confirmed' }]);
         usdc = (tokenAccounts.value || []).reduce((total: number, account: any) => {
           return total + Number(account.account.data.parsed.info.tokenAmount.uiAmount || 0);
         }, 0);
-        usdcUnits = (tokenAccounts.value || []).reduce((total: bigint, account: any) => {
-          return total + BigInt(account.account.data.parsed.info.tokenAmount.amount || '0');
-        }, 0n);
       } catch (error) {
         console.warn('USDC balance lookup failed; keeping SOL balance:', error);
       }
-      return { sol: Number(lamports.value || 0) / 1e9, usdc, usdcUnits };
+      return { sol: Number(lamports.value || 0) / 1e9, usdc };
     },
     staleTime: 5_000,
     refetchInterval: 5_000,
@@ -52,7 +48,6 @@ export function usePrivyBalances() {
   return {
     solanaAddress: address,
     usdcBalance: balanceQuery.data?.usdc ?? null,
-    usdcBalanceUnits: balanceQuery.data?.usdcUnits ?? null,
     solBalance: balanceQuery.data?.sol ?? null,
     balanceError: balanceQuery.error instanceof Error ? balanceQuery.error.message : (!address ? 'Privy Solana wallet address is not available.' : null),
     isLoading: balanceQuery.isLoading,
