@@ -68,6 +68,7 @@ export default function CampaignPage() {
   console.log('[CampaignPage] Rendered. Privy wallet ready:', authenticated && !!solanaAddress);
   const [donationAmount, setDonationAmount] = useState('');
   const [isDonating, setIsDonating] = useState(false);
+  const [networkFee, setNetworkFee] = useState<number | null>(null);
   const [showStickyCTA, setShowStickyCTA] = useState(false);
   const [mobileButtonHeight, setMobileButtonHeight] = useState<number | null>(null);
   const [mobileButtonWidth, setMobileButtonWidth] = useState<number | null>(null);
@@ -83,13 +84,37 @@ export default function CampaignPage() {
   const [animatedRaisedNumber, setAnimatedRaisedNumber] = useState(0);
   const [animatedProgressPercentage, setAnimatedProgressPercentage] = useState(0);
   const [animatedDonationCount, setAnimatedDonationCount] = useState(0);
-  const { donate: donateUsdc, donationPhase } = useSolanaDonation();
+  const { donate: donateUsdc, estimateFee, donationPhase } = useSolanaDonation();
   const addDonation = useAddDonation();
   const queryClient = useQueryClient();
   const goalNumber = campaign ? Number(campaign.goal) : 0;
   const raisedNumber = campaign ? donations.reduce((sum, d) => sum + Number(d.amount), 0) : 0;
   const progressPercentage = goalNumber > 0 ? (raisedNumber / goalNumber) * 100 : 0;
   const donationCount = donations.length;
+
+  useEffect(() => {
+    const amount = Number(donationAmount);
+    if (!authenticated || !campaign || !Number.isFinite(amount) || amount <= 0) {
+      setNetworkFee(null);
+      return;
+    }
+
+    let cancelled = false;
+    const timeout = window.setTimeout(() => {
+      void estimateFee(amount, campaign.creatorWalletAddress)
+        .then((fee) => {
+          if (!cancelled) setNetworkFee(fee);
+        })
+        .catch(() => {
+          if (!cancelled) setNetworkFee(null);
+        });
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+    };
+  }, [authenticated, campaign, donationAmount, estimateFee]);
 
   // Reset sticky measurements/state when navigating between campaigns
   useEffect(() => {
@@ -493,7 +518,7 @@ export default function CampaignPage() {
                     {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                       <span className="mr-2 text-2xl text-white/45">$</span>
                       <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="Enter amount" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
-                      {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : `$${usdcBalance.toFixed(2)} available`}</span>}
+                      {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : networkFee !== null ? `$${networkFee.toFixed(6)} network fee` : `$${usdcBalance.toFixed(2)} available`}</span>}
                     </div>}
                     <Button
                       ref={mobileDonateButtonRef}
@@ -646,7 +671,7 @@ export default function CampaignPage() {
                 {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                   <span className="mr-2 text-2xl text-white/45">$</span>
                   <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="Enter amount" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
-                  {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : `$${usdcBalance.toFixed(2)} available`}</span>}
+                  {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : networkFee !== null ? `$${networkFee.toFixed(6)} network fee` : `$${usdcBalance.toFixed(2)} available`}</span>}
                 </div>}
                 <Button
                   className="h-[3.2rem] w-full text-lg font-semibold"

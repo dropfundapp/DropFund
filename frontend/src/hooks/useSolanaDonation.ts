@@ -2,7 +2,7 @@ import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { createAssociatedTokenAccountInstruction, createTransferInstruction, getAccount, getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { useWallets as useSolanaWallets, useSignAndSendTransaction, useSignTransaction } from '@privy-io/react-auth/solana';
 import bs58 from 'bs58';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePrivyAuth } from '@/components/PrivyAuthProvider';
 
 const SOLANA_RPC_URL = import.meta.env.VITE_SOLANA_RPC_URL || 'https://solana-rpc.publicnode.com';
@@ -87,7 +87,42 @@ export function useSolanaDonation() {
     });
   }, [wallet?.address]);
 
-  const donate = async (_campaignId: string, amount: number, creatorWallet: string) => {
+  const estimateFee = useCallback(async (amount: number, creatorWallet: string) => {
+    if (!USER_PAYS_KORA_FEE || !wallet?.address || !Number.isFinite(amount) || amount <= 0) {
+      return null;
+    }
+
+    const donor = new PublicKey(wallet.address);
+    const creator = new PublicKey(creatorWallet);
+    const connection = new Connection(SOLANA_RPC_URL, 'confirmed');
+    const totalUnits = BigInt(Math.floor(amount * 10 ** USDC_DECIMALS));
+    const creatorTokenAccount = await getAssociatedTokenAddress(USDC_MINT, creator);
+    const donorTokenAccounts = await connection.getParsedTokenAccountsByOwner(donor, { mint: USDC_MINT });
+    const donorTokenAccount = donorTokenAccounts.value.find((account) => BigInt(account.account.data.parsed.info.tokenAmount.amount) >= totalUnits);
+    if (!donorTokenAccount) throw new Error('Insufficient USDC balance.');
+
+    const paymentAddress = await getKoraSignerAddress();
+    const paymentTokenAccount = await getAssociatedTokenAddress(USDC_MINT, new PublicKey(paymentAddress));
+    const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    const transaction = new Transaction({ feePayer: new PublicKey(paymentAddress), recentBlockhash: blockhash });
+
+    try {
+      await getAccount(connection, creatorTokenAccount);
+    } catch {
+      transaction.add(createAssociatedTokenAccountInstruction(donor, creatorTokenAccount, creator, USDC_MINT));
+    }
+
+    transaction.add(createTransferInstruction(donorTokenAccount.pubkey, creatorTokenAccount, donor, totalUnits, [], TOKEN_PROGRAM_ID));
+    transaction.add(createTransferInstruction(donorTokenAccount.pubkey, paymentTokenAccount, donor, 0n, [], TOKEN_PROGRAM_ID));
+    const { feeInToken } = await getKoraFeeEstimate(donor.toBase58(), transaction, getAccessToken);
+    return Number(feeInToken) / 10 ** USDC_DECIMALS;
+  }, [getAccessToken, wallet?.address]);
+
+  const donate = async (
+    _campaignId: string,
+    amount: number,
+    creatorWallet: string,
+  ) => {
     if (!wallet?.address) {
       throw new Error('Your embedded Solana wallet is not ready. Please sign in again.');
     }
@@ -119,7 +154,6 @@ export function useSolanaDonation() {
       let signature = '';
       let fee = 0;
 
-      setDonationPhase('awaiting_signature');
       if (USE_KORA) {
         if (USER_PAYS_KORA_FEE) {
           const paymentAddress = await getKoraSignerAddress();
@@ -151,6 +185,7 @@ export function useSolanaDonation() {
           fee = Number(feeInToken) / 10 ** USDC_DECIMALS;
         }
 
+        setDonationPhase('awaiting_signature');
         const signed = await signTransaction({
           transaction: transaction.serialize({ requireAllSignatures: false, verifySignatures: false }),
           wallet,
@@ -192,5 +227,5 @@ export function useSolanaDonation() {
     }
   };
 
-  return { donate, donationPhase };
+  return { donate, estimateFee, donationPhase };
 }
