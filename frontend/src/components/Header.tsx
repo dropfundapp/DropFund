@@ -173,7 +173,7 @@ export default function Header() {
                 }}
               >
                 <button type="button" onClick={handleConnect} className="text-left" aria-label="Deposit USDC">
-                  <div className="text-sm font-semibold leading-5 text-white">{balanceLoading ? 'Loading...' : usdcBalance !== null ? `$${usdcBalance.toFixed(2)} USDC` : 'Balance unavailable'}</div>
+                  <div className="text-sm font-semibold leading-5 text-white">{balanceLoading ? 'Loading...' : usdcBalance !== null ? `$${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} USDC` : 'Balance unavailable'}</div>
                   <div className="text-sm font-semibold leading-5 text-[#58d16e]">Deposit</div>
                 </button>
                 <Button
@@ -321,7 +321,7 @@ export default function Header() {
                         <div className="flex items-center gap-3 rounded-xl bg-[#282b30] px-3 py-3">
                           <Wallet className="h-5 w-5 shrink-0 text-white" />
                           <span className="min-w-0 flex-1 truncate text-base font-semibold">
-                            {balanceLoading ? 'Loading balance...' : usdcBalance !== null ? `${usdcBalance.toFixed(2)} USDC` : 'Balance unavailable'}
+                            {balanceLoading ? 'Loading balance...' : usdcBalance !== null ? `${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} USDC` : 'Balance unavailable'}
                           </span>
                           <Button variant="secondary" className="shrink-0 bg-[#58d16e] px-3 py-2 text-black hover:bg-[#6ee67f]" onClick={() => { handleConnect(); }}>
                             Deposit
