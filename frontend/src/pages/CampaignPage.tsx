@@ -64,7 +64,7 @@ export default function CampaignPage() {
   const { data: donationsData, isLoading: donationsLoading } = useGetDonationsByCampaign(campaignId);
   const donations = donationsData || [];
   const { authenticated, solanaAddress, login } = usePrivyAuth();
-  const { usdcBalance } = usePrivyBalances();
+  const { usdcBalance, usdcBalanceUnits } = usePrivyBalances();
   console.log('[CampaignPage] Rendered. Privy wallet ready:', authenticated && !!solanaAddress);
   const [donationAmount, setDonationAmount] = useState('');
   const [isDonating, setIsDonating] = useState(false);
@@ -249,9 +249,8 @@ export default function CampaignPage() {
   const isCampaignCreator = authenticated && !!solanaAddress && solanaAddress === campaign.creatorWalletAddress;
   const creatorDisplayName = getStoredProfileName(campaign.creatorWalletAddress) || getFunnyName(campaign.creatorWalletAddress);
   const donationValue = Number(donationAmount);
-  const donationUnits = Number.isFinite(donationValue) ? Math.floor(donationValue * 1e6) : 0;
-  const availableUnits = usdcBalance !== null ? Math.floor(usdcBalance * 1e6) : 0;
-  const hasInsufficientBalance = authenticated && usdcBalance !== null && donationUnits > availableUnits;
+  const donationUnits = Number.isFinite(donationValue) ? BigInt(Math.floor(donationValue * 1e6)) : 0n;
+  const hasInsufficientBalance = authenticated && usdcBalanceUnits !== null && donationUnits > usdcBalanceUnits;
   const isGoalReachedAmount = raisedNumber >= goalNumber;
 
   const sortedDonations = [...donations].sort((a, b) => {
