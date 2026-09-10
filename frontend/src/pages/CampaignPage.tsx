@@ -64,7 +64,7 @@ export default function CampaignPage() {
   const { data: donationsData, isLoading: donationsLoading } = useGetDonationsByCampaign(campaignId);
   const donations = donationsData || [];
   const { authenticated, solanaAddress, login } = usePrivyAuth();
-  const { usdcBalance, usdcBalanceUnits } = usePrivyBalances();
+  const { usdcBalance } = usePrivyBalances();
   console.log('[CampaignPage] Rendered. Privy wallet ready:', authenticated && !!solanaAddress);
   const [donationAmount, setDonationAmount] = useState('');
   const [isDonating, setIsDonating] = useState(false);
@@ -248,9 +248,6 @@ export default function CampaignPage() {
   const disableDonate = isEnded || isFunded;
   const isCampaignCreator = authenticated && !!solanaAddress && solanaAddress === campaign.creatorWalletAddress;
   const creatorDisplayName = getStoredProfileName(campaign.creatorWalletAddress) || getFunnyName(campaign.creatorWalletAddress);
-  const donationValue = Number(donationAmount);
-  const donationUnits = Number.isFinite(donationValue) ? BigInt(Math.floor(donationValue * 1e6)) : 0n;
-  const hasInsufficientBalance = authenticated && usdcBalanceUnits !== null && donationUnits > usdcBalanceUnits;
   const isGoalReachedAmount = raisedNumber >= goalNumber;
 
   const sortedDonations = [...donations].sort((a, b) => {
@@ -519,7 +516,7 @@ export default function CampaignPage() {
                     {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                       <span className="mr-2 text-2xl text-white/45">$</span>
                       <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="Enter amount" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
-                      {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : networkFee !== null ? `$${networkFee.toFixed(6)} network fee` : `$${usdcBalance.toFixed(2)} available`}</span>}
+                      {authenticated && usdcBalance !== null && <span className="ml-3 shrink-0 text-right text-sm text-white/55">{networkFee !== null ? `$${networkFee.toFixed(6)} network fee` : `$${usdcBalance.toFixed(2)} available`}</span>}
                     </div>}
                     <Button
                       ref={mobileDonateButtonRef}
@@ -534,7 +531,7 @@ export default function CampaignPage() {
                           : undefined
                       }
                       size="lg"
-                      disabled={disableDonate || isDonating || !donationAmount || hasInsufficientBalance || isCampaignCreator}
+                      disabled={disableDonate || isDonating || !donationAmount || isCampaignCreator}
                       onClick={handleDonateClick}
                     >
                       {disableDonate
@@ -672,12 +669,12 @@ export default function CampaignPage() {
                 {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                   <span className="mr-2 text-2xl text-white/45">$</span>
                   <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="Enter amount" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
-                  {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : networkFee !== null ? `$${networkFee.toFixed(6)} network fee` : `$${usdcBalance.toFixed(2)} available`}</span>}
+                  {authenticated && usdcBalance !== null && <span className="ml-3 shrink-0 text-right text-sm text-white/55">{networkFee !== null ? `$${networkFee.toFixed(6)} network fee` : `$${usdcBalance.toFixed(2)} available`}</span>}
                 </div>}
                 <Button
                   className="h-[3.2rem] w-full text-lg font-semibold"
                   size="lg"
-                  disabled={disableDonate || isDonating || !donationAmount || hasInsufficientBalance || isCampaignCreator}
+                  disabled={disableDonate || isDonating || !donationAmount || isCampaignCreator}
                   onClick={handleDonateClick}
                 >
                   {disableDonate
