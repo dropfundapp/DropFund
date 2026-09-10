@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useSolanaDonation } from '@/hooks/useSolanaDonation';
 import { usePrivyBalances } from '@/hooks/usePrivyBalances';
 import { useAddDonation } from '../hooks/useQueries';
-import { Clock, TrendingUp, Calendar, Globe, Send, ThumbsUp, Share2, Copy } from 'lucide-react';
+import { Clock, TrendingUp, Calendar, Globe, Send, ThumbsUp, Share2, Copy, X } from 'lucide-react';
 import { formatUsdc } from '@/lib/utils';
 import {
   Dialog,
@@ -23,7 +23,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 function getFunnyName(address: string) {
   const adjectives = ['Cosmic', 'Tiny', 'Lucky', 'Chaotic', 'Turbo', 'Sneaky', 'Mighty', 'Bouncy'];
@@ -517,7 +516,7 @@ export default function CampaignPage() {
                     {showStickyCTA && mobileButtonHeight && <div style={{ height: mobileButtonHeight }} />}
                     {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                       <span className="mr-2 text-2xl text-white/45">$</span>
-                      <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="Enter amount" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
+                      <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="0" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-2xl font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
                       {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : networkFee !== null ? `$${networkFee.toFixed(6)} network fee` : `$${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} available`}</span>}
                     </div>}
                     <Button
@@ -670,7 +669,7 @@ export default function CampaignPage() {
 
                 {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                   <span className="mr-2 text-2xl text-white/45">$</span>
-                  <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="Enter amount" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-base font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
+                  <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="0" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-2xl font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
                   {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : networkFee !== null ? `$${networkFee.toFixed(6)} network fee` : `$${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} available`}</span>}
                 </div>}
                 <Button
@@ -779,23 +778,28 @@ export default function CampaignPage() {
             onClick={() => setShareOpen(false)}
           />
           <div
-            className={`fixed inset-0 z-[10000] flex items-end justify-center pb-6 transition-all duration-200 ${
+            className={`fixed inset-0 z-[10000] flex items-center justify-center p-3 transition-all duration-200 sm:p-6 ${
               shareOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-2 pointer-events-none'
             }`}
             onClick={() => setShareOpen(false)}
           >
             <div
-              className="w-[90%] max-w-sm space-y-3 p-4 rounded-xl shadow-2xl text-base text-left"
-              style={{ backgroundColor: '#1d1e1f' }}
+              className="w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-left text-white shadow-2xl sm:p-6"
               role="dialog"
               aria-modal="true"
               aria-label="Share campaign"
               onClick={(e) => e.stopPropagation()}
             >
-              <VisuallyHidden>Share Campaign</VisuallyHidden>
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-lg font-semibold tracking-tight">Share campaign</h2>
+                <Button type="button" variant="ghost" size="icon" aria-label="Close share dialog" className="h-8 w-8 rounded-full text-white/70 hover:bg-white/10 hover:text-white" onClick={() => setShareOpen(false)}>
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+              <div className="space-y-3">
               <Button
                 type="button"
-                className="w-full justify-center"
+                className="h-14 w-full justify-center rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6]"
                 onClick={async () => {
                   try {
                     const url = `${window.location.origin}/campaign/${campaignId}`;
@@ -813,7 +817,7 @@ export default function CampaignPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full justify-center bg-white text-black hover:bg-white/90"
+                className="h-14 w-full justify-center rounded-2xl bg-[#282b30] text-lg font-semibold text-white hover:bg-[#34383e]"
                 asChild
               >
                 <a
@@ -835,6 +839,7 @@ export default function CampaignPage() {
                   Share on X
                 </a>
               </Button>
+              </div>
             </div>
           </div>
         </>,
@@ -843,14 +848,14 @@ export default function CampaignPage() {
 
       {campaign && !isMobile && (
         <Dialog open={shareOpen} onOpenChange={setShareOpen}>
-          <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-card">
-            <DialogHeader>
-              <DialogTitle className="text-2xl px-6 pt-6">Share Campaign</DialogTitle>
+          <DialogContent className="w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6">
+            <DialogHeader className="mb-6 flex-row items-center justify-between space-y-0">
+              <DialogTitle className="text-lg font-semibold tracking-tight">Share campaign</DialogTitle>
               <DialogDescription className="sr-only">
                 Share this campaign via link or Twitter
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-5 px-6 pb-6">
+            <div className="space-y-5">
               <div className="overflow-hidden rounded-2xl">
                 <div className="w-full aspect-video">
                   <img
@@ -869,7 +874,7 @@ export default function CampaignPage() {
               <div className="space-y-3">
                 <Button
                   type="button"
-                  className="w-full justify-center"
+                  className="h-14 w-full justify-center rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6]"
                   onClick={async () => {
                     try {
                       const url = `${window.location.origin}/campaign/${campaignId}`;
@@ -886,7 +891,7 @@ export default function CampaignPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full justify-center bg-white text-black hover:bg-white/90"
+                  className="h-14 w-full justify-center rounded-2xl bg-[#282b30] text-lg font-semibold text-white hover:bg-[#34383e]"
                   asChild
                 >
                   <a

@@ -47,6 +47,14 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
   const numericAmount = Number(amount);
   const spendableBalance = balance === null ? 0 : Math.max(0, balance - feeReserve);
   const canContinue = balance !== null && numericAmount > 0 && numericAmount <= balance && !isSending;
+  const destinationError = step === 'destination' && destination.trim() ? (() => {
+    try {
+      new PublicKey(destination.trim());
+      return null;
+    } catch {
+      return 'Enter a valid Solana wallet address.';
+    }
+  })() : null;
 
   const setPercentage = (percentage: number) => {
     if (balance !== null) setAmount((spendableBalance * percentage).toFixed(6));
@@ -137,7 +145,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
         </div>
 
         <div className="relative rounded-[22px] bg-[#282b30] px-5 py-6">
-          <span className="pointer-events-none absolute left-5 top-5 text-4xl leading-none text-white/45">$</span>
+          <span className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-4xl leading-none text-white/45">$</span>
           <Input
             autoFocus
             inputMode="decimal"
@@ -146,7 +154,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
             onChange={(event) => setAmount(event.target.value)}
             placeholder="0"
             aria-label="Withdrawal amount"
-            className="h-12 border-0 bg-transparent pl-8 text-4xl font-semibold text-white placeholder:text-white/45 focus-visible:ring-0"
+            className="h-12 border-0 bg-transparent pl-8 !text-4xl font-semibold text-white placeholder:text-white/45 focus-visible:ring-0"
           />
           <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-sm font-medium text-white/35">Enter USDC amount</span>
         </div>
@@ -169,13 +177,14 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
 
         {step === 'destination' ? <div className="mt-5 space-y-2">
           <label htmlFor="withdraw-destination" className="text-sm text-white/60">Destination wallet</label>
-          <Input id="withdraw-destination" value={destination} onChange={(event) => setDestination(event.target.value)} placeholder="Paste Solana address" className="border-[#282b30] bg-[#282b30] text-white placeholder:text-white/35" />
+          <Input id="withdraw-destination" value={destination} onChange={(event) => setDestination(event.target.value)} placeholder="Paste Solana address" aria-invalid={!!destinationError} className="border-[#282b30] bg-[#282b30] text-white placeholder:text-white/35 focus-visible:ring-0 aria-[invalid=true]:border-[#ff641f]" />
+          {destinationError ? <p className="text-sm text-[#ff641f]">{destinationError}</p> : null}
           <p className="text-[11px] leading-4 text-white/40">Send USDC only to a Solana address. Transactions cannot be reversed.</p>
         </div> : null}
 
         {error ? <p className="mt-3 text-sm text-rose-400">{error}</p> : null}
 
-        <Button type="button" disabled={!canContinue || (step === 'destination' && !destination.trim())} onClick={handleWithdraw} className="mt-8 h-14 w-full rounded-2xl bg-[#282b30] text-lg font-semibold text-white hover:bg-[#34383e] disabled:cursor-not-allowed disabled:opacity-60">
+        <Button type="button" disabled={!canContinue || (step === 'destination' && (!destination.trim() || !!destinationError))} onClick={handleWithdraw} className="mt-8 h-14 w-full rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6] disabled:cursor-not-allowed disabled:bg-[#282b30] disabled:opacity-60">
           {isSending ? 'Sending...' : step === 'amount' ? 'Continue' : 'Send USDC'}
         </Button>
       </div>
