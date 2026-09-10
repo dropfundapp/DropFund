@@ -256,7 +256,7 @@ export default function CampaignPage() {
         mainTransactionSignature: result.signature,
         feeTransactionSignature: '',
         amount: BigInt(Math.floor(result.amount * 1e6)),
-        feeAmount: 0n,
+        feeAmount: BigInt(Math.round(result.fee * 1e6)),
         campaignId,
         donorWalletAddress: solanaAddress,
       });
@@ -265,7 +265,7 @@ export default function CampaignPage() {
         mainTransactionSignature: result.signature,
         feeTransactionSignature: '',
         amount: donationUnits,
-        feeAmount: 0n,
+        feeAmount: BigInt(Math.round(result.fee * 1e6)),
         campaignId,
         donorWalletAddress: solanaAddress,
         timestamp: BigInt(Date.now() * 1e6),

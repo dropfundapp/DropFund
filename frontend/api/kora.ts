@@ -78,6 +78,23 @@ export default async function handler(req: any, res: any) {
     }
 
     const userId = await requireWallet(req, donorWalletAddress);
+
+    if (body.action === 'estimate') {
+      const estimate = await koraRpc('estimateTransactionFee', {
+        transaction,
+        fee_token: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      });
+
+      if (typeof estimate.fee_in_token !== 'number' || typeof estimate.payment_address !== 'string') {
+        throw new HttpError(502, 'Kora returned an invalid fee estimate');
+      }
+
+      return json(res, {
+        feeInToken: estimate.fee_in_token,
+        paymentAddress: estimate.payment_address,
+      });
+    }
+
     const relayResult = await koraRpc('signAndSendTransaction', {
       transaction,
       respond_after: 'confirmed',

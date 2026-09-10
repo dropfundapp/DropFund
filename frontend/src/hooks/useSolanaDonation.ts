@@ -9,6 +9,7 @@ const SOLANA_RPC_URL = import.meta.env.VITE_SOLANA_RPC_URL || 'https://solana-rp
 const USDC_MINT = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
 const USDC_DECIMALS = 6;
 const USE_KORA = import.meta.env.VITE_USE_KORA === 'true';
+const USER_PAYS_KORA_FEE = import.meta.env.VITE_KORA_USER_PAYS_USDC === 'true';
 type DonationPhase = 'idle' | 'preparing' | 'awaiting_signature' | 'submitting';
 
 let koraSignerAddress: string | null = null;
@@ -42,6 +43,30 @@ async function getKoraSignerAddress() {
   } finally {
     koraSignerRequest = null;
   }
+}
+
+async function getKoraFeeEstimate(donorWalletAddress: string, transaction: Transaction, getAccessToken: () => Promise<string | null>) {
+  const token = await getAccessToken();
+  if (!token) throw new Error('Authentication required');
+
+  const response = await fetch('/api/kora', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      action: 'estimate',
+      donorWalletAddress,
+      transaction: bytesToBase64(transaction.serialize({ requireAllSignatures: false, verifySignatures: false })),
+    }),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || !Number.isSafeInteger(body?.feeInToken) || body.feeInToken < 1 || typeof body?.paymentAddress !== 'string') {
+    throw new Error(body?.error || 'Failed to estimate the USDC network fee');
+  }
+
+  return { feeInToken: BigInt(body.feeInToken), paymentAddress: body.paymentAddress };
 }
 
 export function useSolanaDonation() {
@@ -92,9 +117,32 @@ export function useSolanaDonation() {
       transaction.add(createTransferInstruction(donorTokenAccount.pubkey, creatorTokenAccount, donor, donationUnits, [], TOKEN_PROGRAM_ID));
 
       let signature = '';
+      let fee = 0;
 
       setDonationPhase('awaiting_signature');
       if (USE_KORA) {
+        if (USER_PAYS_KORA_FEE) {
+          const paymentAddress = await getKoraSignerAddress();
+          const paymentTokenAccount = await getAssociatedTokenAddress(USDC_MINT, new PublicKey(paymentAddress));
+          const placeholderPaymentInstruction = createTransferInstruction(donorTokenAccount.pubkey, paymentTokenAccount, donor, 0n, [], TOKEN_PROGRAM_ID);
+          transaction.add(placeholderPaymentInstruction);
+
+          const { feeInToken } = await getKoraFeeEstimate(donor.toBase58(), transaction, getAccessToken);
+          const availableUnits = BigInt(donorTokenAccount.account.data.parsed.info.tokenAmount.amount);
+          if (availableUnits < donationUnits + feeInToken) {
+            throw new Error('Insufficient USDC balance to cover the donation and network fee.');
+          }
+          transaction.instructions[transaction.instructions.length - 1] = createTransferInstruction(
+            donorTokenAccount.pubkey,
+            paymentTokenAccount,
+            donor,
+            feeInToken,
+            [],
+            TOKEN_PROGRAM_ID,
+          );
+          fee = Number(feeInToken) / 10 ** USDC_DECIMALS;
+        }
+
         const signed = await signTransaction({
           transaction: transaction.serialize({ requireAllSignatures: false, verifySignatures: false }),
           wallet,
@@ -130,7 +178,7 @@ export function useSolanaDonation() {
         signature = bs58.encode(result.signature);
       }
 
-      return { success: true, signature, amount, fee: 0 };
+      return { success: true, signature, amount, fee };
     } finally {
       setDonationPhase('idle');
     }
