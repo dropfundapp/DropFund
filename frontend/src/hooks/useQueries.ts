@@ -97,9 +97,11 @@ export function useGetCampaign(campaignId: string) {
     },
     enabled: !!campaignId,
     staleTime: 0,
-    gcTime: 0,
+    gcTime: 5 * 60_000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
     retry: 2,
   });
 }
@@ -139,9 +141,12 @@ export function useGetDonationsByCampaign(campaignId: string, options?: { refetc
       }
     },
     enabled: !!campaignId,
-    staleTime: 0,
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
     refetchOnMount: options?.refetchOnMount ?? true,
     refetchOnWindowFocus: options?.refetchOnWindowFocus ?? false,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
     retry: 2,
   });
 }
