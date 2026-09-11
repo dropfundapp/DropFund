@@ -10,10 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Upload, X } from 'lucide-react';
+import { api } from '@/lib/api';
 
 export default function CreateCampaignPage() {
   const navigate = useNavigate();
-  const { authenticated, solanaAddress } = usePrivyAuth();
+  const { authenticated, solanaAddress, getAccessToken } = usePrivyAuth();
   const createCampaign = useCreateCampaign();
 
   const [title, setTitle] = useState('');
@@ -174,6 +175,10 @@ export default function CreateCampaignPage() {
       }
 
       const goalUsdcUnits = Math.floor(goalNum * 1000000);
+      const token = await getAccessToken();
+      if (!token) throw new Error('Authentication required');
+      const uploadedImage = await api.uploadCampaignImage(imageDataUrl, walletAddress, token);
+      const uploadedThumbnail = await api.uploadCampaignImage(thumbnailUrl, walletAddress, token);
       
       console.log('Creating campaign with creator wallet:', walletAddress);
       
@@ -182,8 +187,8 @@ export default function CreateCampaignPage() {
         description: description.trim(),
         goal: BigInt(goalUsdcUnits),
         duration: BigInt(duration),
-        imageUrl: imageDataUrl,
-        thumbnailUrl,
+        imageUrl: uploadedImage.imageUrl,
+        thumbnailUrl: uploadedThumbnail.imageUrl,
         creatorWalletAddress: walletAddress!, // Use connected Solana wallet address (guaranteed string)
         websiteUrl: websiteUrl.trim() || null,
         twitterUrl: twitterUrl.trim() || null,

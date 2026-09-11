@@ -1,8 +1,8 @@
 import { getDatabase } from './_lib/db.js';
 import { requireWallet } from './_lib/auth.js';
+import { ensureUser } from './_lib/identity.js';
 
 const walletPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
-const MAX_IMAGE_DATA_URL_LENGTH = 4_000_000;
 const MAX_URL_LENGTH = 2048;
 const requestCounts = new Map<string, { count: number; resetAt: number }>();
 
@@ -38,7 +38,8 @@ function campaign(row: any) {
     endTimestamp: row.end_at ? [String(new Date(row.end_at).getTime() * 1_000_000)] : [],
     status: row.status, totalRaised: String(row.total_raised), donationCount: String(row.donation_count),
     websiteUrl: optionalUrl(row.website_url), twitterUrl: optionalUrl(row.twitter_url),
-    telegramUrl: optionalUrl(row.telegram_url), category: row.category,
+    telegramUrl: optionalUrl(row.telegram_url), category: row.category, isReported: row.is_reported,
+    creatorDisplayName: row.creator_display_name,
   };
 }
 
@@ -67,15 +68,18 @@ export default async function handler(req: any, res: any) {
     if (goal <= 0n || duration < 0 || duration > 365) return json(res, { error: 'Invalid campaign limits' }, 400);
     const imageUrl = String(body.imageUrl || '');
     const thumbnailUrl = String(body.thumbnailUrl || '');
-    if (imageUrl.length > MAX_IMAGE_DATA_URL_LENGTH || thumbnailUrl.length > MAX_IMAGE_DATA_URL_LENGTH) return json(res, { error: 'Campaign image is too large' }, 413);
+    if (!imageUrl.startsWith('https://res.cloudinary.com/') || !thumbnailUrl.startsWith('https://res.cloudinary.com/')) return json(res, { error: 'Campaign image must be uploaded through DropFund' }, 400);
     for (const value of [body.websiteUrl, body.twitterUrl, body.telegramUrl]) {
       if (value && String(value).length > MAX_URL_LENGTH) return json(res, { error: 'Campaign link is too long' }, 400);
     }
-    await requireWallet(req, walletAddress);
+    const privyDid = await requireWallet(req, walletAddress);
+    await ensureUser(sql, privyDid, walletAddress);
     const id = `${walletAddress}_${Date.now()}_${crypto.randomUUID()}`;
     const endAt = duration === 0 ? null : new Date(Date.now() + duration * 86400000);
-    const rows = await sql`insert into campaigns (id, title, description, goal, duration_days, image_url, thumbnail_url, creator_wallet_address, end_at, website_url, twitter_url, telegram_url)
-      values (${id}, ${title}, ${description}, ${goal.toString()}, ${duration}, ${imageUrl}, ${thumbnailUrl || null}, ${walletAddress}, ${endAt}, ${body.websiteUrl || null}, ${body.twitterUrl || null}, ${body.telegramUrl || null}) returning *`;
+    const rows = await sql`insert into campaigns (id, title, description, goal, duration_days, image_url, thumbnail_url, creator_wallet_address, creator_display_name, end_at, website_url, twitter_url, telegram_url)
+      select ${id}, ${title}, ${description}, ${goal.toString()}, ${duration}, ${imageUrl}, ${thumbnailUrl || null}, ${walletAddress}, display_name, ${endAt}, ${body.websiteUrl || null}, ${body.twitterUrl || null}, ${body.telegramUrl || null}
+      from users where privy_did = ${privyDid} returning *`;
+    if (!rows[0]) return json(res, { error: 'Creator profile was not found' }, 409);
     return json(res, { id: rows[0].id });
   } catch (error: any) {
     if (error instanceof Response) return error;

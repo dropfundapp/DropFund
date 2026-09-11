@@ -47,7 +47,10 @@ export const api = {
   campaignsByCreator: async (walletAddress: string) => (await request<any[]>(`/api/campaigns?creator=${encodeURIComponent(walletAddress)}`)).map(parseCampaign),
   donationsByCampaign: async (campaignId: string) => (await request<any[]>(`/api/donations?campaignId=${encodeURIComponent(campaignId)}`)).map(parseDonation),
   donationsByWallet: async (walletAddress: string) => (await request<any[]>(`/api/donations?donorWalletAddress=${encodeURIComponent(walletAddress)}`)).map(parseDonation),
-  saveProfile: (profile: UserProfile, image: string | null, token: string) => request('/api/profile', { method: 'PUT', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...profile, image }) }),
+  profile: (walletAddress: string, token: string) => request<{ name: string; walletAddress: string; image: string | null; canChangeName: boolean }>(`/api/profile?walletAddress=${encodeURIComponent(walletAddress)}`, { headers: { Authorization: `Bearer ${token}` } }),
+  uploadCampaignImage: (image: string, walletAddress: string, token: string) => request<{ imageUrl: string }>('/api/media', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ image, walletAddress }) }),
+  reportCampaign: (campaignId: string, walletAddress: string, reason: string, token: string) => request<{ ok: true }>('/api/reports', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ campaignId, walletAddress, reason }) }),
+  saveProfile: (profile: UserProfile, image: string | null, token: string) => request<{ ok: true; name: string; canChangeName: boolean }>('/api/profile', { method: 'PUT', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...profile, image }) }),
   createCampaign: (params: Record<string, unknown>, token: string) => request<{ id: string }>('/api/campaigns', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify(params) }),
   addDonation: (params: Record<string, unknown>, token: string) => request('/api/donations', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify(params) }),
 };

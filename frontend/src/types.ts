@@ -7,6 +7,8 @@ export interface Campaign {
   imageUrl: string;
   thumbnailUrl: [] | [string];
   creatorWalletAddress: string;
+  creatorDisplayName: string;
+  isReported: boolean;
   createdAt: bigint;
   endTimestamp: [] | [bigint];
   status: string;

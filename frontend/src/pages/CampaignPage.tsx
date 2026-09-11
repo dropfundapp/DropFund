@@ -14,7 +14,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useSolanaDonation, type DonationFeeQuote } from '@/hooks/useSolanaDonation';
 import { usePrivyBalances } from '@/hooks/usePrivyBalances';
 import { useAddDonation } from '../hooks/useQueries';
-import { Clock, TrendingUp, Calendar, Globe, Send, ThumbsUp, Share2, Copy, X } from 'lucide-react';
+import { Clock, TrendingUp, Calendar, Globe, Send, ThumbsUp, Share2, Copy, X, Flag } from 'lucide-react';
+import { api } from '@/lib/api';
 import { formatUsdc } from '@/lib/utils';
 import {
   Dialog,
@@ -41,18 +42,6 @@ function getNameInitials(name: string) {
   return name.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
 }
 
-function getStoredProfileName(walletAddress: string) {
-  if (typeof window === 'undefined') return '';
-  try {
-    const raw = localStorage.getItem(`dropfund-profile-${walletAddress}`);
-    if (!raw) return '';
-    const parsed = JSON.parse(raw) as { name?: string };
-    return typeof parsed.name === 'string' ? parsed.name.trim() : '';
-  } catch {
-    return '';
-  }
-}
-
 export default function CampaignPage() {
   const { campaignId } = useParams({ from: '/campaign/$campaignId' });
   // Scroll to top on mount or when campaignId changes
@@ -62,7 +51,7 @@ export default function CampaignPage() {
   const { data: campaign, isLoading: campaignLoading, isFetching: campaignFetching } = useGetCampaign(campaignId);
   const { data: donationsData, isLoading: donationsLoading } = useGetDonationsByCampaign(campaignId);
   const donations = donationsData || [];
-  const { authenticated, solanaAddress, login } = usePrivyAuth();
+  const { authenticated, solanaAddress, login, getAccessToken } = usePrivyAuth();
   const { usdcBalance } = usePrivyBalances();
   console.log('[CampaignPage] Rendered. Privy wallet ready:', authenticated && !!solanaAddress);
   const [donationAmount, setDonationAmount] = useState('');
@@ -248,7 +237,7 @@ export default function CampaignPage() {
   const isGoalReachedStatus = campaign.status === 'goal_reached';
   const disableDonate = isEnded || isFunded;
   const isCampaignCreator = authenticated && !!solanaAddress && solanaAddress === campaign.creatorWalletAddress;
-  const creatorDisplayName = getStoredProfileName(campaign.creatorWalletAddress) || getFunnyName(campaign.creatorWalletAddress);
+  const creatorDisplayName = campaign.creatorDisplayName || getFunnyName(campaign.creatorWalletAddress);
   const donationValue = Number(donationAmount);
   const hasInsufficientBalance = authenticated && usdcBalance !== null && donationValue > usdcBalance;
   const isGoalReachedAmount = raisedNumber >= goalNumber;
@@ -343,6 +332,23 @@ export default function CampaignPage() {
     }
   };
 
+  const reportCampaign = async () => {
+    if (!authenticated || !solanaAddress) {
+      login();
+      return;
+    }
+    const reason = window.prompt('Why are you reporting this campaign?');
+    if (!reason?.trim()) return;
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error('Authentication required');
+      await api.reportCampaign(campaignId, solanaAddress, reason.trim(), token);
+      toast.success('Report submitted for review.');
+    } catch (error: any) {
+      toast.error(error.message || 'Unable to submit report.');
+    }
+  };
+
   const resolveFeeConfirmation = (confirmed: boolean) => {
     feeConfirmationRef.current?.(confirmed);
     feeConfirmationRef.current = null;
@@ -382,7 +388,7 @@ export default function CampaignPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
             <img
-              src={campaign.imageUrl || '/assets/generated/campaign-placeholder.dim_400x300.jpg'}
+              src={campaign.isReported ? '/assets/generated/campaign-placeholder.dim_400x300.jpg' : campaign.imageUrl || '/assets/generated/campaign-placeholder.dim_400x300.jpg'}
               alt={campaign.title}
               className="w-full h-full object-cover"
             />
@@ -427,6 +433,9 @@ export default function CampaignPage() {
                     onClick={() => setShareOpen(true)}
                   >
                     <Share2 className="h-4 w-4" />
+                  </button>
+                  <button type="button" className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-border hover:bg-[#282b30]" aria-label="Report campaign" onClick={reportCampaign}>
+                    <Flag className="h-4 w-4" />
                   </button>
                 </div>
               </div>

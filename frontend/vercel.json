@@ -14,6 +14,12 @@
     },
     "api/profile.ts": {
       "maxDuration": 30
+    },
+    "api/media.ts": {
+      "maxDuration": 30
+    },
+    "api/reports.ts": {
+      "maxDuration": 30
     }
   },
   "headers": [

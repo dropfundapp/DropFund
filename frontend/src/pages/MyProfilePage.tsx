@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGetCampaignsByCreator, useGetCampaigns, useGetUserDonations } from '../hooks/useQueries';
 import { usePrivyAuth } from '../components/PrivyAuthProvider';
 import { usePrivyBalances } from '../hooks/usePrivyBalances';
@@ -63,22 +63,36 @@ export default function MyProfilePage() {
   const { usdcBalance, isLoading: balanceLoading, balanceError } = usePrivyBalances();
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const profileKey = solanaAddress ? `dropfund-profile-${solanaAddress}` : '';
-  let savedProfile: { name?: string; image?: string } = {};
-  if (profileKey) {
-    try {
-      savedProfile = JSON.parse(localStorage.getItem(profileKey) || '{}');
-    } catch {
-      savedProfile = {};
-    }
-  }
-  const [profileName, setProfileName] = useState(savedProfile.name || getFunnyName(solanaAddress || 'guest'));
-  const [profileImage, setProfileImage] = useState<string | null>(savedProfile.image || null);
+  const [profileName, setProfileName] = useState(getFunnyName(solanaAddress || 'guest'));
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [canChangeName, setCanChangeName] = useState(true);
+  const [savedDisplayName, setSavedDisplayName] = useState('');
   const { fundWallet } = useFundWallet();
   const walletAddress = solanaAddress;
   const { data: campaigns = [], isLoading: campaignsLoading } = useGetCampaignsByCreator(walletAddress);
   const { data: allCampaigns = [] } = useGetCampaigns();
   const { data: donations = [], isLoading: donationsLoading } = useGetUserDonations(walletAddress);
+
+  useEffect(() => {
+    if (!authenticated || !solanaAddress) return;
+    let cancelled = false;
+    void (async () => {
+      const token = await getAccessToken();
+      if (!token) return;
+      try {
+        const profile = await api.profile(solanaAddress, token);
+        if (cancelled) return;
+        setProfileName(profile.name);
+        setSavedDisplayName(profile.name);
+        setProfileImage(profile.image);
+        setCanChangeName(profile.canChangeName);
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+        toast.error('Failed to load your profile.');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [authenticated, solanaAddress, getAccessToken]);
 
 
     if (!authenticated || !solanaAddress) {
@@ -129,19 +143,27 @@ export default function MyProfilePage() {
       await fundWallet({ address: solanaAddress, options: { chain: 'solana:mainnet', asset: 'USDC' } });
     };
     const saveProfile = async () => {
-      if (!profileKey) return;
       const name = profileName.trim() || getFunnyName(solanaAddress);
-      localStorage.setItem(profileKey, JSON.stringify({ name, image: profileImage }));
-      window.dispatchEvent(new Event('dropfund-profile-updated'));
-      setEditOpen(false);
+      if (!canChangeName && name !== savedDisplayName) {
+        setProfileName(savedDisplayName);
+        toast.error('Display name is permanently locked.');
+        return;
+      }
       const token = await getAccessToken();
-      if (token) {
-        try {
-          await api.saveProfile({ name, walletAddress: solanaAddress }, profileImage, token);
-        } catch (error) {
-          console.error('Failed to sync profile to API:', error);
-          toast.error('Profile saved locally, but server sync failed.');
-        }
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+      try {
+        const result = await api.saveProfile({ name, walletAddress: solanaAddress }, profileImage, token);
+        setProfileName(result.name);
+        setSavedDisplayName(result.name);
+        setCanChangeName(result.canChangeName);
+        setEditOpen(false);
+      } catch (error: any) {
+        console.error('Failed to save profile:', error);
+        toast.error(error.message || 'Failed to save profile.');
+        return;
       }
       toast.success('Profile updated');
     };
