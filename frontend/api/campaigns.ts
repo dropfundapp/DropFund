@@ -52,6 +52,7 @@ export default async function handler(req: any, res: any) {
       const rows = id ? await sql`select * from campaigns where id = ${id} limit 1`
         : creator ? await sql`select * from campaigns where creator_wallet_address = ${creator} order by created_at desc`
           : await sql`select * from campaigns order by created_at desc`;
+      if (!creator) res.setHeader('Cache-Control', id ? 'public, s-maxage=30, stale-while-revalidate=300' : 'public, s-maxage=60, stale-while-revalidate=600');
       return json(res, rows.map(campaign));
     }
     if (req.method !== 'POST') return json(res, { error: 'Method not allowed' }, 405);
