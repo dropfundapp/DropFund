@@ -27,8 +27,13 @@ interface PreparedDonation {
   preparedAt: number;
 }
 
-let koraSignerAddress: string | null = null;
-let koraSignerRequest: Promise<string> | null = null;
+interface KoraPayer {
+  signerAddress: string;
+  paymentAddress: string;
+}
+
+let koraPayer: KoraPayer | null = null;
+let koraPayerRequest: Promise<KoraPayer> | null = null;
 let preparedDonation: PreparedDonation | null = null;
 const PREPARED_DONATION_TTL_MS = 45_000;
 
@@ -41,28 +46,28 @@ function bytesToBase64(bytes: Uint8Array) {
   return btoa(binary);
 }
 
-async function getKoraSignerAddress() {
-  if (koraSignerAddress) return koraSignerAddress;
-  if (koraSignerRequest) return koraSignerRequest;
+async function getKoraPayer() {
+  if (koraPayer) return koraPayer;
+  if (koraPayerRequest) return koraPayerRequest;
 
-  koraSignerRequest = (async () => {
+  koraPayerRequest = (async () => {
   const response = await fetch('/api/kora');
   const body = await response.json().catch(() => ({}));
-  if (!response.ok || typeof body?.signerAddress !== 'string') {
+  if (!response.ok || typeof body?.signerAddress !== 'string' || typeof body?.paymentAddress !== 'string') {
     throw new Error(body?.error || 'Failed to fetch Kora signer address');
   }
-    koraSignerAddress = body.signerAddress;
-    return koraSignerAddress;
+    koraPayer = { signerAddress: body.signerAddress, paymentAddress: body.paymentAddress };
+    return koraPayer;
   })();
 
   try {
-    return await koraSignerRequest;
+    return await koraPayerRequest;
   } finally {
-    koraSignerRequest = null;
+    koraPayerRequest = null;
   }
 }
 
-async function getKoraFeeEstimate(donorWalletAddress: string, transaction: Transaction, getAccessToken: () => Promise<string | null>) {
+async function getKoraFeeEstimate(donorWalletAddress: string, campaignId: string, totalAmount: bigint, transaction: Transaction, getAccessToken: () => Promise<string | null>) {
   const token = await getAccessToken();
   if (!token) throw new Error('Authentication required');
 
@@ -75,6 +80,8 @@ async function getKoraFeeEstimate(donorWalletAddress: string, transaction: Trans
     body: JSON.stringify({
       action: 'estimate',
       donorWalletAddress,
+      campaignId,
+      totalAmount: totalAmount.toString(),
       transaction: bytesToBase64(transaction.serialize({ requireAllSignatures: false, verifySignatures: false })),
     }),
   });
@@ -95,7 +102,7 @@ export function useSolanaDonation() {
   const [donationPhase, setDonationPhase] = useState<DonationPhase>('idle');
   const prefetchedWalletAddress = useRef<string | null>(null);
 
-  const prepareKoraDonation = useCallback(async (amount: number, creatorWallet: string) => {
+  const prepareKoraDonation = useCallback(async (campaignId: string, amount: number, creatorWallet: string) => {
     if (!wallet?.address) throw new Error('Your embedded Solana wallet is not ready. Please sign in again.');
     const totalUnits = BigInt(Math.floor(amount * 10 ** USDC_DECIMALS));
     const cached = preparedDonation;
@@ -111,10 +118,10 @@ export function useSolanaDonation() {
     const donorTokenAccount = donorTokenAccounts.value.find((account) => BigInt(account.account.data.parsed.info.tokenAmount.amount) >= totalUnits);
     if (!donorTokenAccount) throw new Error('Insufficient USDC balance.');
 
-    const paymentAddress = await getKoraSignerAddress();
-    const paymentTokenAccount = await getAssociatedTokenAddress(USDC_MINT, new PublicKey(paymentAddress));
+    const payer = await getKoraPayer();
+    const paymentTokenAccount = await getAssociatedTokenAddress(USDC_MINT, new PublicKey(payer.paymentAddress));
     const { blockhash } = await connection.getLatestBlockhash('confirmed');
-    const transaction = new Transaction({ feePayer: new PublicKey(paymentAddress), recentBlockhash: blockhash });
+    const transaction = new Transaction({ feePayer: new PublicKey(payer.signerAddress), recentBlockhash: blockhash });
     try {
       await getAccount(connection, creatorTokenAccount);
     } catch {
@@ -122,7 +129,7 @@ export function useSolanaDonation() {
     }
     transaction.add(createTransferInstruction(donorTokenAccount.pubkey, creatorTokenAccount, donor, totalUnits, [], TOKEN_PROGRAM_ID));
     transaction.add(createTransferInstruction(donorTokenAccount.pubkey, paymentTokenAccount, donor, 0n, [], TOKEN_PROGRAM_ID));
-    const { feeInToken } = await getKoraFeeEstimate(donor.toBase58(), transaction, getAccessToken);
+    const { feeInToken } = await getKoraFeeEstimate(donor.toBase58(), campaignId, totalUnits, transaction, getAccessToken);
     if (feeInToken >= totalUnits) throw new Error('Donation amount is too small to cover the network fee.');
     transaction.instructions[transaction.instructions.length - 2] = createTransferInstruction(donorTokenAccount.pubkey, creatorTokenAccount, donor, totalUnits - feeInToken, [], TOKEN_PROGRAM_ID);
     transaction.instructions[transaction.instructions.length - 1] = createTransferInstruction(donorTokenAccount.pubkey, paymentTokenAccount, donor, feeInToken, [], TOKEN_PROGRAM_ID);
@@ -135,17 +142,18 @@ export function useSolanaDonation() {
     if (!USE_KORA || !wallet?.address || prefetchedWalletAddress.current === wallet.address) return;
 
     prefetchedWalletAddress.current = wallet.address;
-    void getKoraSignerAddress().catch(() => {
+    void getKoraPayer().catch(() => {
       prefetchedWalletAddress.current = null;
     });
   }, [wallet?.address]);
 
-  const estimateFee = useCallback(async (amount: number, creatorWallet: string) => {
+  const estimateFee = useCallback(async (amount: number, creatorWallet: string, campaignId = '') => {
     if (!USER_PAYS_KORA_FEE || !wallet?.address || !Number.isFinite(amount) || amount <= 0) {
       return null;
     }
 
-    const prepared = await prepareKoraDonation(amount, creatorWallet);
+    if (!campaignId) return null;
+    const prepared = await prepareKoraDonation(campaignId, amount, creatorWallet);
     return Number(prepared.feeInToken) / 10 ** USDC_DECIMALS;
   }, [prepareKoraDonation, wallet?.address]);
 
@@ -170,7 +178,7 @@ export function useSolanaDonation() {
 
       if (USE_KORA) {
         if (USER_PAYS_KORA_FEE) {
-          const prepared = await prepareKoraDonation(amount, creatorWallet);
+          const prepared = await prepareKoraDonation(_campaignId, amount, creatorWallet);
           transaction = prepared.transaction;
           fee = Number(prepared.feeInToken) / 10 ** USDC_DECIMALS;
           const confirmed = await confirmFeeQuote?.({
@@ -203,6 +211,8 @@ export function useSolanaDonation() {
           },
           body: JSON.stringify({
             donorWalletAddress: donor.toBase58(),
+            campaignId: _campaignId,
+            totalAmount: totalUnits.toString(),
             transaction: bytesToBase64(signed.signedTransaction),
           }),
         });

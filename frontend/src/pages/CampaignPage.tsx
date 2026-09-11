@@ -91,7 +91,7 @@ export default function CampaignPage() {
 
     let cancelled = false;
     const timeout = window.setTimeout(() => {
-      void estimateFee(amount, campaign.creatorWalletAddress)
+      void estimateFee(amount, campaign.creatorWalletAddress, campaign.id)
         .then((fee) => {
           if (!cancelled) setNetworkFee(fee);
         })
