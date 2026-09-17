@@ -4,7 +4,6 @@ import { requireWallet } from './_lib/auth.js';
 import { getDatabase } from './_lib/db.js';
 
 const USDC_MINT = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
-const SYSTEM_PROGRAM_ID = '11111111111111111111111111111111';
 const MAX_KORA_FEE_UNITS = BigInt(process.env.KORA_MAX_FEE_USDC_UNITS || '1000000');
 
 class HttpError extends Error {
