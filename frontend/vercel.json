@@ -34,6 +34,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/share/campaign/:campaignId", "destination": "/api/campaign-preview?campaignId=:campaignId" },
     { "source": "/((?!api/|src/|@react-refresh|@vite/|node_modules/|.*\\.[^/]*$).*)", "destination": "/index.html" }
   ]
 }

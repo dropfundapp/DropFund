@@ -840,7 +840,7 @@ export default function CampaignPage() {
                 className="h-14 w-full justify-center rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6]"
                 onClick={async () => {
                   try {
-                    const url = `${window.location.origin}/campaign/${campaignId}`;
+                    const url = `${window.location.origin}/share/campaign/${encodeURIComponent(campaignId)}`;
                     await navigator.clipboard.writeText(url);
                     toast.success('Link copied');
                     setShareOpen(false);
@@ -861,7 +861,7 @@ export default function CampaignPage() {
                 <a
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
                     `Check out this campaign: ${campaign.title}`
-                  )}&url=${encodeURIComponent(`${window.location.origin}/campaign/${campaignId}`)}`}
+                  )}&url=${encodeURIComponent(`${window.location.origin}/share/campaign/${encodeURIComponent(campaignId)}`)}`}
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -915,7 +915,7 @@ export default function CampaignPage() {
                   className="h-14 w-full justify-center rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6]"
                   onClick={async () => {
                     try {
-                      const url = `${window.location.origin}/campaign/${campaignId}`;
+                      const url = `${window.location.origin}/share/campaign/${encodeURIComponent(campaignId)}`;
                       await navigator.clipboard.writeText(url);
                       toast.success('Link copied');
                     } catch {
@@ -935,7 +935,7 @@ export default function CampaignPage() {
                   <a
                     href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
                       `Check out this campaign: ${campaign.title}`
-                    )}&url=${encodeURIComponent(`${window.location.origin}/campaign/${campaignId}`)}`}
+                    )}&url=${encodeURIComponent(`${window.location.origin}/share/campaign/${encodeURIComponent(campaignId)}`)}`}
                     target="_blank"
                     rel="noreferrer"
                   >
