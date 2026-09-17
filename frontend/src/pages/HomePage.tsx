@@ -156,11 +156,18 @@ export default function HomePage() {
         {/* Hero Section */}
         <div className="text-center mb-16 space-y-4">
           <h1 className="text-5xl md:font-bold mb-4 text-white md:leading-none" style={{ fontSize: 'clamp(3rem, 10vw, 8rem)' }}>
-            Fund anything onchain
+            Fund anything
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Support people, ideas, and causes with transparent, verified USDC donations on Solana.
+            Support people, ideas, and causes with transparent, gasless USDC donations on Solana.
           </p>
+          <Button
+            type="button"
+            className="mt-4 bg-white px-6 font-semibold text-black hover:bg-white/85"
+            onClick={() => authenticated ? navigate({ to: '/create' }) : login()}
+          >
+            Launch campaign
+          </Button>
         </div>
       </div>
 

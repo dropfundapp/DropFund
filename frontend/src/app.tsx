@@ -7,7 +7,6 @@ import HomePage from './pages/HomePage';
 import CampaignPage from './pages/CampaignPage';
 import CreateCampaignPage from './pages/CreateCampaignPage';
 import MyProfilePage from './pages/MyProfilePage';
-import HowItWorksPage from './pages/HowItWorksPage';
 import TermsPage from './TermsPage';
 import PrivacyPage from './PrivacyPage';
 import Layout from './components/Layout';
@@ -80,13 +79,7 @@ const privacyRoute = createRoute({
   component: PrivacyPage,
 });
 
-const howItWorksRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/how-it-works',
-  component: HowItWorksPage,
-});
-
-const routeTree = rootRoute.addChildren([indexRoute, campaignRoute, createCampaignRoute, myCampaignsRoute, howItWorksRoute, termsRoute, privacyRoute]);
+const routeTree = rootRoute.addChildren([indexRoute, campaignRoute, createCampaignRoute, myCampaignsRoute, termsRoute, privacyRoute]);
 
 const router = createRouter({ routeTree });
 

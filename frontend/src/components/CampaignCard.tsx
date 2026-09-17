@@ -61,6 +61,9 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
     const targetRaised = raisedNumber;
     const targetProgress = progressPercentage;
     const targetCount = donationCount;
+    if (startRaised === targetRaised && startProgress === targetProgress && startCount === targetCount) {
+      return;
+    }
     const durationMs = 700;
     const startTime = performance.now();
 

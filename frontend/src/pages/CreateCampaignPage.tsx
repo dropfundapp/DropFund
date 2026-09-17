@@ -14,7 +14,7 @@ import { api } from '@/lib/api';
 
 export default function CreateCampaignPage() {
   const navigate = useNavigate();
-  const { authenticated, solanaAddress, getAccessToken } = usePrivyAuth();
+  const { authenticated, solanaAddress, getAccessToken, login } = usePrivyAuth();
   const createCampaign = useCreateCampaign();
 
   const [title, setTitle] = useState('');
@@ -109,7 +109,7 @@ export default function CreateCampaignPage() {
     e.preventDefault();
 
     if (!authenticated || !solanaAddress) {
-      toast.error('Please sign in first so we can prepare your DropFund wallet.');
+      login();
       return;
     }
     const walletAddress = solanaAddress;
@@ -382,9 +382,9 @@ export default function CreateCampaignPage() {
                 type="submit" 
                 size="lg" 
                 className="w-full" 
-                disabled={createCampaign.isPending || !imageFile || isUploading}
+                disabled={createCampaign.isPending || isUploading || (authenticated && !imageFile)}
               >
-                {isUploading || createCampaign.isPending ? 'Creating Campaign...' : 'Launch Campaign'}
+                {isUploading || createCampaign.isPending ? 'Creating Campaign...' : authenticated ? 'Launch Campaign' : 'Login to launch campaign'}
               </Button>
             </div>
           </form>

@@ -69,6 +69,9 @@ export default function CampaignPage() {
   const statsAnimationRef = useRef<number | null>(null);
   const [donationSort, setDonationSort] = useState<'recent' | 'highest'>('recent');
   const [shareOpen, setShareOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [isReporting, setIsReporting] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [, forceProfileRefresh] = useState(0);
   const [animatedRaisedNumber, setAnimatedRaisedNumber] = useState(0);
@@ -173,6 +176,9 @@ export default function CampaignPage() {
     const targetRaised = raisedNumber;
     const targetProgress = progressPercentage;
     const targetCount = donationCount;
+    if (startRaised === targetRaised && startProgress === targetProgress && startCount === targetCount) {
+      return;
+    }
     const durationMs = 700;
     const startTime = performance.now();
 
@@ -204,7 +210,7 @@ export default function CampaignPage() {
     };
   }, [raisedNumber, progressPercentage, donationCount, campaignId]);
 
-  if (campaignLoading || campaignFetching || campaign === undefined) {
+  if (campaignLoading || campaign === undefined) {
     return (
       <div className="container py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -337,15 +343,27 @@ export default function CampaignPage() {
       login();
       return;
     }
-    const reason = window.prompt('Why are you reporting this campaign?');
-    if (!reason?.trim()) return;
+    setReportOpen(true);
+  };
+
+  const submitReport = async () => {
+    const reason = reportReason.trim();
+    if (!reason) {
+      toast.error('Tell us why you are reporting this campaign.');
+      return;
+    }
     try {
+      setIsReporting(true);
       const token = await getAccessToken();
       if (!token) throw new Error('Authentication required');
-      await api.reportCampaign(campaignId, solanaAddress, reason.trim(), token);
+      await api.reportCampaign(campaignId, solanaAddress!, reason, token);
       toast.success('Report submitted for review.');
+      setReportReason('');
+      setReportOpen(false);
     } catch (error: any) {
       toast.error(error.message || 'Unable to submit report.');
+    } finally {
+      setIsReporting(false);
     }
   };
 
@@ -938,6 +956,32 @@ export default function CampaignPage() {
           </DialogContent>
         </Dialog>
       )}
+      <Dialog open={reportOpen} onOpenChange={(open) => {
+        setReportOpen(open);
+        if (!open) setReportReason('');
+      }}>
+        <DialogContent className="w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6">
+          <DialogHeader className="mb-5 pr-10">
+            <DialogTitle className="text-lg font-semibold tracking-tight">Report campaign</DialogTitle>
+            <DialogDescription className="text-white/50">Tell us what concerns you about this campaign. Our team will review it.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <textarea
+              value={reportReason}
+              onChange={(event) => setReportReason(event.target.value)}
+              placeholder="Describe the issue"
+              maxLength={1000}
+              rows={5}
+              className="w-full resize-none rounded-xl border border-[#3a3d43] bg-[#282b30] p-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-[#4b54ff] focus:ring-1 focus:ring-[#4b54ff]"
+            />
+            <div className="flex items-center justify-between text-xs text-white/45"><span>Your report is private.</span><span>{reportReason.length}/1000</span></div>
+            <div className="grid grid-cols-2 gap-3">
+              <Button type="button" variant="secondary" className="h-12 rounded-xl bg-[#282b30] text-base font-semibold text-white hover:bg-[#34383e]" onClick={() => setReportOpen(false)} disabled={isReporting}>Cancel</Button>
+              <Button type="button" className="h-12 rounded-xl bg-[#4b54ff] text-base font-semibold text-white hover:bg-[#4149e6]" onClick={submitReport} disabled={isReporting || !reportReason.trim()}>{isReporting ? 'Submitting...' : 'Submit report'}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Dialog open={!!feeQuote} onOpenChange={(open) => !open && resolveFeeConfirmation(false)}>
         <DialogContent className="w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6">
           <DialogHeader className="mb-6 pr-10">

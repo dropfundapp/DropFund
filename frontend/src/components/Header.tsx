@@ -1,6 +1,6 @@
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { Wallet, Plus, User, Loader2, Menu, X, BookOpen, LogOut } from 'lucide-react';
+import { Wallet, Plus, User, Loader2, Menu, X, LogOut } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useEffect, useState, useRef } from 'react';
@@ -219,10 +219,6 @@ export default function Header() {
                       closeTimeoutRef.current = setTimeout(() => setIsDropdownOpen(false), 100);
                     }}
                   >
-                    <Link to="/how-it-works" className="block rounded-sm p-3 text-left text-sm transition-colors hover:bg-[#282b30] hover:text-white">
-                      <BookOpen className="mr-2 inline h-4 w-4" />
-                      How It Works
-                    </Link>
                     <Link to="/create" className="block rounded-sm p-3 text-left text-sm transition-colors hover:bg-[#282b30] hover:text-white">
                       <Plus className="mr-2 inline h-4 w-4" />
                       Create Campaign
@@ -231,7 +227,7 @@ export default function Header() {
                       <User className="mr-2 inline h-4 w-4" />
                       My Profile
                     </Link>
-                    <div onClick={handleFullLogout} className="cursor-pointer rounded-sm p-3 text-left text-sm text-destructive transition-colors hover:bg-[#282b30] hover:text-white">
+                    <div onClick={handleFullLogout} className="cursor-pointer rounded-sm p-3 text-left text-sm text-destructive transition-colors hover:bg-[#282b30] hover:text-destructive">
                       <LogOut className="mr-2 inline h-4 w-4" />
                       Log out
                     </div>
@@ -331,15 +327,6 @@ export default function Header() {
                         <Button 
                           variant="ghost" 
                           className="justify-start gap-3 w-full text-base py-6 hover:bg-[#282b30] hover:text-white"
-                          onClick={() => { setMobileMenuOpen(false); navigate({ to: '/how-it-works' }); }}
-                        >
-                          <BookOpen className="h-5 w-5" />
-                          How It Works
-                        </Button>
-
-                        <Button 
-                          variant="ghost" 
-                          className="justify-start gap-3 w-full text-base py-6 hover:bg-[#282b30] hover:text-white"
                           onClick={() => { setMobileMenuOpen(false); handleCreateCampaign(); }}
                         >
                           <Plus className="h-5 w-5" />
@@ -358,7 +345,7 @@ export default function Header() {
                         <div>
                           <Button 
                             variant="ghost" 
-                            className="w-full text-left text-destructive text-base py-6 justify-start gap-3 hover:bg-[#282b30] hover:text-white"
+                            className="w-full text-left text-destructive text-base py-6 justify-start gap-3 hover:bg-[#282b30] hover:text-destructive"
                             onClick={() => { setMobileMenuOpen(false); handleFullLogout(); }}
                           >
                             <LogOut className="h-5 w-5" />
@@ -368,14 +355,6 @@ export default function Header() {
                       </>
                     ) : (
                       <>
-                        <Button 
-                          variant="ghost" 
-                          className="justify-center gap-3 w-full text-base py-6 hover:bg-[#282b30] hover:text-white"
-                          onClick={() => { setMobileMenuOpen(false); navigate({ to: '/how-it-works' }); }}
-                        >
-                          How It Works
-                        </Button>
-
                         <Button 
                           onClick={() => { setMobileMenuOpen(false); handleConnect(); }} 
                           disabled={!privyReady} 
