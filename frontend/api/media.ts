@@ -42,7 +42,10 @@ export default async function handler(req: any, res: any) {
     const result = await response.json().catch(() => ({}));
     if (!response.ok || typeof result.secure_url !== 'string') {
       console.error('Cloudinary upload failed:', result);
-      return json(res, { error: 'Image upload failed' }, 502);
+      const detail = typeof result.error?.message === 'string'
+        ? result.error.message.slice(0, 240)
+        : 'Image upload failed';
+      return json(res, { error: detail }, 502);
     }
     const sanitizedUrl = result.secure_url.replace('/upload/', '/upload/c_limit,w_1600,h_1200/f_webp,q_auto/fl_strip_profile/');
     return json(res, { imageUrl: sanitizedUrl });
