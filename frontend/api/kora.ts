@@ -92,20 +92,22 @@ function assertDonationTransaction(
   const paymentTokenAccount = getAssociatedTokenAddressSync(USDC_MINT, paymentOwner);
   const donorSignature = transaction.signatures.find((signature) => signature.publicKey.equals(donor));
 
-  if (!transaction.feePayer?.equals(payerSigner) || (requireDonorSignature && (!donorSignature?.signature || donorSignature.signature.every((byte) => byte === 0))) || transaction.instructions.length < 2 || transaction.instructions.length > 3) {
+  if (!transaction.feePayer?.equals(payerSigner) || (requireDonorSignature && (!donorSignature?.signature || donorSignature.signature.every((byte) => byte === 0))) || transaction.instructions.length < 2 || transaction.instructions.length > 4) {
     throw new HttpError(400, 'Transaction does not match an approved donation');
   }
 
-  let creatorAtaCreated = false;
+  const createdTokenAccounts = new Set<string>();
   let campaignAmount = 0n;
   let feeAmount = 0n;
   for (const instruction of transaction.instructions) {
     if (instruction.programId.equals(ASSOCIATED_TOKEN_PROGRAM_ID)) {
       const keys = instruction.keys;
-      if (creatorAtaCreated || keys.length !== 6 || !keys[0].pubkey.equals(donor) || !keys[1].pubkey.equals(creatorTokenAccount) || !keys[2].pubkey.equals(creator) || !keys[3].pubkey.equals(USDC_MINT) || !keys[4].pubkey.equals(SystemProgram.programId) || !keys[5].pubkey.equals(TOKEN_PROGRAM_ID)) {
+      const isCreatorAccount = keys[1]?.pubkey.equals(creatorTokenAccount) && keys[2]?.pubkey.equals(creator);
+      const isPaymentAccount = keys[1]?.pubkey.equals(paymentTokenAccount) && keys[2]?.pubkey.equals(paymentOwner);
+      if (keys.length !== 6 || !keys[0].pubkey.equals(payerSigner) || (!isCreatorAccount && !isPaymentAccount) || createdTokenAccounts.has(keys[1].pubkey.toBase58()) || !keys[3].pubkey.equals(USDC_MINT) || !keys[4].pubkey.equals(SystemProgram.programId) || !keys[5].pubkey.equals(TOKEN_PROGRAM_ID)) {
         throw new HttpError(400, 'Transaction contains an invalid token account creation');
       }
-      creatorAtaCreated = true;
+      createdTokenAccounts.add(keys[1].pubkey.toBase58());
       continue;
     }
 

@@ -121,11 +121,14 @@ export function useSolanaDonation() {
     const payer = await getKoraPayer();
     const paymentTokenAccount = await getAssociatedTokenAddress(USDC_MINT, new PublicKey(payer.paymentAddress));
     const { blockhash } = await connection.getLatestBlockhash('confirmed');
-    const transaction = new Transaction({ feePayer: new PublicKey(payer.signerAddress), recentBlockhash: blockhash });
-    try {
-      await getAccount(connection, creatorTokenAccount);
-    } catch {
-      transaction.add(createAssociatedTokenAccountInstruction(donor, creatorTokenAccount, creator, USDC_MINT));
+    const payerSigner = new PublicKey(payer.signerAddress);
+    const transaction = new Transaction({ feePayer: payerSigner, recentBlockhash: blockhash });
+    for (const [tokenAccount, owner] of [[creatorTokenAccount, creator], [paymentTokenAccount, new PublicKey(payer.paymentAddress)]] as const) {
+      try {
+        await getAccount(connection, tokenAccount);
+      } catch {
+        transaction.add(createAssociatedTokenAccountInstruction(payerSigner, tokenAccount, owner, USDC_MINT));
+      }
     }
     transaction.add(createTransferInstruction(donorTokenAccount.pubkey, creatorTokenAccount, donor, totalUnits, [], TOKEN_PROGRAM_ID));
     transaction.add(createTransferInstruction(donorTokenAccount.pubkey, paymentTokenAccount, donor, 0n, [], TOKEN_PROGRAM_ID));
