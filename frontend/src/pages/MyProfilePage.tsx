@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useGetCampaignsByCreator, useGetCampaigns, useGetUserDonations } from '../hooks/useQueries';
+import { useGetCampaignsByCreator, useGetCampaigns, useGetDonationsByCreator, useGetUserDonations } from '../hooks/useQueries';
 import { usePrivyAuth } from '../components/PrivyAuthProvider';
 import { usePrivyBalances } from '../hooks/usePrivyBalances';
 import WithdrawModal from '../components/WithdrawModal';
@@ -87,6 +87,7 @@ export default function MyProfilePage() {
   const walletAddress = solanaAddress;
   const { data: campaigns = [], isLoading: campaignsLoading } = useGetCampaignsByCreator(walletAddress);
   const { data: allCampaigns = [] } = useGetCampaigns();
+  const { data: receivedDonations = [] } = useGetDonationsByCreator(walletAddress);
   const { data: donations = [], isLoading: donationsLoading } = useGetUserDonations(walletAddress);
 
   useEffect(() => {
@@ -138,7 +139,7 @@ export default function MyProfilePage() {
   };
   const isInflow = activeTab === 'campaigns';
   const chartEvents = isInflow
-    ? campaigns.map((campaign) => ({ timestamp: Number(campaign.createdAt), amount: Number(campaign.totalRaised) / 1e6 }))
+    ? receivedDonations.map((donation) => ({ timestamp: Number(donation.timestamp), amount: Number(donation.amount) / 1e6 }))
     : donations.map((donation) => ({ timestamp: Number(donation.timestamp), amount: Number(donation.amount) / 1e6 }));
   chartEvents.sort((a, b) => a.timestamp - b.timestamp);
   const rangeNanos = { '24H': 24 * 60 * 60 * 1e9, '7D': 7 * 24 * 60 * 60 * 1e9, '30D': 30 * 24 * 60 * 60 * 1e9, ALL: null }[timeRange];

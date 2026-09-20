@@ -98,11 +98,14 @@ export default async function handler(req: any, res: any) {
     if (req.method === 'GET') {
       const campaignId = typeof req.query?.campaignId === 'string' ? req.query.campaignId : '';
       const donorWalletAddress = typeof req.query?.donorWalletAddress === 'string' ? req.query.donorWalletAddress : '';
+      const creatorWalletAddress = typeof req.query?.creatorWalletAddress === 'string' ? req.query.creatorWalletAddress : '';
       const rows = campaignId
         ? await sql`select * from donations where campaign_id = ${campaignId} order by created_at desc`
         : donorWalletAddress
           ? await sql`select * from donations where donor_wallet_address = ${donorWalletAddress} order by created_at desc`
-          : [];
+          : creatorWalletAddress
+            ? await sql`select donations.* from donations join campaigns on campaigns.id = donations.campaign_id where campaigns.creator_wallet_address = ${creatorWalletAddress} order by donations.created_at desc`
+            : [];
       return json(res, rows.map((row: any) => ({
         mainTransactionSignature: row.transaction_signature,
         feeTransactionSignature: row.fee_transaction_signature,

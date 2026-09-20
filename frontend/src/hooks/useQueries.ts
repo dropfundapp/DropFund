@@ -129,6 +129,18 @@ export function useGetCampaignsByCreator(creatorWalletAddress: string | null) {
   });
 }
 
+export function useGetDonationsByCreator(creatorWalletAddress: string | null) {
+  return useQuery<Donation[]>({
+    queryKey: ['creatorDonations', creatorWalletAddress],
+    queryFn: async () => creatorWalletAddress ? api.donationsByCreator(creatorWalletAddress) : [],
+    enabled: !!creatorWalletAddress,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    retry: 2,
+  });
+}
+
 export function useGetDonationsByCampaign(campaignId: string, options?: { refetchOnMount?: boolean; refetchOnWindowFocus?: boolean }) {
   return useQuery<Donation[]>({
     queryKey: ['donations', campaignId],
@@ -186,6 +198,7 @@ export function useCreateCampaign() {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       queryClient.invalidateQueries({ queryKey: ['campaignSummaries'] });
       queryClient.invalidateQueries({ queryKey: ['myCampaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['creatorDonations'] });
       console.log('Campaign created, invalidating all campaign queries');
     },
     onError: (error: any) => {
