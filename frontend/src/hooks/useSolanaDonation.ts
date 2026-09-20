@@ -38,8 +38,6 @@ interface KoraPayer {
 
 let koraPayer: KoraPayer | null = null;
 let koraPayerRequest: Promise<KoraPayer> | null = null;
-let preparedDonation: PreparedDonation | null = null;
-const PREPARED_DONATION_TTL_MS = 45_000;
 
 function calculateDropfundFee(totalUnits: bigint) {
   if (totalUnits < MINIMUM_DONATION_UNITS) {
@@ -101,10 +99,6 @@ export function useSolanaDonation() {
     if (!wallet?.address) throw new Error('Your embedded Solana wallet is not ready. Please sign in again.');
     const totalUnits = BigInt(Math.floor(amount * 10 ** USDC_DECIMALS));
     const feeInToken = calculateDropfundFee(totalUnits);
-    const cached = preparedDonation;
-    if (cached && cached.walletAddress === wallet.address && cached.creatorWallet === creatorWallet && cached.totalUnits === totalUnits && Date.now() - cached.preparedAt < PREPARED_DONATION_TTL_MS) {
-      return cached;
-    }
 
     const donor = new PublicKey(wallet.address);
     const creator = new PublicKey(creatorWallet);
@@ -133,9 +127,7 @@ export function useSolanaDonation() {
     transaction.add(createTransferInstruction(donorTokenAccount.pubkey, paymentTokenAccount, donor, 0n, [], TOKEN_PROGRAM_ID));
     transaction.instructions[transaction.instructions.length - 2] = createTransferInstruction(donorTokenAccount.pubkey, creatorTokenAccount, donor, totalUnits - feeInToken, [], TOKEN_PROGRAM_ID);
     transaction.instructions[transaction.instructions.length - 1] = createTransferInstruction(donorTokenAccount.pubkey, paymentTokenAccount, donor, feeInToken, [], TOKEN_PROGRAM_ID);
-    const prepared = { walletAddress: wallet.address, creatorWallet, totalUnits, transaction, feeInToken, preparedAt: Date.now() };
-    preparedDonation = prepared;
-    return prepared;
+    return { walletAddress: wallet.address, creatorWallet, totalUnits, transaction, feeInToken, preparedAt: Date.now() };
   }, [wallet?.address]);
 
   useEffect(() => {
@@ -153,9 +145,9 @@ export function useSolanaDonation() {
     }
 
     if (!campaignId) return null;
-    const prepared = await prepareKoraDonation(campaignId, amount, creatorWallet);
-    return Number(prepared.feeInToken) / 10 ** USDC_DECIMALS;
-  }, [prepareKoraDonation, wallet?.address]);
+    const totalUnits = BigInt(Math.floor(amount * 10 ** USDC_DECIMALS));
+    return Number(calculateDropfundFee(totalUnits)) / 10 ** USDC_DECIMALS;
+  }, [wallet?.address]);
 
   const donate = async (
     _campaignId: string,
@@ -178,16 +170,15 @@ export function useSolanaDonation() {
 
       if (USE_KORA) {
         if (USER_PAYS_KORA_FEE) {
-          const prepared = await prepareKoraDonation(_campaignId, amount, creatorWallet);
-          transaction = prepared.transaction;
-          fee = Number(prepared.feeInToken) / 10 ** USDC_DECIMALS;
+          fee = Number(calculateDropfundFee(totalUnits)) / 10 ** USDC_DECIMALS;
           const confirmed = await confirmFeeQuote?.({
             total: amount,
             campaignAmount: amount - fee,
             fee,
           }) ?? true;
           if (!confirmed) throw new Error('User cancelled');
-          preparedDonation = null;
+          const prepared = await prepareKoraDonation(_campaignId, amount, creatorWallet);
+          transaction = prepared.transaction;
         } else {
           throw new Error('Dropfund donations require a USDC fee configuration.');
         }
