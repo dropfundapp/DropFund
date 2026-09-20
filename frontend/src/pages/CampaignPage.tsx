@@ -245,6 +245,7 @@ export default function CampaignPage() {
   const isCampaignCreator = authenticated && !!solanaAddress && solanaAddress === campaign.creatorWalletAddress;
   const creatorDisplayName = campaign.creatorDisplayName || getFunnyName(campaign.creatorWalletAddress);
   const donationValue = Number(donationAmount);
+  const isBelowMinimumDonation = donationAmount !== '' && (!Number.isFinite(donationValue) || donationValue < 2);
   const hasInsufficientBalance = authenticated && usdcBalance !== null && donationValue > usdcBalance;
   const isGoalReachedAmount = raisedNumber >= goalNumber;
 
@@ -269,6 +270,10 @@ export default function CampaignPage() {
       const amount = Number(donationAmount);
       if (!amount || amount <= 0) {
         toast.error('Enter a valid USDC amount first.');
+        return;
+      }
+      if (amount < 2) {
+        toast.error('The minimum donation is 2 USDC.');
         return;
       }
       setIsDonating(true);
@@ -555,7 +560,7 @@ export default function CampaignPage() {
                     {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                       <span className="mr-2 text-2xl text-white/45">$</span>
                       <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="0" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-2xl font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
-                      {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : networkFee !== null ? `$${networkFee.toFixed(6)} network fee` : `$${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} available`}</span>}
+                      {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : networkFee !== null ? `$${networkFee.toFixed(2)} Dropfund fee` : `$${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} available`}</span>}
                     </div>}
                     <Button
                       ref={mobileDonateButtonRef}
@@ -570,7 +575,7 @@ export default function CampaignPage() {
                           : undefined
                       }
                       size="lg"
-                      disabled={disableDonate || isDonating || !donationAmount || hasInsufficientBalance || isCampaignCreator}
+                      disabled={disableDonate || isDonating || !donationAmount || isBelowMinimumDonation || hasInsufficientBalance || isCampaignCreator}
                       onClick={handleDonateClick}
                     >
                       {disableDonate
@@ -579,6 +584,8 @@ export default function CampaignPage() {
                           ? "Creators can't fund"
                         : !authenticated || !solanaAddress
                           ? 'Login to Donate'
+                          : isBelowMinimumDonation
+                            ? 'Minimum amount $2'
                           : isGoalReachedStatus || isGoalReachedAmount
                             ? 'Goal Reached (Still Accepting)'
                             : isDonating
@@ -708,12 +715,12 @@ export default function CampaignPage() {
                 {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                   <span className="mr-2 text-2xl text-white/45">$</span>
                   <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="0" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-2xl font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
-                  {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : networkFee !== null ? `$${networkFee.toFixed(6)} network fee` : `$${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} available`}</span>}
+                  {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : networkFee !== null ? `$${networkFee.toFixed(2)} Dropfund fee` : `$${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} available`}</span>}
                 </div>}
                 <Button
                   className="h-[3.2rem] w-full text-lg font-semibold"
                   size="lg"
-                  disabled={disableDonate || isDonating || !donationAmount || hasInsufficientBalance || isCampaignCreator}
+                  disabled={disableDonate || isDonating || !donationAmount || isBelowMinimumDonation || hasInsufficientBalance || isCampaignCreator}
                   onClick={handleDonateClick}
                 >
                   {disableDonate
@@ -722,6 +729,8 @@ export default function CampaignPage() {
                       ? "Creators can't fund"
                     : !authenticated || !solanaAddress
                       ? 'Login to Donate'
+                      : isBelowMinimumDonation
+                        ? 'Minimum amount $2'
                       : isGoalReachedStatus || isGoalReachedAmount
                         ? 'Goal Reached (Still Accepting)'
                         : isDonating
@@ -994,7 +1003,7 @@ export default function CampaignPage() {
                 <div className="flex items-center justify-between text-sm text-white/55"><span>You pay</span><span className="font-semibold text-white">${feeQuote.total.toFixed(6)} USDC</span></div>
                 <div className="my-4 border-t border-white/10" />
                 <div className="flex items-center justify-between text-sm text-white/55"><span>Campaign receives</span><span className="font-semibold text-white">${feeQuote.campaignAmount.toFixed(6)} USDC</span></div>
-                <div className="mt-3 flex items-center justify-between text-sm text-white/55"><span>Kora network fee</span><span>${feeQuote.fee.toFixed(6)} USDC</span></div>
+                <div className="mt-3 flex items-center justify-between text-sm text-white/55"><span>Dropfund fee</span><span>${feeQuote.fee.toFixed(2)} USDC</span></div>
               </div>
               <div className="text-sm text-white/55">Funding <span className="font-medium text-white">{campaign.title}</span></div>
               <div className="grid grid-cols-2 gap-3">

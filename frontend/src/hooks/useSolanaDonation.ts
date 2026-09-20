@@ -8,6 +8,10 @@ import { usePrivyAuth } from '@/components/PrivyAuthProvider';
 const SOLANA_RPC_URL = import.meta.env.VITE_SOLANA_RPC_URL || 'https://solana-rpc.publicnode.com';
 const USDC_MINT = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
 const USDC_DECIMALS = 6;
+const MINIMUM_DONATION_UNITS = 2_000_000n;
+const MINIMUM_FEE_UNITS = 100_000n;
+const MAXIMUM_FEE_UNITS = 950_000n;
+const REDUCED_RATE_THRESHOLD_UNITS = 190_000_000n;
 const USE_KORA = import.meta.env.VITE_USE_KORA === 'true';
 const USER_PAYS_KORA_FEE = import.meta.env.VITE_KORA_USER_PAYS_USDC === 'true';
 type DonationPhase = 'idle' | 'preparing' | 'awaiting_signature' | 'submitting';
@@ -36,6 +40,23 @@ let koraPayer: KoraPayer | null = null;
 let koraPayerRequest: Promise<KoraPayer> | null = null;
 let preparedDonation: PreparedDonation | null = null;
 const PREPARED_DONATION_TTL_MS = 45_000;
+
+function calculateDropfundFee(totalUnits: bigint) {
+  if (totalUnits < MINIMUM_DONATION_UNITS) {
+    throw new Error('The minimum donation is 2 USDC.');
+  }
+
+  if (totalUnits >= REDUCED_RATE_THRESHOLD_UNITS) {
+    return totalUnits / 200n;
+  }
+
+  const percentageFee = (totalUnits * 2n) / 100n;
+  return percentageFee < MINIMUM_FEE_UNITS
+    ? MINIMUM_FEE_UNITS
+    : percentageFee > MAXIMUM_FEE_UNITS
+      ? MAXIMUM_FEE_UNITS
+      : percentageFee;
+}
 
 function bytesToBase64(bytes: Uint8Array) {
   let binary = '';
@@ -67,32 +88,6 @@ async function getKoraPayer() {
   }
 }
 
-async function getKoraFeeEstimate(donorWalletAddress: string, campaignId: string, totalAmount: bigint, transaction: Transaction, getAccessToken: () => Promise<string | null>) {
-  const token = await getAccessToken();
-  if (!token) throw new Error('Authentication required');
-
-  const response = await fetch('/api/kora', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      action: 'estimate',
-      donorWalletAddress,
-      campaignId,
-      totalAmount: totalAmount.toString(),
-      transaction: bytesToBase64(transaction.serialize({ requireAllSignatures: false, verifySignatures: false })),
-    }),
-  });
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok || !Number.isSafeInteger(body?.feeInToken) || body.feeInToken < 1 || typeof body?.paymentAddress !== 'string') {
-    throw new Error(body?.error || 'Failed to estimate the USDC network fee');
-  }
-
-  return { feeInToken: BigInt(body.feeInToken), paymentAddress: body.paymentAddress };
-}
-
 export function useSolanaDonation() {
   const { wallets } = useSolanaWallets();
   const { signAndSendTransaction } = useSignAndSendTransaction();
@@ -105,6 +100,7 @@ export function useSolanaDonation() {
   const prepareKoraDonation = useCallback(async (campaignId: string, amount: number, creatorWallet: string) => {
     if (!wallet?.address) throw new Error('Your embedded Solana wallet is not ready. Please sign in again.');
     const totalUnits = BigInt(Math.floor(amount * 10 ** USDC_DECIMALS));
+    const feeInToken = calculateDropfundFee(totalUnits);
     const cached = preparedDonation;
     if (cached && cached.walletAddress === wallet.address && cached.creatorWallet === creatorWallet && cached.totalUnits === totalUnits && Date.now() - cached.preparedAt < PREPARED_DONATION_TTL_MS) {
       return cached;
@@ -123,23 +119,24 @@ export function useSolanaDonation() {
     const { blockhash } = await connection.getLatestBlockhash('confirmed');
     const payerSigner = new PublicKey(payer.signerAddress);
     const transaction = new Transaction({ feePayer: payerSigner, recentBlockhash: blockhash });
-    for (const [tokenAccount, owner] of [[creatorTokenAccount, creator], [paymentTokenAccount, new PublicKey(payer.paymentAddress)]] as const) {
-      try {
-        await getAccount(connection, tokenAccount);
-      } catch {
-        transaction.add(createAssociatedTokenAccountInstruction(payerSigner, tokenAccount, owner, USDC_MINT));
-      }
+    try {
+      await getAccount(connection, creatorTokenAccount);
+    } catch {
+      transaction.add(createAssociatedTokenAccountInstruction(donor, creatorTokenAccount, creator, USDC_MINT));
+    }
+    try {
+      await getAccount(connection, paymentTokenAccount);
+    } catch {
+      transaction.add(createAssociatedTokenAccountInstruction(payerSigner, paymentTokenAccount, new PublicKey(payer.paymentAddress), USDC_MINT));
     }
     transaction.add(createTransferInstruction(donorTokenAccount.pubkey, creatorTokenAccount, donor, totalUnits, [], TOKEN_PROGRAM_ID));
     transaction.add(createTransferInstruction(donorTokenAccount.pubkey, paymentTokenAccount, donor, 0n, [], TOKEN_PROGRAM_ID));
-    const { feeInToken } = await getKoraFeeEstimate(donor.toBase58(), campaignId, totalUnits, transaction, getAccessToken);
-    if (feeInToken >= totalUnits) throw new Error('Donation amount is too small to cover the network fee.');
     transaction.instructions[transaction.instructions.length - 2] = createTransferInstruction(donorTokenAccount.pubkey, creatorTokenAccount, donor, totalUnits - feeInToken, [], TOKEN_PROGRAM_ID);
     transaction.instructions[transaction.instructions.length - 1] = createTransferInstruction(donorTokenAccount.pubkey, paymentTokenAccount, donor, feeInToken, [], TOKEN_PROGRAM_ID);
     const prepared = { walletAddress: wallet.address, creatorWallet, totalUnits, transaction, feeInToken, preparedAt: Date.now() };
     preparedDonation = prepared;
     return prepared;
-  }, [getAccessToken, wallet?.address]);
+  }, [wallet?.address]);
 
   useEffect(() => {
     if (!USE_KORA || !wallet?.address || prefetchedWalletAddress.current === wallet.address) return;
@@ -192,7 +189,7 @@ export function useSolanaDonation() {
           if (!confirmed) throw new Error('User cancelled');
           preparedDonation = null;
         } else {
-          throw new Error('Kora donations require a USDC fee configuration.');
+          throw new Error('Dropfund donations require a USDC fee configuration.');
         }
 
         setDonationPhase('awaiting_signature');

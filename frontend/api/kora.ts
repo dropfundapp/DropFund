@@ -4,7 +4,10 @@ import { requireWallet } from './_lib/auth.js';
 import { getDatabase } from './_lib/db.js';
 
 const USDC_MINT = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
-const MAX_KORA_FEE_UNITS = BigInt(process.env.KORA_MAX_FEE_USDC_UNITS || '1000000');
+const MINIMUM_DONATION_UNITS = 2_000_000n;
+const MINIMUM_FEE_UNITS = 100_000n;
+const MAXIMUM_FEE_UNITS = 950_000n;
+const REDUCED_RATE_THRESHOLD_UNITS = 190_000_000n;
 
 class HttpError extends Error {
   status: number;
@@ -32,10 +35,10 @@ async function koraRpc(method: string, params: Record<string, unknown>) {
     'content-type': 'application/json',
   };
 
-  if (process.env.KORA_API_KEY) {
-    headers['x-api-key'] = process.env.KORA_API_KEY;
-    headers.authorization = `Bearer ${process.env.KORA_API_KEY}`;
-  }
+  const apiKey = process.env.KORA_API_KEY;
+  if (!apiKey) throw new HttpError(503, 'Kora API authentication is not configured');
+  headers['x-api-key'] = apiKey;
+  headers.authorization = `Bearer ${apiKey}`;
 
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -74,6 +77,23 @@ function instructionAmount(instruction: any) {
   return instruction.data.subarray(1).reduceRight((amount: bigint, byte: number) => (amount << 8n) + BigInt(byte), 0n);
 }
 
+function calculateDropfundFee(totalAmount: bigint) {
+  if (totalAmount < MINIMUM_DONATION_UNITS) {
+    throw new HttpError(400, 'The minimum donation is 2 USDC');
+  }
+
+  if (totalAmount >= REDUCED_RATE_THRESHOLD_UNITS) {
+    return totalAmount / 200n;
+  }
+
+  const percentageFee = (totalAmount * 2n) / 100n;
+  return percentageFee < MINIMUM_FEE_UNITS
+    ? MINIMUM_FEE_UNITS
+    : percentageFee > MAXIMUM_FEE_UNITS
+      ? MAXIMUM_FEE_UNITS
+      : percentageFee;
+}
+
 function assertDonationTransaction(
   serialized: string,
   donorAddress: string,
@@ -102,9 +122,9 @@ function assertDonationTransaction(
   for (const instruction of transaction.instructions) {
     if (instruction.programId.equals(ASSOCIATED_TOKEN_PROGRAM_ID)) {
       const keys = instruction.keys;
-      const isCreatorAccount = keys[1]?.pubkey.equals(creatorTokenAccount) && keys[2]?.pubkey.equals(creator);
-      const isPaymentAccount = keys[1]?.pubkey.equals(paymentTokenAccount) && keys[2]?.pubkey.equals(paymentOwner);
-      if (keys.length !== 6 || !keys[0].pubkey.equals(payerSigner) || (!isCreatorAccount && !isPaymentAccount) || createdTokenAccounts.has(keys[1].pubkey.toBase58()) || !keys[3].pubkey.equals(USDC_MINT) || !keys[4].pubkey.equals(SystemProgram.programId) || !keys[5].pubkey.equals(TOKEN_PROGRAM_ID)) {
+      const isCreatorAccount = keys[0]?.pubkey.equals(donor) && keys[1]?.pubkey.equals(creatorTokenAccount) && keys[2]?.pubkey.equals(creator);
+      const isPaymentAccount = keys[0]?.pubkey.equals(payerSigner) && keys[1]?.pubkey.equals(paymentTokenAccount) && keys[2]?.pubkey.equals(paymentOwner);
+      if (keys.length !== 6 || (!isCreatorAccount && !isPaymentAccount) || createdTokenAccounts.has(keys[1].pubkey.toBase58()) || !keys[3].pubkey.equals(USDC_MINT) || !keys[4].pubkey.equals(SystemProgram.programId) || !keys[5].pubkey.equals(TOKEN_PROGRAM_ID)) {
         throw new HttpError(400, 'Transaction contains an invalid token account creation');
       }
       createdTokenAccounts.add(keys[1].pubkey.toBase58());
@@ -121,9 +141,9 @@ function assertDonationTransaction(
     else throw new HttpError(400, 'Transaction contains an unapproved recipient');
   }
 
-  const isEstimate = !requireDonorSignature;
-  if (campaignAmount <= 0n || campaignAmount + feeAmount !== totalAmount || feeAmount > MAX_KORA_FEE_UNITS || (!isEstimate && feeAmount <= 0n)) {
-    throw new HttpError(400, 'Transaction has an invalid donation or network fee');
+  const expectedFee = calculateDropfundFee(totalAmount);
+  if (campaignAmount <= 0n || campaignAmount + feeAmount !== totalAmount || feeAmount !== expectedFee) {
+    throw new HttpError(400, 'Transaction has an invalid donation or Dropfund fee');
   }
 }
 
@@ -166,18 +186,9 @@ export default async function handler(req: any, res: any) {
     assertDonationTransaction(transaction, donorWalletAddress, campaign.creator_wallet_address, signer.signer_address, signer.payment_address, totalAmount, body.action !== 'estimate');
 
     if (body.action === 'estimate') {
-      const estimate = await koraRpc('estimateTransactionFee', {
-        transaction,
-        fee_token: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-      });
-
-      if (typeof estimate.fee_in_token !== 'number' || typeof estimate.payment_address !== 'string') {
-        throw new HttpError(502, 'Kora returned an invalid fee estimate');
-      }
-
       return json(res, {
-        feeInToken: estimate.fee_in_token,
-        paymentAddress: estimate.payment_address,
+        feeInToken: Number(calculateDropfundFee(totalAmount)),
+        paymentAddress: signer.payment_address,
       });
     }
 
