@@ -116,7 +116,7 @@ export function useSolanaDonation() {
     try {
       await getAccount(connection, creatorTokenAccount);
     } catch {
-      transaction.add(createAssociatedTokenAccountInstruction(donor, creatorTokenAccount, creator, USDC_MINT));
+      transaction.add(createAssociatedTokenAccountInstruction(payerSigner, creatorTokenAccount, creator, USDC_MINT));
     }
     try {
       await getAccount(connection, paymentTokenAccount);

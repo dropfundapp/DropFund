@@ -122,7 +122,7 @@ function assertDonationTransaction(
   for (const instruction of transaction.instructions) {
     if (instruction.programId.equals(ASSOCIATED_TOKEN_PROGRAM_ID)) {
       const keys = instruction.keys;
-      const isCreatorAccount = keys[0]?.pubkey.equals(donor) && keys[1]?.pubkey.equals(creatorTokenAccount) && keys[2]?.pubkey.equals(creator);
+      const isCreatorAccount = keys[0]?.pubkey.equals(payerSigner) && keys[1]?.pubkey.equals(creatorTokenAccount) && keys[2]?.pubkey.equals(creator);
       const isPaymentAccount = keys[0]?.pubkey.equals(payerSigner) && keys[1]?.pubkey.equals(paymentTokenAccount) && keys[2]?.pubkey.equals(paymentOwner);
       if (keys.length !== 6 || (!isCreatorAccount && !isPaymentAccount) || createdTokenAccounts.has(keys[1].pubkey.toBase58()) || !keys[3].pubkey.equals(USDC_MINT) || !keys[4].pubkey.equals(SystemProgram.programId) || !keys[5].pubkey.equals(TOKEN_PROGRAM_ID)) {
         throw new HttpError(400, 'Transaction contains an invalid token account creation');
