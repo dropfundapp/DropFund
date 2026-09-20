@@ -199,17 +199,20 @@ export default function MyProfilePage() {
                   </button>
                 </div>
               </div>
-              <div className="flex shrink-0 gap-5 text-center sm:mr-4 sm:gap-8">
-                <div><div className="text-xl font-semibold">{campaigns.length}</div><div className="text-xs text-white/45">Campaigns</div></div>
-                <div><div className="text-xl font-semibold">{donations.length}</div><div className="text-xs text-white/45">Donations</div></div>
+              <div className="flex shrink-0 items-center justify-between gap-4 sm:mr-4 sm:gap-8">
+                <div className="flex gap-5 text-center sm:gap-8">
+                  <div><div className="text-xl font-semibold">{campaigns.length}</div><div className="text-xs text-white/45">Campaigns</div></div>
+                  <div><div className="text-xl font-semibold">{donations.length}</div><div className="text-xs text-white/45">Donations</div></div>
+                </div>
+                <Button variant="outline" className="border-[#282b30] bg-[#1d1e1f] text-white hover:bg-[#282b30] hover:text-white sm:hidden" onClick={() => setEditOpen(true)}>Edit profile</Button>
               </div>
-              <Button variant="outline" className="w-full border-[#282b30] bg-[#1d1e1f] text-white hover:bg-[#282b30] hover:text-white sm:w-auto" onClick={() => setEditOpen(true)}>Edit profile</Button>
+              <Button variant="outline" className="hidden border-[#282b30] bg-[#1d1e1f] text-white hover:bg-[#282b30] hover:text-white sm:inline-flex" onClick={() => setEditOpen(true)}>Edit profile</Button>
             </div>
           </section>
 
           <section className="grid gap-10 py-8 lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.7fr)]">
             <div>
-              <div className="mb-4 flex items-start justify-between">
+              <div className="mb-4 hidden items-start justify-between lg:flex">
                 <div>
                   <p className="text-4xl font-semibold tracking-tight">${formatUsdc(activityAmount)}</p>
                   <p className={`mt-1 text-sm ${isInflow ? 'text-[#58d16e]' : 'text-[#ff641f]'}`}>{isInflow ? '+' : '-'}${formatUsdc(activityAmount)} <span className="text-white/45">{isInflow ? 'cash inflow' : 'cash outflow'}</span></p>
@@ -218,10 +221,10 @@ export default function MyProfilePage() {
                   {(['24H', '7D', '30D', 'ALL'] as const).map((range) => <button key={range} onClick={() => setTimeRange(range)} className={`rounded-md px-3 py-1.5 ${timeRange === range ? 'bg-[#282b30] text-white' : 'text-white/45 hover:text-white'}`}>{range}</button>)}
                 </div>
               </div>
-              <div className="h-[230px] w-full">
+              <div className="hidden h-[230px] w-full lg:block">
                 <PortfolioChart direction={isInflow ? 'inflow' : 'outflow'} values={chartValues} />
               </div>
-              <div className="mt-6 flex w-full items-center justify-between rounded-xl bg-[#1d1e1f] p-4">
+              <div className="flex w-full items-center justify-between rounded-xl bg-[#1d1e1f] p-4 lg:mt-6">
                 <div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#282b30] text-2xl leading-none">$</span><div><p className="text-xs text-white/45">Total cash</p><p className="font-semibold">{balanceLoading ? 'Loading...' : usdcBalance !== null ? `${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} USDC` : 'Unavailable'}</p>{balanceError ? <p className="max-w-[220px] break-words text-[11px] text-rose-400">{balanceError}</p> : null}</div></div>
                 <div className="flex gap-2"><Button variant="outline" size="sm" className="border-[#282b30] bg-[#131313] text-white" onClick={() => setWithdrawOpen(true)}>Withdraw</Button><Button size="sm" className="bg-[#58d16e] text-black hover:bg-[#6ee67f]" onClick={openFunding}>Deposit</Button></div>
               </div>
@@ -231,6 +234,20 @@ export default function MyProfilePage() {
               <div className="flex border-b border-[#282b30]">
                 <button onClick={() => setActiveTab('campaigns')} className={`flex-1 px-5 py-4 text-left text-sm font-medium ${activeTab === 'campaigns' ? 'text-white' : 'text-white/40'}`}>Campaigns</button>
                 <button onClick={() => setActiveTab('donations')} className={`flex-1 px-5 py-4 text-left text-sm font-medium ${activeTab === 'donations' ? 'text-white' : 'text-white/40'}`}>Donations</button>
+              </div>
+              <div className="border-b border-[#282b30] px-4 py-4 lg:hidden">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-3xl font-semibold tracking-tight">${formatUsdc(activityAmount)}</p>
+                    <p className={`mt-1 text-sm ${isInflow ? 'text-[#58d16e]' : 'text-[#ff641f]'}`}>{isInflow ? '+' : '-'}${formatUsdc(activityAmount)} <span className="text-white/45">{isInflow ? 'cash inflow' : 'cash outflow'}</span></p>
+                  </div>
+                  <div className="flex shrink-0 rounded-lg bg-[#131313] p-1 text-xs text-white/45">
+                    {(['24H', '7D', '30D', 'ALL'] as const).map((range) => <button key={range} onClick={() => setTimeRange(range)} className={`rounded-md px-2.5 py-1.5 ${timeRange === range ? 'bg-[#282b30] text-white' : 'text-white/45 hover:text-white'}`}>{range}</button>)}
+                  </div>
+                </div>
+                <div className="mt-3 h-[150px] w-full">
+                  <PortfolioChart direction={isInflow ? 'inflow' : 'outflow'} values={chartValues} />
+                </div>
               </div>
               <div className="grid grid-cols-[1fr_70px_75px] border-b border-[#282b30] px-4 py-2 text-[11px] text-white/35"><span>Name</span><span>Status</span><span className="text-right">Amount</span></div>
               <div className="max-h-[340px] overflow-y-auto">
