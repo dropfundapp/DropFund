@@ -411,7 +411,7 @@ export default function CampaignPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
             <img
-              src={campaign.isReported ? '/assets/generated/campaign-placeholder.dim_400x300.jpg' : campaign.imageUrl || '/assets/generated/campaign-placeholder.dim_400x300.jpg'}
+              src={campaign.imageUrl || '/assets/generated/campaign-placeholder.dim_400x300.jpg'}
               alt={campaign.title}
               className="w-full h-full object-cover"
             />

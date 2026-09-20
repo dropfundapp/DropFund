@@ -34,6 +34,22 @@ function getAvatarColor(address: string) {
   return colors[seed % colors.length];
 }
 
+type CachedProfile = { name: string; image: string | null };
+
+function getCachedProfile(walletAddress?: string | null): CachedProfile | null {
+  if (!walletAddress) return null;
+  try {
+    return JSON.parse(localStorage.getItem(`dropfund-profile-${walletAddress}`) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function saveCachedProfile(walletAddress: string, profile: CachedProfile) {
+  localStorage.setItem(`dropfund-profile-${walletAddress}`, JSON.stringify(profile));
+  window.dispatchEvent(new Event('dropfund-profile-updated'));
+}
+
 function PortfolioChart({ direction, values }: { direction: 'inflow' | 'outflow'; values: number[] }) {
   const color = direction === 'inflow' ? '#58d16e' : '#ff641f';
   const width = 620;
@@ -63,10 +79,8 @@ export default function MyProfilePage() {
   const { usdcBalance, isLoading: balanceLoading, balanceError } = usePrivyBalances();
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [profileName, setProfileName] = useState(getFunnyName(solanaAddress || 'guest'));
-  const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [canChangeName, setCanChangeName] = useState(true);
-  const [savedDisplayName, setSavedDisplayName] = useState('');
+  const [profileName, setProfileName] = useState(() => getCachedProfile(solanaAddress)?.name || getFunnyName(solanaAddress || 'guest'));
+  const [profileImage, setProfileImage] = useState<string | null>(() => getCachedProfile(solanaAddress)?.image || null);
   const { fundWallet } = useFundWallet();
   const walletAddress = solanaAddress;
   const { data: campaigns = [], isLoading: campaignsLoading } = useGetCampaignsByCreator(walletAddress);
@@ -76,6 +90,11 @@ export default function MyProfilePage() {
   useEffect(() => {
     if (!authenticated || !solanaAddress) return;
     let cancelled = false;
+    const cachedProfile = getCachedProfile(solanaAddress);
+    if (cachedProfile) {
+      setProfileName(cachedProfile.name);
+      setProfileImage(cachedProfile.image);
+    }
     void (async () => {
       const token = await getAccessToken();
       if (!token) return;
@@ -83,9 +102,8 @@ export default function MyProfilePage() {
         const profile = await api.profile(solanaAddress, token);
         if (cancelled) return;
         setProfileName(profile.name);
-        setSavedDisplayName(profile.name);
         setProfileImage(profile.image);
-        setCanChangeName(profile.canChangeName);
+        saveCachedProfile(solanaAddress, { name: profile.name, image: profile.image });
       } catch (error) {
         console.error('Failed to load profile:', error);
         toast.error('Failed to load your profile.');
@@ -144,11 +162,6 @@ export default function MyProfilePage() {
     };
     const saveProfile = async () => {
       const name = profileName.trim() || getFunnyName(solanaAddress);
-      if (!canChangeName && name !== savedDisplayName) {
-        setProfileName(savedDisplayName);
-        toast.error('Display name is permanently locked.');
-        return;
-      }
       const token = await getAccessToken();
       if (!token) {
         toast.error('Authentication required');
@@ -157,8 +170,7 @@ export default function MyProfilePage() {
       try {
         const result = await api.saveProfile({ name, walletAddress: solanaAddress }, profileImage, token);
         setProfileName(result.name);
-        setSavedDisplayName(result.name);
-        setCanChangeName(result.canChangeName);
+        saveCachedProfile(solanaAddress, { name: result.name, image: profileImage });
         setEditOpen(false);
       } catch (error: any) {
         console.error('Failed to save profile:', error);
