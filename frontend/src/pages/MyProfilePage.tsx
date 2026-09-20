@@ -172,18 +172,20 @@ export default function MyProfilePage() {
         <div className="container mx-auto w-full">
           <section className="border-b border-[#282b30] pb-8">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-              {profileImage ? <img src={profileImage} alt="Profile" className="h-20 w-20 rounded-full object-cover" /> : <div className="flex h-20 w-20 items-center justify-center rounded-full text-3xl font-bold" style={{ backgroundColor: getAvatarColor(solanaAddress) }}>{getNameInitials(profileName)}</div>}
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold tracking-tight">{profileName}</h1>
-                <button onClick={copyAddress} className="mt-1 inline-flex items-center gap-2 text-sm text-white/50 hover:text-white">
-                  @{formatAddress(solanaAddress)} <Copy className="h-3.5 w-3.5" />
-                </button>
+              <div className="flex min-w-0 items-center gap-5 sm:flex-1">
+                {profileImage ? <img src={profileImage} alt="Profile" className="h-20 w-20 shrink-0 rounded-full object-cover" /> : <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full text-3xl font-bold" style={{ backgroundColor: getAvatarColor(solanaAddress) }}>{getNameInitials(profileName)}</div>}
+                <div className="min-w-0">
+                  <h1 className="truncate text-2xl font-bold tracking-tight">{profileName}</h1>
+                  <button onClick={copyAddress} className="mt-1 inline-flex max-w-full items-center gap-2 text-sm text-white/50 hover:text-white">
+                    <span className="truncate">@{formatAddress(solanaAddress)}</span> <Copy className="h-3.5 w-3.5 shrink-0" />
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-8 text-center sm:mr-4">
+              <div className="flex shrink-0 gap-5 text-center sm:mr-4 sm:gap-8">
                 <div><div className="text-xl font-semibold">{campaigns.length}</div><div className="text-xs text-white/45">Campaigns</div></div>
                 <div><div className="text-xl font-semibold">{donations.length}</div><div className="text-xs text-white/45">Donations</div></div>
               </div>
-              <Button variant="outline" className="border-[#282b30] bg-[#1d1e1f] text-white hover:bg-[#282b30] hover:text-white" onClick={() => setEditOpen(true)}>Edit profile</Button>
+              <Button variant="outline" className="w-full border-[#282b30] bg-[#1d1e1f] text-white hover:bg-[#282b30] hover:text-white sm:w-auto" onClick={() => setEditOpen(true)}>Edit profile</Button>
             </div>
           </section>
 
