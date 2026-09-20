@@ -75,7 +75,7 @@ export function useGetCampaigns() {
     enabled: true,
     staleTime: 60_000,
     gcTime: 5 * 60_000,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: 1,
