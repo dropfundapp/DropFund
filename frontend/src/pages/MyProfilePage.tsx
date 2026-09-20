@@ -198,7 +198,7 @@ export default function MyProfilePage() {
                   {(['24H', '7D', '30D', 'ALL'] as const).map((range) => <button key={range} onClick={() => setTimeRange(range)} className={`rounded-md px-3 py-1.5 ${timeRange === range ? 'bg-[#282b30] text-white' : 'text-white/45 hover:text-white'}`}>{range}</button>)}
                 </div>
               </div>
-              <div className="h-[230px] w-full border-b border-[#282b30]">
+              <div className="h-[230px] w-full">
                 <PortfolioChart direction={isInflow ? 'inflow' : 'outflow'} values={chartValues} />
               </div>
               <div className="mt-6 flex w-full items-center justify-between rounded-xl bg-[#1d1e1f] p-4">
