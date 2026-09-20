@@ -1,10 +1,9 @@
 import { ArrowLeft, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useWallets as useSolanaWallets, useSignAndSendTransaction } from '@privy-io/react-auth/solana';
+import { useWallets as useSolanaWallets, useSignTransaction } from '@privy-io/react-auth/solana';
 import { Connection, PublicKey, Transaction } from '@solana/web3.js';
-import { createAssociatedTokenAccountInstruction, createTransferInstruction, getAccount, getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from '@solana/spl-token';
-import bs58 from 'bs58';
+import { createTransferInstruction, getAccount, getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -20,12 +19,12 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
   const feeReserve = 0;
   const [amount, setAmount] = useState('');
   const [destination, setDestination] = useState('');
-  const [step, setStep] = useState<'amount' | 'destination'>('amount');
+  const [step, setStep] = useState<'amount' | 'destination' | 'confirmation'>('amount');
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { wallets } = useSolanaWallets();
-  const { signAndSendTransaction } = useSignAndSendTransaction();
-  const { solanaAddress } = usePrivyAuth();
+  const { signTransaction } = useSignTransaction();
+  const { solanaAddress, getAccessToken } = usePrivyAuth();
   const queryClient = useQueryClient();
   const wallet = wallets.find((candidate) => {
     const item = candidate as any;
@@ -60,9 +59,21 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
     if (balance !== null) setAmount((spendableBalance * percentage).toFixed(6));
   };
 
+  const bytesToBase64 = (bytes: Uint8Array) => {
+    let binary = '';
+    for (let index = 0; index < bytes.length; index += 0x8000) {
+      binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+    }
+    return btoa(binary);
+  };
+
   const handleWithdraw = async () => {
     if (step === 'amount') {
       setStep('destination');
+      return;
+    }
+    if (step === 'destination') {
+      setStep('confirmation');
       return;
     }
     setError(null);
@@ -74,6 +85,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
       setError('Withdrawal amount exceeds your USDC balance.');
       return;
     }
+    setIsSending(true);
     try {
       const recipient = new PublicKey(destination.trim());
       if (!wallet || !(wallet.address || solanaAddress)) {
@@ -91,27 +103,42 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
       if (!sourceAccount) throw new Error('No USDC token account has enough funds.');
       const source = sourceAccount.pubkey;
       const destinationTokenAccount = await getAssociatedTokenAddress(mint, recipient);
-      const { blockhash } = await connection.getLatestBlockhash('confirmed');
-      const transaction = new Transaction({
-        feePayer: owner,
-        recentBlockhash: blockhash,
-      });
       try {
         await getAccount(connection, destinationTokenAccount);
       } catch {
-        transaction.add(createAssociatedTokenAccountInstruction(owner, destinationTokenAccount, recipient, mint));
+        throw new Error('The destination wallet needs an existing USDC account before it can receive a sponsored withdrawal.');
       }
+      const payerResponse = await fetch('/api/kora');
+      const payer = await payerResponse.json().catch(() => ({}));
+      if (!payerResponse.ok || typeof payer?.signerAddress !== 'string') throw new Error(payer?.error || 'Unable to prepare sponsored withdrawal.');
+      const { blockhash } = await connection.getLatestBlockhash('confirmed');
+      const transaction = new Transaction({
+        feePayer: new PublicKey(payer.signerAddress),
+        recentBlockhash: blockhash,
+      });
       transaction.add(createTransferInstruction(source, destinationTokenAccount, owner, Math.floor(numericAmount * 1e6), [], TOKEN_PROGRAM_ID));
 
-      setIsSending(true);
-      onOpenChange(false);
-      const result = await signAndSendTransaction({
+      const signed = await signTransaction({
         transaction: transaction.serialize({ requireAllSignatures: false, verifySignatures: false }),
         wallet,
         chain: 'solana:mainnet',
-        options: { optimisticBroadcast: true },
+        options: { uiOptions: { showWalletUIs: false } },
       });
-      const signature = bs58.encode(result.signature);
+      const token = await getAccessToken();
+      if (!token) throw new Error('Authentication required');
+      const relayResponse = await fetch('/api/kora', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          action: 'withdrawal',
+          withdrawerWalletAddress: owner.toBase58(),
+          recipientWalletAddress: recipient.toBase58(),
+          amount: Math.floor(numericAmount * 1e6).toString(),
+          transaction: bytesToBase64(signed.signedTransaction),
+        }),
+      });
+      const relay = await relayResponse.json().catch(() => ({}));
+      if (!relayResponse.ok || typeof relay?.signature !== 'string') throw new Error(relay?.error || 'Sponsored withdrawal was rejected.');
       await queryClient.invalidateQueries({ queryKey: ['privy-balances'] });
       toast.success('USDC withdrawal complete');
       setAmount('');
@@ -135,7 +162,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
     <div className="fixed inset-0 z-[10002] flex min-h-full items-center justify-center overflow-y-auto p-3 backdrop-blur-[3px] sm:p-6" onClick={() => onOpenChange(false)}>
       <div className="relative w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6" onClick={(event) => event.stopPropagation()}>
         <div className="mb-6 flex items-center justify-between">
-          <Button variant="ghost" size="icon" aria-label="Back" className="h-8 w-8 rounded-full text-white/70 hover:bg-white/10 hover:text-white" onClick={() => step === 'destination' ? setStep('amount') : onOpenChange(false)}>
+          <Button variant="ghost" size="icon" aria-label="Back" className="h-8 w-8 rounded-full text-white/70 hover:bg-white/10 hover:text-white" onClick={() => step === 'confirmation' ? setStep('destination') : step === 'destination' ? setStep('amount') : onOpenChange(false)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h2 className="text-lg font-semibold tracking-tight">Withdraw to crypto wallet</h2>
@@ -182,10 +209,18 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
           <p className="text-[11px] leading-4 text-white/40">Send USDC only to a Solana address. Transactions cannot be reversed.</p>
         </div> : null}
 
+        {step === 'confirmation' ? <div className="mt-5 rounded-[22px] bg-[#282b30] p-5 text-sm">
+          <div className="flex items-center justify-between text-white/55"><span>You send</span><span className="font-semibold text-white">${numericAmount.toFixed(2)} USDC</span></div>
+          <div className="my-4 border-t border-white/10" />
+          <div className="text-white/55">To</div>
+          <div className="mt-1 break-all font-mono text-xs text-white">{destination.trim()}</div>
+          <div className="mt-4 text-xs text-white/45">Dropfund sponsors the Solana network fee.</div>
+        </div> : null}
+
         {error ? <p className="mt-3 text-sm text-rose-400">{error}</p> : null}
 
-        <Button type="button" disabled={!canContinue || (step === 'destination' && (!destination.trim() || !!destinationError))} onClick={handleWithdraw} className="mt-8 h-14 w-full rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6] disabled:cursor-not-allowed disabled:bg-[#282b30] disabled:opacity-60">
-          {isSending ? 'Sending...' : step === 'amount' ? 'Continue' : 'Send USDC'}
+        <Button type="button" disabled={!canContinue || ((step === 'destination' || step === 'confirmation') && (!destination.trim() || !!destinationError))} onClick={handleWithdraw} className="mt-8 h-14 w-full rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6] disabled:cursor-not-allowed disabled:bg-[#282b30] disabled:opacity-60">
+          {isSending ? 'Sending...' : step === 'amount' || step === 'destination' ? 'Continue' : 'Confirm withdrawal'}
         </Button>
       </div>
     </div>

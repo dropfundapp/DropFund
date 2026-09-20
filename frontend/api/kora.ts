@@ -147,6 +147,32 @@ function assertDonationTransaction(
   }
 }
 
+function assertWithdrawalTransaction(
+  serialized: string,
+  withdrawerAddress: string,
+  recipientAddress: string,
+  payerSignerAddress: string,
+  amount: bigint,
+) {
+  const transaction = decodeTransaction(serialized);
+  const withdrawer = new PublicKey(withdrawerAddress);
+  const recipient = new PublicKey(recipientAddress);
+  const payerSigner = new PublicKey(payerSignerAddress);
+  const sourceTokenAccount = getAssociatedTokenAddressSync(USDC_MINT, withdrawer);
+  const destinationTokenAccount = getAssociatedTokenAddressSync(USDC_MINT, recipient);
+  const withdrawerSignature = transaction.signatures.find((signature) => signature.publicKey.equals(withdrawer));
+
+  if (withdrawer.equals(recipient) || !transaction.feePayer?.equals(payerSigner) || !withdrawerSignature?.signature || withdrawerSignature.signature.every((byte) => byte === 0) || transaction.instructions.length !== 1) {
+    throw new HttpError(400, 'Transaction does not match an approved withdrawal');
+  }
+
+  const instruction = transaction.instructions[0];
+  const transferAmount = instructionAmount(instruction);
+  if (!instruction.programId.equals(TOKEN_PROGRAM_ID) || transferAmount !== amount || instruction.keys.length !== 3 || !instruction.keys[0].pubkey.equals(sourceTokenAccount) || !instruction.keys[1].pubkey.equals(destinationTokenAccount) || !instruction.keys[2].pubkey.equals(withdrawer)) {
+    throw new HttpError(400, 'Transaction does not match an approved withdrawal');
+  }
+}
+
 export default async function handler(req: any, res: any) {
   try {
     if (req.method === 'GET') {
@@ -162,6 +188,22 @@ export default async function handler(req: any, res: any) {
     }
 
     const body = req.body || {};
+    if (body.action === 'withdrawal') {
+      const withdrawerWalletAddress = String(body.withdrawerWalletAddress || '');
+      const recipientWalletAddress = String(body.recipientWalletAddress || '');
+      const transaction = String(body.transaction || '');
+      const amountValue = String(body.amount || '');
+      const amount = /^\d+$/.test(amountValue) ? BigInt(amountValue) : 0n;
+      if (!withdrawerWalletAddress || !recipientWalletAddress || !transaction || amount <= 0n) {
+        return json(res, { error: 'Missing withdrawal details' }, 400);
+      }
+      const userId = await requireWallet(req, withdrawerWalletAddress);
+      const signer = await koraRpc('getPayerSigner', {});
+      if (typeof signer.signer_address !== 'string') throw new HttpError(502, 'Kora returned an invalid payer configuration');
+      assertWithdrawalTransaction(transaction, withdrawerWalletAddress, recipientWalletAddress, signer.signer_address, amount);
+      const relayResult = await koraRpc('signAndSendTransaction', { transaction, respond_after: 'confirmed', user_id: userId });
+      return json(res, { signature: relayResult.signature, signerPubkey: relayResult.signer_pubkey });
+    }
     const donorWalletAddress = String(body.donorWalletAddress || '');
     const transaction = String(body.transaction || '');
     const campaignId = String(body.campaignId || '');
