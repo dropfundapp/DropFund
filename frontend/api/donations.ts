@@ -4,6 +4,10 @@ import { requireWallet } from './_lib/auth.js';
 const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 const walletPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const requestCounts = new Map<string, { count: number; resetAt: number }>();
+const MINIMUM_DONATION_UNITS = 2_000_000n;
+const MINIMUM_FEE_UNITS = 100_000n;
+const MAXIMUM_FEE_UNITS = 950_000n;
+const REDUCED_RATE_THRESHOLD_UNITS = 190_000_000n;
 
 function json(res: any, body: unknown, status = 200) {
   return res.status(status)
@@ -22,6 +26,18 @@ function rateLimit(req: any) {
   }
   current.count += 1;
   return current.count > 60;
+}
+
+function calculateDropfundFee(totalAmount: bigint) {
+  if (totalAmount < MINIMUM_DONATION_UNITS) return 0n;
+  if (totalAmount >= REDUCED_RATE_THRESHOLD_UNITS) return totalAmount / 200n;
+
+  const percentageFee = (totalAmount * 2n) / 100n;
+  return percentageFee < MINIMUM_FEE_UNITS
+    ? MINIMUM_FEE_UNITS
+    : percentageFee > MAXIMUM_FEE_UNITS
+      ? MAXIMUM_FEE_UNITS
+      : percentageFee;
 }
 
 async function getTransaction(signature: string) {
@@ -104,7 +120,10 @@ export default async function handler(req: any, res: any) {
     const donorWalletAddress = String(body.donorWalletAddress || '');
     const campaignId = String(body.campaignId || '');
     const amount = BigInt(body.amount || 0);
-    if (!signature || signature.length > 200 || !campaignId || !walletPattern.test(donorWalletAddress) || amount <= 0n) {
+    const feeAmount = BigInt(body.feeAmount || 0);
+    const grossAmount = amount + feeAmount;
+    const expectedFee = calculateDropfundFee(grossAmount);
+    if (!signature || signature.length > 200 || !campaignId || !walletPattern.test(donorWalletAddress) || amount <= 0n || feeAmount !== expectedFee) {
       return json(res, { error: 'Invalid donation request' }, 400);
     }
     await requireWallet(req, donorWalletAddress);
@@ -125,8 +144,8 @@ export default async function handler(req: any, res: any) {
 
     const result = await sql`
       with inserted as (
-        insert into donations (transaction_signature, amount, donor_wallet_address, campaign_id, created_at)
-        select ${signature}, ${amount.toString()}, ${donorWalletAddress}, ${campaignId}, now()
+        insert into donations (transaction_signature, amount, fee_amount, donor_wallet_address, campaign_id, created_at)
+        select ${signature}, ${amount.toString()}, ${feeAmount.toString()}, ${donorWalletAddress}, ${campaignId}, now()
         where exists (
           select 1 from campaigns
           where id = ${campaignId} and status not in ('funded', 'ended')
