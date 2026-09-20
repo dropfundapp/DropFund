@@ -1,4 +1,4 @@
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowDown, ArrowLeft, Check, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useWallets as useSolanaWallets, useSignTransaction } from '@privy-io/react-auth/solana';
@@ -20,6 +20,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
   const [amount, setAmount] = useState('');
   const [destination, setDestination] = useState('');
   const [step, setStep] = useState<'amount' | 'destination' | 'confirmation'>('amount');
+  const [withdrawalAcknowledged, setWithdrawalAcknowledged] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { wallets } = useSolanaWallets();
@@ -36,6 +37,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
       setAmount('');
       setDestination('');
       setStep('amount');
+      setWithdrawalAcknowledged(false);
       setIsSending(false);
       setError(null);
     }
@@ -165,62 +167,75 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
           <Button variant="ghost" size="icon" aria-label="Back" className="h-8 w-8 rounded-full text-white/70 hover:bg-white/10 hover:text-white" onClick={() => step === 'confirmation' ? setStep('destination') : step === 'destination' ? setStep('amount') : onOpenChange(false)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h2 className="text-lg font-semibold tracking-tight">Withdraw to crypto wallet</h2>
+          <h2 className="text-lg font-semibold tracking-tight">{step === 'confirmation' ? 'Review withdrawal' : 'Withdraw to crypto wallet'}</h2>
           <Button variant="ghost" size="icon" aria-label="Close withdrawal dialog" className="h-8 w-8 rounded-full text-white/70 hover:bg-white/10 hover:text-white" onClick={() => onOpenChange(false)}>
             <X className="h-5 w-5" />
           </Button>
         </div>
 
-        <div className="relative rounded-[22px] bg-[#282b30] px-5 py-6">
-          <span className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-4xl leading-none text-white/45">$</span>
-          <Input
-            autoFocus
-            inputMode="decimal"
-            type="text"
-            value={amount}
-            onChange={(event) => setAmount(event.target.value)}
-            placeholder="0"
-            aria-label="Withdrawal amount"
-            className="h-12 border-0 bg-transparent pl-8 !text-4xl font-semibold text-white placeholder:text-white/45 focus-visible:ring-0"
-          />
-          <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-sm font-medium text-white/35">Enter USDC amount</span>
-        </div>
+        {step === 'amount' ? <>
+          <div className="relative rounded-[22px] bg-[#282b30] px-5 py-6">
+            <span className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-4xl leading-none text-white/45">$</span>
+            <Input
+              autoFocus
+              inputMode="decimal"
+              type="text"
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              placeholder="0"
+              aria-label="Withdrawal amount"
+              className="h-12 border-0 bg-transparent pl-8 !text-4xl font-semibold text-white placeholder:text-white/45 focus-visible:ring-0"
+            />
+            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-sm font-medium text-white/35">Enter USDC amount</span>
+          </div>
 
-        <div className="mt-5 grid grid-cols-4 gap-2">
-          {[10, 25, 50].map((percentage) => (
-            <Button key={percentage} type="button" variant="secondary" className="h-14 bg-[#131313] text-base font-semibold text-white hover:bg-[#282b30]" onClick={() => setPercentage(percentage / 100)}>
-              {percentage}%
+          <div className="mt-5 grid grid-cols-4 gap-2">
+            {[10, 25, 50].map((percentage) => (
+              <Button key={percentage} type="button" variant="secondary" className="h-14 bg-[#131313] text-base font-semibold text-white hover:bg-[#282b30]" onClick={() => setPercentage(percentage / 100)}>
+                {percentage}%
+              </Button>
+            ))}
+            <Button type="button" variant="secondary" className="h-14 bg-[#131313] text-base font-semibold text-white hover:bg-[#282b30]" onClick={() => setPercentage(1)}>
+              Max
             </Button>
-          ))}
-          <Button type="button" variant="secondary" className="h-14 bg-[#131313] text-base font-semibold text-white hover:bg-[#282b30]" onClick={() => setPercentage(1)}>
-            Max
-          </Button>
-        </div>
+          </div>
 
-        <div className="mt-6 flex items-center justify-between px-1 text-base text-white/60">
-          <span>Available balance</span>
-          <span className="font-medium text-white">{balance === null ? 'Unavailable' : `${spendableBalance.toFixed(2)} USDC`}</span>
-        </div>
+          <div className="mt-6 flex items-center justify-between px-1 text-base text-white/60">
+            <span>Available balance</span>
+            <span className="font-medium text-white">{balance === null ? 'Unavailable' : `${spendableBalance.toFixed(2)} USDC`}</span>
+          </div>
+        </> : null}
 
         {step === 'destination' ? <div className="mt-5 space-y-2">
           <label htmlFor="withdraw-destination" className="text-sm text-white/60">Destination wallet</label>
           <Input id="withdraw-destination" value={destination} onChange={(event) => setDestination(event.target.value)} placeholder="Paste Solana address" aria-invalid={!!destinationError} className="border-[#282b30] bg-[#282b30] text-white placeholder:text-white/35 focus-visible:ring-0 aria-[invalid=true]:border-[#ff641f]" />
           {destinationError ? <p className="text-sm text-[#ff641f]">{destinationError}</p> : null}
-          <p className="text-[11px] leading-4 text-white/40">Send USDC only to a Solana address. Transactions cannot be reversed.</p>
+          {destination.trim() ? <button type="button" onClick={() => setWithdrawalAcknowledged((acknowledged) => !acknowledged)} className="mt-5 flex w-full items-start gap-3 rounded-xl bg-[#282b30] p-4 text-left text-xs leading-5 text-white/60">
+            <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border-2 ${withdrawalAcknowledged ? 'border-[#f4c542] bg-[#f4c542] text-black' : 'border-white/70 bg-[#131313] text-transparent'}`}>
+              {withdrawalAcknowledged ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
+            </span>
+            <span><strong className="font-semibold text-[#f4c542]">I understand the following</strong><br />Withdrawals to an incorrect address cannot be recovered. Only withdraw to an address you control.</span>
+          </button> : null}
         </div> : null}
 
         {step === 'confirmation' ? <div className="mt-5 rounded-[22px] bg-[#282b30] p-5 text-sm">
-          <div className="flex items-center justify-between text-white/55"><span>You send</span><span className="font-semibold text-white">${numericAmount.toFixed(2)} USDC</span></div>
-          <div className="my-4 border-t border-white/10" />
-          <div className="text-white/55">To</div>
-          <div className="mt-1 break-all font-mono text-xs text-white">{destination.trim()}</div>
-          <div className="mt-4 text-xs text-white/45">Dropfund sponsors the Solana network fee.</div>
+          <div className="py-5 text-center">
+            <div className="text-4xl font-semibold text-white">${numericAmount.toFixed(2)}</div>
+            <div className="mt-2 text-sm text-white/55">{numericAmount.toFixed(6)} USDC</div>
+            <ArrowDown className="mx-auto my-4 h-5 w-5 text-[#a3a3a3]" />
+            <div className="break-all font-mono text-xs text-white/70">{destination.trim()}</div>
+          </div>
+          <div className="space-y-2 border-t border-white/10 pt-4 text-xs">
+            <div className="flex justify-between text-white/55"><span>Network</span><span className="text-white">Solana</span></div>
+            <div className="flex justify-between text-white/55"><span>Estimated time</span><span className="text-white">Instant</span></div>
+            <div className="flex justify-between border-t border-white/10 pt-3 text-sm font-semibold text-white"><span>Total</span><span>${numericAmount.toFixed(2)}</span></div>
+          </div>
         </div> : null}
 
         {error ? <p className="mt-3 text-sm text-rose-400">{error}</p> : null}
 
-        <Button type="button" disabled={!canContinue || ((step === 'destination' || step === 'confirmation') && (!destination.trim() || !!destinationError))} onClick={handleWithdraw} className="mt-8 h-14 w-full rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6] disabled:cursor-not-allowed disabled:bg-[#282b30] disabled:opacity-60">
-          {isSending ? 'Sending...' : step === 'amount' || step === 'destination' ? 'Continue' : 'Confirm withdrawal'}
+        <Button type="button" disabled={!canContinue || ((step === 'destination' || step === 'confirmation') && (!destination.trim() || !!destinationError)) || (step === 'destination' && !withdrawalAcknowledged)} onClick={handleWithdraw} className="mt-8 h-14 w-full rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6] disabled:cursor-not-allowed disabled:bg-[#282b30] disabled:opacity-60">
+          {isSending ? 'Sending...' : step === 'amount' ? 'Continue' : step === 'destination' ? 'Review withdrawal' : 'Confirm withdrawal'}
         </Button>
       </div>
     </div>
