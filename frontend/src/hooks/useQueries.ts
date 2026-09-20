@@ -98,7 +98,7 @@ export function useGetCampaign(campaignId: string) {
     enabled: !!campaignId,
     staleTime: 0,
     gcTime: 5 * 60_000,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     refetchInterval: 30_000,
     refetchIntervalInBackground: false,

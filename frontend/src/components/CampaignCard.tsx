@@ -160,9 +160,7 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
 
       <CardHeader className="space-y-2">
         <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white" style={{ backgroundColor: avatarColor }}>
-            {avatarInitials}
-          </span>
+          {campaign.creatorImage ? <img src={campaign.creatorImage} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" /> : <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white" style={{ backgroundColor: avatarColor }}>{avatarInitials}</span>}
           <h3 className="text-xl font-bold line-clamp-2">
             {campaign.title}
           </h3>

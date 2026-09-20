@@ -4,6 +4,7 @@ import { usePrivyAuth } from '../components/PrivyAuthProvider';
 import { usePrivyBalances } from '../hooks/usePrivyBalances';
 import WithdrawModal from '../components/WithdrawModal';
 import { useFundWallet } from '@privy-io/react-auth/solana';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -82,6 +83,7 @@ export default function MyProfilePage() {
   const [profileName, setProfileName] = useState(() => getCachedProfile(solanaAddress)?.name || getFunnyName(solanaAddress || 'guest'));
   const [profileImage, setProfileImage] = useState<string | null>(() => getCachedProfile(solanaAddress)?.image || null);
   const { fundWallet } = useFundWallet();
+  const queryClient = useQueryClient();
   const walletAddress = solanaAddress;
   const { data: campaigns = [], isLoading: campaignsLoading } = useGetCampaignsByCreator(walletAddress);
   const { data: allCampaigns = [] } = useGetCampaigns();
@@ -171,6 +173,9 @@ export default function MyProfilePage() {
         const result = await api.saveProfile({ name, walletAddress: solanaAddress }, profileImage, token);
         setProfileName(result.name);
         saveCachedProfile(solanaAddress, { name: result.name, image: profileImage });
+        await queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+        await queryClient.invalidateQueries({ queryKey: ['campaign'] });
+        await queryClient.invalidateQueries({ queryKey: ['myCampaigns', solanaAddress] });
         setEditOpen(false);
       } catch (error: any) {
         console.error('Failed to save profile:', error);

@@ -433,6 +433,7 @@ export default function CampaignPage() {
               <div className="flex items-center justify-between text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Avatar className="h-10 w-10" style={{ backgroundColor: campaign.creatorWalletAddress ? getAvatarColor(campaign.creatorWalletAddress) : '#4b54ff' }}>
+                    {campaign.creatorImage ? <img src={campaign.creatorImage} alt="" className="h-full w-full object-cover" /> : null}
                     <AvatarFallback className="bg-transparent text-xs text-white">
                       {campaign.creatorWalletAddress ? getNameInitials(creatorDisplayName) : 'U'}
                     </AvatarFallback>
