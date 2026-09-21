@@ -20,7 +20,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
   const feeReserve = 0;
   const [amount, setAmount] = useState('');
   const [destination, setDestination] = useState('');
-  const [step, setStep] = useState<'amount' | 'destination' | 'confirmation'>('amount');
+  const [step, setStep] = useState<'amount' | 'destination' | 'confirmation' | 'success'>('amount');
   const [withdrawalAcknowledged, setWithdrawalAcknowledged] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,10 +47,6 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
   }, [open]);
 
   if (!open) return null;
-
-  if (completedAmount !== null) {
-    return <TransactionSuccessDialog amount={completedAmount} title="Withdrawal sent" description="Your USDC transfer has been submitted to Solana." onClose={() => onOpenChange(false)} />;
-  }
 
   const numericAmount = Number(amount);
   const spendableBalance = balance === null ? 0 : Math.max(0, balance - feeReserve);
@@ -150,6 +146,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
       if (!relayResponse.ok || typeof relay?.signature !== 'string') throw new Error(relay?.error || 'Sponsored withdrawal was rejected.');
       await queryClient.invalidateQueries({ queryKey: ['privy-balances'] });
       setCompletedAmount(numericAmount);
+      setStep('success');
     } catch (withdrawError) {
       const message = withdrawError instanceof Error ? withdrawError.message : 'Withdrawal failed.';
       const displayError = message.toLowerCase().includes('failed to connect to wallet')
@@ -171,7 +168,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
           <Button variant="ghost" size="icon" aria-label="Back" className="h-8 w-8 rounded-full text-white/70 hover:bg-white/10 hover:text-white" onClick={() => step === 'confirmation' ? setStep('destination') : step === 'destination' ? setStep('amount') : onOpenChange(false)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h2 className="text-lg font-semibold tracking-tight">{step === 'confirmation' ? 'Review withdrawal' : 'Withdraw to crypto wallet'}</h2>
+          <h2 className="text-lg font-semibold tracking-tight">{step === 'confirmation' ? 'Review withdrawal' : step === 'success' ? 'Withdrawal sent' : 'Withdraw to crypto wallet'}</h2>
           <Button variant="ghost" size="icon" aria-label="Close withdrawal dialog" className="h-8 w-8 rounded-full text-white/70 hover:bg-white/10 hover:text-white" onClick={() => onOpenChange(false)}>
             <X className="h-5 w-5" />
           </Button>
@@ -235,11 +232,13 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
           </div>
         </div> : null}
 
+        {step === 'success' && completedAmount !== null ? <TransactionSuccessDialog embedded amount={completedAmount} title="Withdrawal sent" onClose={() => onOpenChange(false)} /> : null}
+
         {error ? <p className="mt-3 text-sm text-rose-400">{error}</p> : null}
 
-        <Button type="button" disabled={!canContinue || ((step === 'destination' || step === 'confirmation') && (!destination.trim() || !!destinationError)) || (step === 'destination' && !withdrawalAcknowledged)} onClick={handleWithdraw} className="mt-8 h-14 w-full rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6] disabled:cursor-not-allowed disabled:bg-[#282b30] disabled:opacity-60">
+        {step !== 'success' && <Button type="button" disabled={!canContinue || ((step === 'destination' || step === 'confirmation') && (!destination.trim() || !!destinationError)) || (step === 'destination' && !withdrawalAcknowledged)} onClick={handleWithdraw} className="mt-8 h-14 w-full rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6] disabled:cursor-not-allowed disabled:bg-[#282b30] disabled:opacity-60">
           {isSending ? 'Sending...' : step === 'amount' ? 'Continue' : step === 'destination' ? 'Review withdrawal' : 'Confirm withdrawal'}
-        </Button>
+        </Button>}
       </div>
     </div>
   );

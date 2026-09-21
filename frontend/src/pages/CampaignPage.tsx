@@ -1017,7 +1017,7 @@ export default function CampaignPage() {
           )}
         </DialogContent>
       </Dialog>
-      {completedDonationAmount !== null && <TransactionSuccessDialog amount={completedDonationAmount} title="Donation sent" description={`Your contribution to ${campaign?.title || 'this campaign'} has been submitted to Solana.`} onClose={() => setCompletedDonationAmount(null)} />}
+      {completedDonationAmount !== null && <TransactionSuccessDialog amount={completedDonationAmount} title="Donation sent" onClose={() => setCompletedDonationAmount(null)} />}
     </div>
   );
 }
