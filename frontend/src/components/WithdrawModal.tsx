@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { usePrivyAuth } from './PrivyAuthProvider';
+import TransactionSuccessDialog from './TransactionSuccessDialog';
 
 interface WithdrawModalProps {
   open: boolean;
@@ -23,6 +24,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
   const [withdrawalAcknowledged, setWithdrawalAcknowledged] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [completedAmount, setCompletedAmount] = useState<number | null>(null);
   const { wallets } = useSolanaWallets();
   const { signTransaction } = useSignTransaction();
   const { solanaAddress, getAccessToken } = usePrivyAuth();
@@ -40,10 +42,15 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
       setWithdrawalAcknowledged(false);
       setIsSending(false);
       setError(null);
+      setCompletedAmount(null);
     }
   }, [open]);
 
   if (!open) return null;
+
+  if (completedAmount !== null) {
+    return <TransactionSuccessDialog amount={completedAmount} title="Withdrawal sent" description="Your USDC transfer has been submitted to Solana." onClose={() => onOpenChange(false)} />;
+  }
 
   const numericAmount = Number(amount);
   const spendableBalance = balance === null ? 0 : Math.max(0, balance - feeReserve);
@@ -142,10 +149,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
       const relay = await relayResponse.json().catch(() => ({}));
       if (!relayResponse.ok || typeof relay?.signature !== 'string') throw new Error(relay?.error || 'Sponsored withdrawal was rejected.');
       await queryClient.invalidateQueries({ queryKey: ['privy-balances'] });
-      toast.success('USDC withdrawal complete');
-      setAmount('');
-      setDestination('');
-      onOpenChange(false);
+      setCompletedAmount(numericAmount);
     } catch (withdrawError) {
       const message = withdrawError instanceof Error ? withdrawError.message : 'Withdrawal failed.';
       const displayError = message.toLowerCase().includes('failed to connect to wallet')
@@ -186,7 +190,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
               aria-label="Withdrawal amount"
               className="h-12 border-0 bg-transparent pl-8 !text-4xl font-semibold text-white placeholder:text-white/45 focus-visible:ring-0"
             />
-            <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-sm font-medium text-white/35">Enter USDC amount</span>
+            {!amount && <span className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-sm font-medium text-white/35">Enter USDC amount</span>}
           </div>
 
           <div className="mt-5 grid grid-cols-4 gap-2">

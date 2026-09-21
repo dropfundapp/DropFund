@@ -1,6 +1,6 @@
 import { PrivyProvider, usePrivy, useWallets } from '@privy-io/react-auth';
 import { defaultSolanaRpcsPlugin } from '@privy-io/react-auth/solana';
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, type ReactNode } from 'react';
 
 interface PrivyAuthState {
   ready: boolean;
@@ -40,6 +40,28 @@ function PrivyAuthBridge({ children }: { children: ReactNode }) {
   );
 }
 
+function PrivyLoginButtonTheme() {
+  useEffect(() => {
+    const applyTheme = () => {
+      document.querySelectorAll<HTMLButtonElement>('#privy-modal-content .login-method-button').forEach((button) => {
+        const label = button.textContent?.trim().toLowerCase();
+        button.classList.toggle('dropfund-privy-google-login', label === 'google' || label === 'continue with google');
+        button.classList.toggle('dropfund-privy-apple-login', label === 'apple' || label === 'continue with apple');
+      });
+      document.querySelectorAll<HTMLElement>('#privy-modal-content *').forEach((element) => {
+        element.classList.toggle('dropfund-privy-recent-badge', element.textContent?.trim().toLowerCase() === 'recent');
+      });
+    };
+
+    const observer = new MutationObserver(applyTheme);
+    observer.observe(document.body, { childList: true, subtree: true });
+    applyTheme();
+    return () => observer.disconnect();
+  }, []);
+
+  return null;
+}
+
 export function usePrivyAuth() {
   return useContext(PrivyAuthContext);
 }
@@ -64,13 +86,14 @@ export function PrivyAuthProvider({ children }: { children: ReactNode }) {
         },
         appearance: {
           walletChainType: 'solana-only',
-          theme: '#131313',
-          accentColor: '#4b54ff',
+          theme: '#111111',
+          accentColor: '#58d16e',
           landingHeader: 'Welcome to Dropfund',
           loginMessage: 'Sign in to create campaigns and support causes on chain.',
         },
       }}
     >
+      <PrivyLoginButtonTheme />
       <PrivyAuthBridge>{children}</PrivyAuthBridge>
     </PrivyProvider>
   );

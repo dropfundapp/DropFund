@@ -226,7 +226,7 @@ export default function MyProfilePage() {
               </div>
               <div className="flex w-full items-center justify-between rounded-xl bg-[#1d1e1f] p-4 lg:mt-6">
                 <div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#282b30] text-2xl leading-none">$</span><div><p className="text-xs text-white/45">Total cash</p><p className="font-semibold">{balanceLoading ? 'Loading...' : usdcBalance !== null ? `${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} USDC` : 'Unavailable'}</p>{balanceError ? <p className="max-w-[220px] break-words text-[11px] text-rose-400">{balanceError}</p> : null}</div></div>
-                <div className="flex gap-2"><Button variant="outline" size="sm" className="border-[#282b30] bg-[#131313] text-white" onClick={() => setWithdrawOpen(true)}>Withdraw</Button><Button size="sm" className="bg-[#58d16e] text-black hover:bg-[#6ee67f]" onClick={openFunding}>Deposit</Button></div>
+                <div className="flex gap-2"><Button variant="outline" size="sm" className="border-[#282b30] bg-[#111111] text-white hover:bg-[#252527] hover:text-white" onClick={() => setWithdrawOpen(true)}>Withdraw</Button><Button size="sm" className="bg-[#58d16e] text-black hover:bg-[#6ee67f]" onClick={openFunding}>Deposit</Button></div>
               </div>
             </div>
 

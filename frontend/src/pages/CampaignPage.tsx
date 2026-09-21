@@ -17,6 +17,7 @@ import { useAddDonation } from '../hooks/useQueries';
 import { Clock, TrendingUp, Calendar, Globe, Send, ThumbsUp, Share2, Copy, X, Flag } from 'lucide-react';
 import { api } from '@/lib/api';
 import { formatUsdc } from '@/lib/utils';
+import TransactionSuccessDialog from '@/components/TransactionSuccessDialog';
 import {
   Dialog,
   DialogContent,
@@ -56,6 +57,7 @@ export default function CampaignPage() {
   console.log('[CampaignPage] Rendered. Privy wallet ready:', authenticated && !!solanaAddress);
   const [donationAmount, setDonationAmount] = useState('');
   const [isDonating, setIsDonating] = useState(false);
+  const [completedDonationAmount, setCompletedDonationAmount] = useState<number | null>(null);
   const [networkFee, setNetworkFee] = useState<number | null>(null);
   const [feeQuote, setFeeQuote] = useState<DonationFeeQuote | null>(null);
   const [showStickyCTA, setShowStickyCTA] = useState(false);
@@ -328,7 +330,7 @@ export default function CampaignPage() {
           : [optimisticDonation, ...existing];
       });
       setDonationAmount('');
-      toast.success('USDC donation sent successfully.');
+      setCompletedDonationAmount(result.amount);
     } catch (error: any) {
       console.error('Connection error:', error);
       if (error?.message?.includes('User rejected') || error?.message?.includes('User cancelled')) {
@@ -1015,6 +1017,7 @@ export default function CampaignPage() {
           )}
         </DialogContent>
       </Dialog>
+      {completedDonationAmount !== null && <TransactionSuccessDialog amount={completedDonationAmount} title="Donation sent" description={`Your contribution to ${campaign?.title || 'this campaign'} has been submitted to Solana.`} onClose={() => setCompletedDonationAmount(null)} />}
     </div>
   );
 }

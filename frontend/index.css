@@ -139,6 +139,79 @@
   background-color: #111111 !important;
 }
 
+/* Privy funding dialogs inherit these palette variables from the document root. */
+:root {
+  --privy-color-background: #111111 !important;
+  --privy-color-background-2: #252528 !important;
+  --privy-color-background-3: #252528 !important;
+  --privy-color-background-hover: #181819 !important;
+  --privy-color-background-clicked: #252528 !important;
+  --privy-color-background-interactive: #181819 !important;
+  --privy-color-background-interactive-hover: #252528 !important;
+  --privy-color-background-interactive-clicked: #252528 !important;
+  --privy-color-border-default: #252528 !important;
+  --privy-color-border-hover: #252528 !important;
+  --privy-color-border-interactive: #58d16e !important;
+  --privy-color-border-interactive-hover: #58d16e !important;
+  --privy-color-foreground-4: #252528 !important;
+  --privy-color-info-bg: #252528 !important;
+  --privy-color-border-info: #252528 !important;
+}
+
+#privy-modal-content,
+#privy-modal-content * {
+  --privy-color-background: #111111 !important;
+  --privy-color-background-2: #252528 !important;
+  --privy-color-background-3: #252528 !important;
+  --privy-color-background-hover: #181819 !important;
+  --privy-color-background-clicked: #252528 !important;
+  --privy-color-background-interactive: #181819 !important;
+  --privy-color-background-interactive-hover: #252528 !important;
+  --privy-color-background-interactive-clicked: #252528 !important;
+  --privy-color-border-default: #252528 !important;
+  --privy-color-border-hover: #252528 !important;
+  --privy-color-border-interactive: #58d16e !important;
+  --privy-color-border-interactive-hover: #58d16e !important;
+  --privy-color-foreground-4: #252528 !important;
+  --privy-color-info-bg: #252528 !important;
+  --privy-color-border-info: #252528 !important;
+}
+
+#privy-modal-content .dropfund-privy-google-login,
+#privy-modal-content .dropfund-privy-apple-login {
+  border: 1px solid #252528 !important;
+  transition: background-color 150ms ease !important;
+}
+
+#privy-modal-content .dropfund-privy-google-login,
+#privy-modal-content .dropfund-privy-apple-login {
+  background-color: #111111 !important;
+  color: #fff !important;
+}
+
+#privy-modal-content .dropfund-privy-google-login:hover,
+#privy-modal-content .dropfund-privy-apple-login:hover {
+  background-color: #181819 !important;
+}
+
+#privy-modal-content .dropfund-privy-apple-login:hover {
+  background-color: #252528 !important;
+}
+
+#privy-modal-content .dropfund-privy-recent-badge {
+  background-color: #181819 !important;
+}
+
+@keyframes dropfund-success-check {
+  0% { opacity: 0; transform: scale(0.65); }
+  65% { opacity: 1; transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+.dropfund-success-check {
+  animation: dropfund-success-check 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 [class~="bg-[#1d1e1f]"] {
   background-color: #181819 !important;
 }
