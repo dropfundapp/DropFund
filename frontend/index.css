@@ -212,6 +212,17 @@
   animation: dropfund-success-check 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@keyframes dropfund-success-exit {
+  to {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+.dropfund-success-exit {
+  animation: dropfund-success-exit 300ms ease-out both;
+}
+
 [class~="bg-[#1d1e1f]"] {
   background-color: #181819 !important;
 }
