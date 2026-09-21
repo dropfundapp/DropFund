@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowLeft, Check, X } from 'lucide-react';
+import { ArrowLeft, Check, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useWallets as useSolanaWallets, useSignTransaction } from '@privy-io/react-auth/solana';
@@ -224,14 +224,13 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
 
         {step === 'confirmation' ? <div className="mt-5 rounded-[22px] bg-[#282b30] p-5 text-sm">
           <div className="py-5 text-center">
-            <div className="text-4xl font-semibold text-white">${numericAmount.toFixed(2)}</div>
-            <div className="mt-2 text-sm text-white/55">{numericAmount.toFixed(6)} USDC</div>
-            <ArrowDown className="mx-auto my-4 h-5 w-5 text-[#a3a3a3]" />
-            <div className="break-all font-mono text-xs text-white/70">{destination.trim()}</div>
+            <div className="text-[4rem] font-semibold leading-none text-[#58d16e]">${numericAmount.toFixed(2)}</div>
+            <div className="mt-5 text-xs font-medium text-white/45">To wallet:</div>
+            <div className="mt-2 break-all font-mono text-xs text-white/70">{destination.trim()}</div>
           </div>
           <div className="space-y-2 border-t border-white/10 pt-4 text-xs">
             <div className="flex justify-between text-white/55"><span>Network</span><span className="text-white">Solana</span></div>
-            <div className="flex justify-between text-white/55"><span>Estimated time</span><span className="text-white">Instant</span></div>
+            <div className="flex justify-between text-white/55"><span>Currency</span><span className="text-white">USDC</span></div>
             <div className="flex justify-between border-t border-white/10 pt-3 text-sm font-semibold text-white"><span>Total</span><span>${numericAmount.toFixed(2)}</span></div>
           </div>
         </div> : null}
