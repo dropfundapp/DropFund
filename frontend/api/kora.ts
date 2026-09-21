@@ -40,16 +40,23 @@ async function koraRpc(method: string, params: Record<string, unknown>) {
   headers['x-api-key'] = apiKey;
   headers.authorization = `Bearer ${apiKey}`;
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      jsonrpc: '2.0',
-      id: 1,
-      method,
-      params,
-    }),
-  });
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      signal: AbortSignal.timeout(10_000),
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method,
+        params,
+      }),
+    });
+  } catch (error) {
+    console.error('Kora RPC connection failed:', error);
+    throw new HttpError(503, 'Kora sponsorship service is unavailable. Please try again shortly.');
+  }
 
   if (!response.ok) {
     throw new HttpError(502, 'Kora RPC request failed');
