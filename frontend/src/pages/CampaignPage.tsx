@@ -997,7 +997,7 @@ export default function CampaignPage() {
       <Dialog open={!!feeQuote} onOpenChange={(open) => {
         if (!open && feeQuote) resolveFeeConfirmation(false);
       }}>
-        <DialogContent fadeOnlyOnClose className="w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6">
+        <DialogContent instantClose className="w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6">
           {feeQuote && <>
             <DialogHeader className="mb-6 pr-10">
               <DialogTitle className="text-lg font-semibold tracking-tight">Confirm donation</DialogTitle>

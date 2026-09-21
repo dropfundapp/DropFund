@@ -162,8 +162,8 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
   };
 
   return (
-    <div className="fixed inset-0 z-[10002] flex min-h-full items-center justify-center overflow-y-auto p-3 backdrop-blur-[3px] sm:p-6" onClick={() => onOpenChange(false)}>
-      <div className="relative w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6" onClick={(event) => event.stopPropagation()}>
+    <div className={`fixed inset-0 z-[10002] flex min-h-full items-center justify-center overflow-y-auto p-3 sm:p-6 ${step === 'success' ? 'pointer-events-none' : 'backdrop-blur-[3px]'}`} onClick={() => onOpenChange(false)}>
+      <div className={step === 'success' ? 'contents' : 'relative w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6'} onClick={(event) => event.stopPropagation()}>
         {step !== 'success' && <div className="mb-6 flex items-center justify-between">
           <Button variant="ghost" size="icon" aria-label="Back" className="h-8 w-8 rounded-full text-white/70 hover:bg-white/10 hover:text-white" onClick={() => step === 'confirmation' ? setStep('destination') : step === 'destination' ? setStep('amount') : onOpenChange(false)}>
             <ArrowLeft className="h-5 w-5" />
