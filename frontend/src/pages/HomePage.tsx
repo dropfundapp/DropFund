@@ -186,7 +186,7 @@ export default function HomePage() {
               />
             </div>
             <Tabs value={sortBy} onValueChange={handleSortChange}>
-              <TabsList className="bg-[#282b30]">
+              <TabsList className="bg-transparent">
                 <TabsTrigger value="featured" className="gap-2 filter-btn">
                   <Star className="h-4 w-4" />
                   Featured
@@ -229,7 +229,7 @@ export default function HomePage() {
             </div>
             <div className="overflow-x-auto scrollbar-hide w-full min-w-0">
               <Tabs value={sortBy} onValueChange={handleSortChange}>
-                <TabsList className="inline-flex w-full bg-[#282b30] pl-0 pr-0 m-0" style={{ justifyContent: 'flex-start' }}>
+                <TabsList className="inline-flex w-full bg-transparent pl-0 pr-0 m-0" style={{ justifyContent: 'flex-start' }}>
                   <TabsTrigger 
                 value="featured" 
                 className="gap-2 whitespace-nowrap flex-shrink-0 filter-btn"

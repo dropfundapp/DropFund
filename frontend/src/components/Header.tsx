@@ -308,7 +308,7 @@ export default function Header() {
                 >
                   <div
                     className="w-[90%] max-w-sm sm:w-[320px] space-y-3 p-4 rounded-xl shadow-2xl text-base text-left"
-                    style={{ backgroundColor: '#1d1e1f' }}
+                    style={{ backgroundColor: '#181819' }}
                     onClick={e => e.stopPropagation()}
                   >
                     <VisuallyHidden>Mobile Menu</VisuallyHidden>

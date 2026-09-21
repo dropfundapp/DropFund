@@ -186,7 +186,7 @@ export default function MyProfilePage() {
       toast.success('Profile updated');
     };
   return (
-      <div className="min-h-screen bg-[#131313] pt-16 pb-8 text-white">
+      <div className="min-h-screen bg-[#111111] pt-16 pb-8 text-white">
         <div className="container mx-auto w-full">
           <section className="border-b border-[#282b30] pb-8">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">

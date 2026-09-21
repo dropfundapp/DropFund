@@ -96,15 +96,15 @@
 
 /* Custom theme overrides */
 :root {
-  --secondary: #282b30;
-  --muted: #282b30;
-  --border: #282b30;
+  --secondary: #252528;
+  --muted: #252528;
+  --border: #252528;
 }
 
 .dark {
-  --secondary: #282b30;
-  --muted: #282b30;
-  --border: #282b30;
+  --secondary: #252528;
+  --muted: #252528;
+  --border: #252528;
 }
 
 .border {
@@ -112,11 +112,11 @@
 }
 
 * {
-  border-color: #282b30 !important;
+  border-color: #252528 !important;
 }
 
 .filter-btn {
-  background-color: #282b30 !important;
+  background-color: #252528 !important;
   padding-top: 0.5rem !important;
   padding-bottom: 0.5rem !important;
   padding-left: 1rem !important;
@@ -124,19 +124,35 @@
 }
 
 .bg-secondary {
-  background-color: #282b30 !important;
+  background-color: #252528 !important;
 }
 
 .bg-muted {
-  background-color: #282b30 !important;
+  background-color: #252528 !important;
 }
 
 .bg-card, .bg-popover {
-  background-color: #1d1e1f !important;
+  background-color: #181819 !important;
 }
 
 .bg-background {
-  background-color: #131313 !important;
+  background-color: #111111 !important;
+}
+
+[class~="bg-[#1d1e1f]"] {
+  background-color: #181819 !important;
+}
+
+[class~="bg-[#282b30]"], [class~="disabled:bg-[#282b30]"]:disabled {
+  background-color: #252528 !important;
+}
+
+[class~="border-[#282b30]"] {
+  border-color: #252528 !important;
+}
+
+[class~="hover:bg-[#282b30]"]:hover {
+  background-color: #252528 !important;
 }
 
 @layer utilities {

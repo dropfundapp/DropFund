@@ -20,7 +20,7 @@ class RootErrorBoundary extends React.Component<{ children: React.ReactNode }, {
     render() {
         if (this.state.error) {
             return (
-                <div style={{ minHeight: '100vh', background: '#131313', color: '#fff', padding: '32px', fontFamily: 'sans-serif' }}>
+                <div style={{ minHeight: '100vh', background: '#111111', color: '#fff', padding: '32px', fontFamily: 'sans-serif' }}>
                     <h1>Dropfund failed to start</h1>
                     <p>{this.state.error.message}</p>
                     <button onClick={() => window.location.reload()} style={{ padding: '10px 16px', marginTop: '16px' }}>Reload</button>
