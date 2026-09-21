@@ -232,7 +232,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
           </div>
         </div> : null}
 
-        {step === 'success' && completedAmount !== null ? <TransactionSuccessDialog embedded amount={completedAmount} title="Withdrawal sent" onClose={() => onOpenChange(false)} /> : null}
+        {step === 'success' && completedAmount !== null ? <TransactionSuccessDialog embedded amount={completedAmount} title="Withdrawal completed" onClose={() => onOpenChange(false)} /> : null}
 
         {error ? <p className="mt-3 text-sm text-rose-400">{error}</p> : null}
 

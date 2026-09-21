@@ -994,12 +994,15 @@ export default function CampaignPage() {
           </div>
         </DialogContent>
       </Dialog>
-      <Dialog open={!!feeQuote} onOpenChange={(open) => !open && resolveFeeConfirmation(false)}>
-        <DialogContent className="w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6">
-          <DialogHeader className="mb-6 pr-10">
-            <DialogTitle className="text-lg font-semibold tracking-tight">Confirm donation</DialogTitle>
-            <DialogDescription className="text-white/50">Review your USDC transfer before confirming.</DialogDescription>
-          </DialogHeader>
+      <Dialog open={!!feeQuote} onOpenChange={(open) => {
+        if (!open && feeQuote) resolveFeeConfirmation(false);
+      }}>
+        <DialogContent fadeOnlyOnClose className="w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6">
+          {feeQuote && <>
+            <DialogHeader className="mb-6 pr-10">
+              <DialogTitle className="text-lg font-semibold tracking-tight">Confirm donation</DialogTitle>
+              <DialogDescription className="text-white/50">Review your USDC transfer before confirming.</DialogDescription>
+            </DialogHeader>
           {feeQuote && campaign && (
             <div className="space-y-4">
               <div className="rounded-[22px] bg-[#282b30] p-5">
@@ -1015,6 +1018,7 @@ export default function CampaignPage() {
               </div>
             </div>
           )}
+          </>}
         </DialogContent>
       </Dialog>
       {completedDonationAmount !== null && <TransactionSuccessDialog amount={completedDonationAmount} title="Donation sent" onClose={() => setCompletedDonationAmount(null)} />}
