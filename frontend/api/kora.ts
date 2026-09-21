@@ -201,7 +201,7 @@ export default async function handler(req: any, res: any) {
       const signer = await koraRpc('getPayerSigner', {});
       if (typeof signer.signer_address !== 'string') throw new HttpError(502, 'Kora returned an invalid payer configuration');
       assertWithdrawalTransaction(transaction, withdrawerWalletAddress, recipientWalletAddress, signer.signer_address, amount);
-      const relayResult = await koraRpc('signAndSendTransaction', { transaction, respond_after: 'confirmed', user_id: userId });
+      const relayResult = await koraRpc('signAndSendTransaction', { transaction, respond_after: 'sent', user_id: userId });
       return json(res, { signature: relayResult.signature, signerPubkey: relayResult.signer_pubkey });
     }
     const donorWalletAddress = String(body.donorWalletAddress || '');
