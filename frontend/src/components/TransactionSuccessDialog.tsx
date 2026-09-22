@@ -9,12 +9,15 @@ interface TransactionSuccessDialogProps {
 }
 
 export default function TransactionSuccessDialog({ amount, title, onClose, embedded = false }: TransactionSuccessDialogProps) {
+  const [isCheckExiting, setIsCheckExiting] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
+    const checkExitTimer = window.setTimeout(() => setIsCheckExiting(true), 1_165);
     const exitTimer = window.setTimeout(() => setIsExiting(true), 1_300);
     const closeTimer = window.setTimeout(onClose, 1_600);
     return () => {
+      window.clearTimeout(checkExitTimer);
       window.clearTimeout(exitTimer);
       window.clearTimeout(closeTimer);
     };
@@ -22,7 +25,7 @@ export default function TransactionSuccessDialog({ amount, title, onClose, embed
 
   const content = (
     <div className={`${isExiting ? 'dropfund-success-exit' : 'dropfund-success-enter'} w-full max-w-[320px] rounded-[24px] border border-[#252528] bg-[#181819] p-8 text-center text-white shadow-2xl`}>
-      <div className={`dropfund-success-check ${isExiting ? 'dropfund-success-check-exit' : ''} mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#58d16e] text-black`}>
+      <div className={`dropfund-success-check ${isCheckExiting ? 'dropfund-success-check-exit' : ''} mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#58d16e] text-black`}>
         <Check className="h-9 w-9" strokeWidth={3} />
       </div>
       <p className="mt-5 text-3xl font-semibold">${amount.toFixed(2)} <span className="text-base font-medium text-white/55">USDC</span></p>
