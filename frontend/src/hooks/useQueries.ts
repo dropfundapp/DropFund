@@ -238,6 +238,22 @@ export function useAddDonation() {
       }
     },
     onSuccess: (_, variables) => {
+      queryClient.setQueryData(['donations', variables.campaignId], (current: Donation[] | undefined) => {
+        const existing = current || [];
+        if (existing.some((donation) => donation.mainTransactionSignature === variables.mainTransactionSignature)) {
+          return existing;
+        }
+
+        return [{
+          mainTransactionSignature: variables.mainTransactionSignature,
+          feeTransactionSignature: variables.feeTransactionSignature,
+          amount: variables.amount,
+          feeAmount: variables.feeAmount,
+          campaignId: variables.campaignId,
+          donorWalletAddress: variables.donorWalletAddress,
+          timestamp: BigInt(Date.now() * 1_000_000),
+        }, ...existing];
+      });
       queryClient.invalidateQueries({ queryKey: ['donations', variables.campaignId] });
       queryClient.invalidateQueries({ queryKey: ['campaign', variables.campaignId] });
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
