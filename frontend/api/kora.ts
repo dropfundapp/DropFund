@@ -243,7 +243,7 @@ export default async function handler(req: any, res: any) {
 
     const relayResult = await koraRpc('signAndSendTransaction', {
       transaction,
-      respond_after: 'confirmed',
+      respond_after: 'sent',
       user_id: userId,
     });
 

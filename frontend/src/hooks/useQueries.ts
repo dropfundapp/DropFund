@@ -217,6 +217,8 @@ export function useAddDonation() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    retry: 4,
+    retryDelay: (attempt) => Math.min(1_000 * 2 ** attempt, 8_000),
     mutationFn: async (params: {
       mainTransactionSignature: string;
       feeTransactionSignature: string;
