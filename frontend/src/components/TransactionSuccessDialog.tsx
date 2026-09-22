@@ -23,7 +23,7 @@ export default function TransactionSuccessDialog({ amount, title, onClose, embed
   }, [onClose]);
 
   const content = (
-    <div className={`${isDonation ? 'dropfund-success-donation max-w-[240px] p-7' : 'max-w-[320px] p-8'} ${isExiting ? 'dropfund-success-exit' : isDonation ? '' : 'dropfund-success-enter'} w-full rounded-[24px] border border-[#252528] bg-[#181819] text-center text-white shadow-2xl`}>
+    <div className={`${isDonation ? 'dropfund-success-donation max-w-[240px] p-[34px]' : 'max-w-[320px] p-8'} ${isExiting ? 'dropfund-success-exit' : isDonation ? '' : 'dropfund-success-enter'} w-full rounded-[24px] border border-[#252528] bg-[#181819] text-center text-white shadow-2xl`}>
       <div className="dropfund-success-check mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#58d16e] text-black">
         <Check className="h-9 w-9" strokeWidth={3} />
       </div>
