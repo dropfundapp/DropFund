@@ -49,7 +49,7 @@ export default function CampaignPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [campaignId]);
-  const { data: campaign, isLoading: campaignLoading, isFetching: campaignFetching } = useGetCampaign(campaignId);
+  const { data: campaign, isLoading: campaignLoading } = useGetCampaign(campaignId);
   const { data: donationsData, isLoading: donationsLoading } = useGetDonationsByCampaign(campaignId);
   const donations = donationsData || [];
   const { authenticated, solanaAddress, login, getAccessToken } = usePrivyAuth();
@@ -61,11 +61,6 @@ export default function CampaignPage() {
   const [networkFee, setNetworkFee] = useState<number | null>(null);
   const [feeQuote, setFeeQuote] = useState<DonationFeeQuote | null>(null);
   const [closingFeeQuote, setClosingFeeQuote] = useState<DonationFeeQuote | null>(null);
-  const [showStickyCTA, setShowStickyCTA] = useState(false);
-  const [mobileButtonHeight, setMobileButtonHeight] = useState<number | null>(null);
-  const [mobileButtonWidth, setMobileButtonWidth] = useState<number | null>(null);
-  const mobileDonateButtonRef = useRef<HTMLButtonElement | null>(null);
-  const donateSentinelRef = useRef<HTMLDivElement | null>(null);
   const selfDonationWarningShownRef = useRef(false);
   const feeConfirmationRef = useRef<((confirmed: boolean) => void) | null>(null);
   const hasInitializedStatsRef = useRef(false);
@@ -111,13 +106,6 @@ export default function CampaignPage() {
     };
   }, [authenticated, campaign, donationAmount, estimateFee]);
 
-  // Reset sticky measurements/state when navigating between campaigns
-  useEffect(() => {
-    setShowStickyCTA(false);
-    setMobileButtonHeight(null);
-    setMobileButtonWidth(null);
-  }, [campaignId]);
-
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     checkMobile();
@@ -130,34 +118,6 @@ export default function CampaignPage() {
     window.addEventListener('dropfund-profile-updated', refreshProfile);
     return () => window.removeEventListener('dropfund-profile-updated', refreshProfile);
   }, []);
-
-  useEffect(() => {
-    let observer: IntersectionObserver | null = null;
-    const timeout = window.setTimeout(() => {
-      const sentinel = donateSentinelRef.current;
-      if (!sentinel) return;
-      const bottomMargin = (mobileButtonHeight ?? 48) + 16; // height plus bottom offset
-      observer = new IntersectionObserver(
-        ([entry]) => setShowStickyCTA(!entry.isIntersecting),
-        { threshold: 0, rootMargin: `0px 0px -${bottomMargin}px 0px` }
-      );
-      observer.observe(sentinel);
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeout);
-      if (observer) observer.disconnect();
-    };
-  }, [campaignId, campaignLoading, campaignFetching, donationsLoading, mobileButtonHeight]);
-
-  // Measure button dimensions once for consistent sticky sizing and spacer height
-  useEffect(() => {
-    const btn = mobileDonateButtonRef.current;
-    if (!btn) return;
-    const rect = btn.getBoundingClientRect();
-    if (!mobileButtonHeight) setMobileButtonHeight(rect.height);
-    if (!mobileButtonWidth) setMobileButtonWidth(rect.width);
-  }, [mobileButtonHeight, mobileButtonWidth, campaignId, campaignLoading, campaignFetching, donationsLoading]);
 
   useEffect(() => {
     if (!hasInitializedStatsRef.current) {
@@ -528,25 +488,13 @@ export default function CampaignPage() {
                   </div>
 
                   <div className="relative">
-                    <div ref={donateSentinelRef} className="h-1 w-full" />
-                    {showStickyCTA && mobileButtonHeight && <div style={{ height: mobileButtonHeight }} />}
                     {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
                       <span className="mr-2 text-2xl text-white/45">$</span>
                       <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="0" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-2xl font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
                       {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : networkFee !== null ? `$${networkFee.toFixed(2)} Dropfund fee` : `$${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} available`}</span>}
                     </div>}
                     <Button
-                      ref={mobileDonateButtonRef}
-                    className={`h-[3.2rem] text-lg font-semibold ${
-                      showStickyCTA
-                        ? 'fixed left-1/2 -translate-x-1/2 bottom-4 z-50 pointer-events-auto'
-                        : 'w-full'
-                    }`}
-                      style={
-                        showStickyCTA && mobileButtonWidth
-                          ? { width: `${mobileButtonWidth}px` }
-                          : undefined
-                      }
+                      className="h-[3.2rem] w-full text-lg font-semibold"
                       size="lg"
                       disabled={disableDonate || isDonating || !donationAmount || isBelowMinimumDonation || hasInsufficientBalance || isCampaignCreator}
                       onClick={handleDonateClick}
