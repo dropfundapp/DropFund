@@ -161,7 +161,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
   };
 
   return (
-    <div className={`fixed inset-0 z-[10002] flex min-h-full items-center justify-center overflow-y-auto p-3 sm:p-6 ${step === 'success' ? '' : 'backdrop-blur-[3px]'}`} onClick={() => onOpenChange(false)}>
+    <div className="fixed inset-0 z-[10002] flex min-h-full items-center justify-center overflow-y-auto p-3 backdrop-blur-[3px] sm:p-6" onClick={() => onOpenChange(false)}>
       <div className={step === 'success' ? 'contents' : 'relative w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6'} onClick={(event) => event.stopPropagation()}>
         {step !== 'success' && <div className="mb-6 flex items-center justify-between">
           <Button variant="ghost" size="icon" aria-label="Back" className="h-8 w-8 rounded-full text-white/70 hover:bg-white/10 hover:text-white" onClick={() => step === 'confirmation' ? setStep('destination') : step === 'destination' ? setStep('amount') : onOpenChange(false)}>
@@ -238,11 +238,13 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
               <X className="h-5 w-5" />
             </Button>
           </div>
-          <div className="py-5 text-center">
-            <div className="dropfund-withdraw-success-check mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#58d16e] text-black">
-              <Check className="h-9 w-9" strokeWidth={3} />
+          <div className="text-sm">
+            <div className="py-5 text-center">
+              <div className="dropfund-withdraw-success-check mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#58d16e] text-black">
+                <Check className="h-9 w-9" strokeWidth={3} />
+              </div>
             </div>
-            <p className="mt-4 text-sm text-white/55">Your withdrawal has been confirmed.</p>
+            <p className="mt-4 text-center text-sm text-white/55">Your withdrawal has been confirmed.</p>
           </div>
           <Button type="button" className="mt-8 h-14 w-full rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6]" onClick={() => onOpenChange(false)}>Close</Button>
         </div> : null}
