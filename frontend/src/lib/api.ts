@@ -9,6 +9,12 @@ export class ApiRequestError extends Error {
 async function request<T>(path: string, options: RequestInit = {}) {
   const response = await fetch(path, { ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
   const body = await response.json().catch(() => null);
+  if (body === null) {
+    throw new ApiRequestError('API returned an invalid response. Use Vercel dev when testing donation writes locally.', response.status);
+  }
+  if (response.status === 202) {
+    throw new ApiRequestError(body?.error || 'Donation confirmation is pending', response.status);
+  }
   if (!response.ok) throw new ApiRequestError(body?.error || body?.message || `API request failed (${response.status})`, response.status);
   return body as T;
 }
