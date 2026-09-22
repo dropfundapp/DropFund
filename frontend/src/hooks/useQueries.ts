@@ -237,7 +237,8 @@ export function useAddDonation() {
         throw error;
       }
     },
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
+      await queryClient.cancelQueries({ queryKey: ['donations', variables.campaignId] });
       queryClient.setQueryData(['donations', variables.campaignId], (current: Donation[] | undefined) => {
         const existing = current || [];
         if (existing.some((donation) => donation.mainTransactionSignature === variables.mainTransactionSignature)) {
@@ -254,7 +255,7 @@ export function useAddDonation() {
           timestamp: BigInt(Date.now() * 1_000_000),
         }, ...existing];
       });
-      queryClient.invalidateQueries({ queryKey: ['donations', variables.campaignId] });
+      queryClient.invalidateQueries({ queryKey: ['donations', variables.campaignId], refetchType: 'none' });
       queryClient.invalidateQueries({ queryKey: ['campaign', variables.campaignId] });
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       queryClient.invalidateQueries({ queryKey: ['userDonations', variables.donorWalletAddress] });
