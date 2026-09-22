@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { usePrivyAuth } from './PrivyAuthProvider';
-import TransactionSuccessDialog from './TransactionSuccessDialog';
 
 interface WithdrawModalProps {
   open: boolean;
@@ -162,7 +161,7 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
   };
 
   return (
-    <div className={`fixed inset-0 z-[10002] flex min-h-full items-center justify-center overflow-y-auto p-3 sm:p-6 ${step === 'success' ? 'pointer-events-none' : 'backdrop-blur-[3px]'}`} onClick={() => onOpenChange(false)}>
+    <div className={`fixed inset-0 z-[10002] flex min-h-full items-center justify-center overflow-y-auto p-3 sm:p-6 ${step === 'success' ? '' : 'backdrop-blur-[3px]'}`} onClick={() => onOpenChange(false)}>
       <div className={step === 'success' ? 'contents' : 'relative w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6'} onClick={(event) => event.stopPropagation()}>
         {step !== 'success' && <div className="mb-6 flex items-center justify-between">
           <Button variant="ghost" size="icon" aria-label="Back" className="h-8 w-8 rounded-full text-white/70 hover:bg-white/10 hover:text-white" onClick={() => step === 'confirmation' ? setStep('destination') : step === 'destination' ? setStep('amount') : onOpenChange(false)}>
@@ -219,20 +218,34 @@ export default function WithdrawModal({ open, balance, onOpenChange }: WithdrawM
           </button> : null}
         </div> : null}
 
-        {step === 'confirmation' ? <div className="mt-5 rounded-[22px] bg-[#282b30] p-5 text-sm">
+        {step === 'confirmation' ? <div className="mt-5 text-sm">
           <div className="py-5 text-center">
             <div className="text-[4rem] font-semibold leading-none text-[#58d16e]">${numericAmount.toFixed(2)}</div>
             <div className="mt-5 text-xs font-medium text-white/45">To wallet:</div>
             <div className="mt-2 break-all font-mono text-xs text-white/70">{destination.trim()}</div>
           </div>
-          <div className="space-y-2 border-t border-white/10 pt-4 text-xs">
+          <div className="mt-4 space-y-2 rounded-[22px] bg-[#282b30] p-5 text-xs">
             <div className="flex justify-between text-white/55"><span>Network</span><span className="text-white">Solana</span></div>
             <div className="flex justify-between text-white/55"><span>Currency</span><span className="text-white">USDC</span></div>
             <div className="flex justify-between border-t border-white/10 pt-3 text-sm font-semibold text-white"><span>Total</span><span>${numericAmount.toFixed(2)}</span></div>
           </div>
         </div> : null}
 
-        {step === 'success' && completedAmount !== null ? <TransactionSuccessDialog embedded amount={completedAmount} title="Withdrawal completed" onClose={() => onOpenChange(false)} /> : null}
+        {step === 'success' && completedAmount !== null ? <div className="w-full max-w-[440px] rounded-[24px] border border-[#252528] bg-[#181819] p-5 text-white shadow-2xl sm:p-6">
+          <div className="relative mb-6 flex items-center justify-end">
+            <h2 className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold tracking-tight">Withdraw complete</h2>
+            <Button type="button" variant="ghost" size="icon" aria-label="Close withdrawal dialog" className="h-8 w-8 rounded-full text-white/70 hover:bg-white/10 hover:text-white" onClick={() => onOpenChange(false)}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          <div className="py-5 text-center">
+            <div className="dropfund-withdraw-success-check mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#58d16e] text-black">
+              <Check className="h-9 w-9" strokeWidth={3} />
+            </div>
+            <p className="mt-4 text-sm text-white/55">Your withdrawal has been confirmed.</p>
+          </div>
+          <Button type="button" className="mt-8 h-14 w-full rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6]" onClick={() => onOpenChange(false)}>Close</Button>
+        </div> : null}
 
         {error ? <p className="mt-3 text-sm text-rose-400">{error}</p> : null}
 

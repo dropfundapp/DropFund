@@ -242,6 +242,36 @@
   animation: dropfund-success-exit 300ms ease-out both;
 }
 
+.dropfund-success-donation .dropfund-success-check {
+  animation-duration: 250ms;
+  animation-timing-function: ease-out;
+}
+
+@keyframes dropfund-withdraw-success-check {
+  0% { opacity: 0; transform: scale(0.65); }
+  65% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.dropfund-withdraw-success-check {
+  animation: dropfund-withdraw-success-check 250ms ease-out both;
+}
+
+@keyframes dropfund-success-donation-exit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+.dropfund-success-donation.dropfund-success-exit {
+  animation: dropfund-success-donation-exit 200ms ease-out both;
+}
+
 @keyframes dropfund-donation-confirmation-enter {
   from {
     opacity: 0;

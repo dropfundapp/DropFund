@@ -9,6 +9,7 @@ import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { usePrivyAuth } from './PrivyAuthProvider';
 import { useFundWallet } from '@privy-io/react-auth/solana';
 import { usePrivyBalances } from '../hooks/usePrivyBalances';
+import { useAnimatedBalance } from '../hooks/useAnimatedBalance';
 
 function getAvatarColor(address: string) {
   const colors = ['#4b54ff', '#e05d8f', '#e08b3e', '#36a269', '#8b62d9', '#2d9cdb'];
@@ -30,6 +31,7 @@ function getNameInitials(name: string) {
 export default function Header() {
   const { ready: privyReady, authenticated, configured: privyConfigured, login, logout, solanaAddress } = usePrivyAuth();
   const { usdcBalance, isLoading: balanceLoading } = usePrivyBalances();
+  const animatedUsdcBalance = useAnimatedBalance(usdcBalance);
   const { fundWallet } = useFundWallet();
   const [profile, setProfile] = useState<{ name?: string; image?: string } | null>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -173,7 +175,7 @@ export default function Header() {
                 }}
               >
                 <button type="button" onClick={handleConnect} className="text-left" aria-label="Deposit USDC">
-                  <div className="text-sm font-semibold leading-5 text-white">{balanceLoading ? 'Loading...' : usdcBalance !== null ? `$${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} USDC` : 'Balance unavailable'}</div>
+                  <div className="text-sm font-semibold leading-5 text-white">{balanceLoading ? 'Loading...' : animatedUsdcBalance !== null ? `$${(Math.floor(animatedUsdcBalance * 100) / 100).toFixed(2)} USDC` : 'Balance unavailable'}</div>
                   <div className="text-sm font-semibold leading-5 text-[#58d16e]">Deposit</div>
                 </button>
                 <Button
@@ -317,7 +319,7 @@ export default function Header() {
                         <div className="flex items-center gap-3 rounded-xl bg-[#282b30] px-3 py-3">
                           <Wallet className="h-5 w-5 shrink-0 text-white" />
                           <span className="min-w-0 flex-1 truncate text-base font-semibold">
-                            {balanceLoading ? 'Loading balance...' : usdcBalance !== null ? `${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} USDC` : 'Balance unavailable'}
+                            {balanceLoading ? 'Loading balance...' : animatedUsdcBalance !== null ? `${(Math.floor(animatedUsdcBalance * 100) / 100).toFixed(2)} USDC` : 'Balance unavailable'}
                           </span>
                           <Button variant="secondary" className="shrink-0 bg-[#58d16e] px-3 py-2 text-black hover:bg-[#6ee67f]" onClick={() => { handleConnect(); }}>
                             Deposit

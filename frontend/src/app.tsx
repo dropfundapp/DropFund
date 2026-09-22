@@ -9,6 +9,7 @@ import CreateCampaignPage from './pages/CreateCampaignPage';
 import MyProfilePage from './pages/MyProfilePage';
 import TermsPage from './TermsPage';
 import PrivacyPage from './PrivacyPage';
+import ConfirmationAnimationPreviewPage from './pages/ConfirmationAnimationPreviewPage';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import { toast } from 'sonner';
@@ -79,7 +80,13 @@ const privacyRoute = createRoute({
   component: PrivacyPage,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, campaignRoute, createCampaignRoute, myCampaignsRoute, termsRoute, privacyRoute]);
+const confirmationAnimationPreviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/animation-preview',
+  component: ConfirmationAnimationPreviewPage,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute, campaignRoute, createCampaignRoute, myCampaignsRoute, termsRoute, privacyRoute, confirmationAnimationPreviewRoute]);
 
 const router = createRouter({ routeTree });
 
