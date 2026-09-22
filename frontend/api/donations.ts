@@ -55,7 +55,8 @@ async function getTransaction(signature: string) {
   });
   if (!response.ok) throw new Error('Solana RPC request failed');
   const payload = await response.json();
-  if (payload.error || !payload.result) throw new Error('Transaction was not found');
+  if (payload.error) throw new Error('Solana RPC request failed');
+  if (!payload.result) return null;
   return payload.result;
 }
 
@@ -140,6 +141,9 @@ export default async function handler(req: any, res: any) {
     const rpcUrl = process.env.SOLANA_RPC_URL;
     if (!rpcUrl) return json(res, { error: 'SOLANA_RPC_URL is not configured' }, 503);
     const transaction = await getTransaction(signature);
+    if (!transaction) {
+      return json(res, { error: 'Donation confirmation is pending' }, 202);
+    }
     if (transaction.meta?.err) return json(res, { error: 'Solana transaction failed' }, 400);
     if (!await hasMatchingTransfer(transaction, rpcUrl, donorWalletAddress, campaign.creator_wallet_address, amount)) {
       return json(res, { error: 'Transaction does not match the requested USDC donation' }, 400);

@@ -24,6 +24,7 @@ import type { Campaign, Donation, UserProfile, CampaignSummary } from '../types'
 import { toast } from 'sonner';
 import { api } from '../lib/api';
 import { usePrivyAuth } from '../components/PrivyAuthProvider';
+import { ApiRequestError } from '@/lib/api';
 
 export function useGetCallerUserProfile() {
   // Profile fetching logic will be refactored for auto-creation. Placeholder for now.
@@ -217,7 +218,7 @@ export function useAddDonation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    retry: 4,
+    retry: (attempt, error) => error instanceof ApiRequestError && error.status === 202 && attempt < 4,
     retryDelay: (attempt) => Math.min(1_000 * 2 ** attempt, 8_000),
     mutationFn: async (params: {
       mainTransactionSignature: string;
