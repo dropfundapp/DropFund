@@ -991,7 +991,7 @@ export default function CampaignPage() {
           </>}
         </DialogContent>
       </Dialog>
-      {completedDonationAmount !== null && <TransactionSuccessDialog amount={completedDonationAmount} title="Donation sent" variant="donation" onClose={() => setCompletedDonationAmount(null)} />}
+      {completedDonationAmount !== null && <TransactionSuccessDialog amount={completedDonationAmount} title="Donation sent!" variant="donation" onClose={() => setCompletedDonationAmount(null)} />}
     </div>
   );
 }
