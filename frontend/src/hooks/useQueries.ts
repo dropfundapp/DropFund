@@ -218,7 +218,7 @@ export function useAddDonation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    retry: (attempt, error) => error instanceof ApiRequestError && error.status === 202 && attempt < 4,
+    retry: (attempt, error) => error instanceof ApiRequestError && error.status === 202 && attempt < 12,
     retryDelay: (attempt) => Math.min(1_000 * 2 ** attempt, 8_000),
     mutationFn: async (params: {
       mainTransactionSignature: string;
@@ -238,30 +238,12 @@ export function useAddDonation() {
       }
     },
     onSuccess: (_, variables) => {
-      // Optimistic updates for immediate UI feedback
-      queryClient.setQueryData(['donations', variables.campaignId], (oldData: Donation[] | undefined) => {
-        if (oldData) {
-          const newDonation: Donation = {
-            mainTransactionSignature: variables.mainTransactionSignature,
-            feeTransactionSignature: variables.feeTransactionSignature,
-            amount: variables.amount,
-            feeAmount: variables.feeAmount,
-            campaignId: variables.campaignId,
-            donorWalletAddress: variables.donorWalletAddress,
-            timestamp: BigInt(Date.now() * 1000000),
-          };
-          return [newDonation, ...oldData];
-        }
-        return oldData;
-      });
-
+      queryClient.invalidateQueries({ queryKey: ['donations', variables.campaignId] });
+      queryClient.invalidateQueries({ queryKey: ['campaign', variables.campaignId] });
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['userDonations', variables.donorWalletAddress] });
       queryClient.invalidateQueries({ queryKey: ['myCampaigns'] });
-
-      console.log('Donation added, updated queries optimistically');
-    },
-    onError: (error: any) => {
-      console.error('Failed to record donation:', error);
-      toast.error('Failed to record donation. Please try again.');
+      console.log('Donation recorded and campaign queries refreshed');
     },
   });
 }

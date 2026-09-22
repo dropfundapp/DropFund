@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import { useQueryClient } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import { useGetCampaign, useGetDonationsByCampaign } from '../hooks/useQueries';
 import { usePrivyAuth } from '../components/PrivyAuthProvider';
@@ -16,6 +15,7 @@ import { usePrivyBalances } from '@/hooks/usePrivyBalances';
 import { useAddDonation } from '../hooks/useQueries';
 import { Clock, TrendingUp, Calendar, Globe, Send, ThumbsUp, Share2, Copy, X, Flag } from 'lucide-react';
 import { api } from '@/lib/api';
+import { ApiRequestError } from '@/lib/api';
 import { formatUsdc } from '@/lib/utils';
 import TransactionSuccessDialog from '@/components/TransactionSuccessDialog';
 import {
@@ -82,7 +82,6 @@ export default function CampaignPage() {
   const [animatedDonationCount, setAnimatedDonationCount] = useState(0);
   const { donate: donateUsdc, estimateFee, donationPhase } = useSolanaDonation();
   const addDonation = useAddDonation();
-  const queryClient = useQueryClient();
   const goalNumber = campaign ? Number(campaign.goal) : 0;
   const raisedNumber = campaign ? donations.reduce((sum, d) => sum + Number(d.amount), 0) : 0;
   const progressPercentage = goalNumber > 0 ? (raisedNumber / goalNumber) * 100 : 0;
@@ -292,50 +291,16 @@ export default function CampaignPage() {
         campaignId,
         donorWalletAddress: solanaAddress,
       });
-      const donationUnits = BigInt(Math.floor(result.amount * 1e6));
-      const optimisticDonation = {
-        mainTransactionSignature: result.signature,
-        feeTransactionSignature: '',
-        amount: donationUnits,
-        feeAmount: BigInt(Math.round(result.fee * 1e6)),
-        campaignId,
-        donorWalletAddress: solanaAddress,
-        timestamp: BigInt(Date.now() * 1e6),
-      };
-      queryClient.setQueryData(['donations', campaignId], (current: typeof donations) => {
-        const existing = current || [];
-        return existing.some((donation) => donation.mainTransactionSignature === result.signature)
-          ? existing
-          : [optimisticDonation, ...existing];
-      });
-      queryClient.setQueryData(['campaign', campaignId], (current: typeof campaign) => current ? {
-        ...current,
-        totalRaised: current.totalRaised + donationUnits,
-        donationCount: current.donationCount + 1n,
-      } : current);
-      queryClient.setQueryData(['campaigns'], (current: any[] | undefined) => {
-        if (!current) return current;
-        return current.map((item) => {
-          if (item.id !== campaignId) return item;
-          return {
-            ...item,
-            totalRaised: item.totalRaised + donationUnits,
-            donationCount: item.donationCount + 1n,
-          };
-        });
-      });
-      queryClient.setQueryData(['userDonations', solanaAddress], (current: any[] | undefined) => {
-        const existing = current || [];
-        return existing.some((donation) => donation.mainTransactionSignature === result.signature)
-          ? existing
-          : [optimisticDonation, ...existing];
-      });
       setDonationAmount('');
       setCompletedDonationAmount(result.amount);
     } catch (error: any) {
       console.error('Connection error:', error);
       if (error?.message?.includes('User rejected') || error?.message?.includes('User cancelled')) {
         console.log('User cancelled connection');
+      } else if (error instanceof ApiRequestError && error.status === 202) {
+        toast.error('Donation confirmation is taking longer than expected.', {
+          description: 'Your transfer may still complete. Do not donate again; refresh this page shortly.',
+        });
       } else {
         toast.error('Failed to connect. Please try again.', {
           description: error?.message || 'Unknown error occurred',
