@@ -169,7 +169,12 @@ export function useGetCampaignComments(campaignId: string) {
     queryKey: ['campaignComments', campaignId],
     queryFn: () => api.commentsByCampaign(campaignId),
     enabled: !!campaignId,
-    staleTime: 30_000,
+    staleTime: 15_000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
     retry: 2,
   });
 }
