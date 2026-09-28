@@ -26,9 +26,9 @@ function displayTime(timestamp: bigint) {
 }
 
 function linkifyText(text: string) {
-  return text.split(/(https?:\/\/[^\s]+)/g).map((part, index) => {
-    if (!/^https?:\/\//.test(part)) return part;
-    return <a key={`${part}-${index}`} href={part} target="_blank" rel="noreferrer" className="text-[#4b54ff] underline underline-offset-2 hover:text-[#7880ff]">{part}</a>;
+  return text.split(/(https:\/\/[^\s<>"']+)/g).map((part, index) => {
+    if (!/^https:\/\//.test(part)) return part;
+    return <a key={`${part}-${index}`} href={part} target="_blank" rel="noopener noreferrer" className="text-[#4b54ff] underline underline-offset-2 hover:text-[#7880ff]">{part}</a>;
   });
 }
 

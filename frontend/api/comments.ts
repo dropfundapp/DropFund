@@ -3,12 +3,68 @@ import { requireWallet } from './_lib/auth.js';
 
 const walletPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const MAX_COMMENT_LENGTH = 500;
+const MAX_LINKS_PER_COMMENT = 1;
+const COMMENT_LIMIT_WINDOW_MS = 60_000;
+const MAX_COMMENTS_PER_IP = 10;
+const MAX_COMMENTS_PER_WALLET = 3;
+const blockedLinkDomains = new Set([
+  'bit.ly', 'buff.ly', 'cutt.ly', 'goo.gl', 'grabify.link', 'iplogger.com', 'iplogger.org',
+  'is.gd', 'ow.ly', 'rb.gy', 'rebrand.ly', 'shorturl.at', 't.co', 'tiny.one', 'tinyurl.com',
+]);
+const requestCounts = new Map<string, { count: number; resetAt: number }>();
 
 function json(res: any, body: unknown, status = 200) {
   return res.status(status)
     .setHeader('Content-Type', 'application/json')
     .setHeader('X-Content-Type-Options', 'nosniff')
     .json(body);
+}
+
+function isRateLimited(key: string, limit: number) {
+  const now = Date.now();
+  const current = requestCounts.get(key);
+  if (!current || current.resetAt <= now) {
+    requestCounts.set(key, { count: 1, resetAt: now + COMMENT_LIMIT_WINDOW_MS });
+    return false;
+  }
+  current.count += 1;
+  return current.count > limit;
+}
+
+function validateCommentLinks(comment: string) {
+  const links = comment.match(/\bhttps?:\/\/[^\s<>"']+/gi) || [];
+  if (links.length > MAX_LINKS_PER_COMMENT) return 'Comments can include at most one link';
+
+  for (const link of links) {
+    let url: URL;
+    try {
+      url = new URL(link);
+    } catch {
+      return 'Comment link is invalid';
+    }
+    if (url.protocol !== 'https:') return 'Comment links must use HTTPS';
+    if (blockedLinkDomains.has(url.hostname.toLowerCase())) return 'Shortened or unsafe links are not allowed';
+  }
+  return null;
+}
+
+async function moderateComment(comment: string) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return 'Comment moderation is temporarily unavailable';
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/moderations', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+      signal: AbortSignal.timeout(8_000),
+      body: JSON.stringify({ model: 'omni-moderation-latest', input: comment }),
+    });
+    if (!response.ok) return 'Comment moderation is temporarily unavailable';
+    const payload = await response.json();
+    return payload.results?.[0]?.flagged ? 'This comment cannot be posted' : null;
+  } catch {
+    return 'Comment moderation is temporarily unavailable';
+  }
 }
 
 export default async function handler(req: any, res: any) {
@@ -49,8 +105,17 @@ export default async function handler(req: any, res: any) {
     if (!campaignId || !walletPattern.test(authorWalletAddress) || !comment || comment.length > MAX_COMMENT_LENGTH) {
       return json(res, { error: 'Invalid comment request' }, 400);
     }
+    const ipAddress = String(req.headers?.['x-forwarded-for'] || req.headers?.['x-real-ip'] || 'unknown').split(',')[0].trim();
+    if (isRateLimited(`ip:${ipAddress}`, MAX_COMMENTS_PER_IP)) {
+      return json(res, { error: 'Too many comment requests. Please try again shortly.' }, 429);
+    }
+    const linkError = validateCommentLinks(comment);
+    if (linkError) return json(res, { error: linkError }, 400);
 
     await requireWallet(req, authorWalletAddress);
+    if (isRateLimited(`wallet:${authorWalletAddress}`, MAX_COMMENTS_PER_WALLET)) {
+      return json(res, { error: 'You can post up to three comments per minute.' }, 429);
+    }
     const campaigns = await sql`select creator_wallet_address from campaigns where id = ${campaignId} limit 1`;
     const campaign = campaigns[0];
     if (!campaign) return json(res, { error: 'Campaign not found' }, 404);
@@ -64,6 +129,8 @@ export default async function handler(req: any, res: any) {
     if (!isCreator && !donations[0]) {
       return json(res, { error: 'Only confirmed donors can comment on this campaign' }, 403);
     }
+    const moderationError = await moderateComment(comment);
+    if (moderationError) return json(res, { error: moderationError }, moderationError.includes('unavailable') ? 503 : 400);
 
     const rows = await sql`
       insert into campaign_comments (campaign_id, author_wallet_address, body)
