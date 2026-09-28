@@ -20,7 +20,7 @@ export function useGetUserDonations(walletAddress: string | null) {
   });
 }
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Campaign, Donation, UserProfile, CampaignSummary } from '../types';
+import type { Campaign, CampaignComment, Donation, DiscoveryItem, UserProfile, CampaignSummary } from '../types';
 import { toast } from 'sonner';
 import { api } from '../lib/api';
 import { usePrivyAuth } from '../components/PrivyAuthProvider';
@@ -164,6 +164,41 @@ export function useGetDonationsByCampaign(campaignId: string, options?: { refetc
   });
 }
 
+export function useGetCampaignComments(campaignId: string) {
+  return useQuery<CampaignComment[]>({
+    queryKey: ['campaignComments', campaignId],
+    queryFn: () => api.commentsByCampaign(campaignId),
+    enabled: !!campaignId,
+    staleTime: 30_000,
+    retry: 2,
+  });
+}
+
+export function useGetDiscoveryFeed() {
+  return useQuery<DiscoveryItem[]>({
+    queryKey: ['discoveryFeed'],
+    queryFn: api.discoveryFeed,
+    staleTime: 60_000,
+    retry: 2,
+  });
+}
+
+export function useAddCampaignComment() {
+  const { getAccessToken } = usePrivyAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: { campaignId: string; authorWalletAddress: string; body: string }) => {
+      const token = await getAccessToken();
+      if (!token) throw new Error('Authentication required');
+      return api.addComment(params, token);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['campaignComments', variables.campaignId] });
+    },
+  });
+}
+
 export function useCreateCampaign() {
   const { getAccessToken } = usePrivyAuth();
   const queryClient = useQueryClient();
@@ -225,19 +260,21 @@ export function useAddDonation() {
       feeTransactionSignature: string;
       amount: bigint;
       feeAmount: bigint;
+      message?: string;
       campaignId: string;
       donorWalletAddress: string;
-    }) => {
+    }): Promise<{ ok: true; donorName: string; donorImage: string | null }> => {
       const token = await getAccessToken();
       if (!token) throw new Error('Authentication required');
       try {
-        await api.addDonation({ ...params, amount: params.amount.toString(), feeAmount: params.feeAmount.toString() }, token);
+        const result = await api.addDonation({ ...params, amount: params.amount.toString(), feeAmount: params.feeAmount.toString() }, token);
         console.log('Donation recorded in backend:', params);
+        return result;
       } catch (error: any) {
         throw error;
       }
     },
-    onSuccess: async (_, variables) => {
+    onSuccess: async (result, variables) => {
       await queryClient.cancelQueries({ queryKey: ['donations', variables.campaignId] });
       queryClient.setQueryData(['donations', variables.campaignId], (current: Donation[] | undefined) => {
         const existing = current || [];
@@ -250,12 +287,15 @@ export function useAddDonation() {
           feeTransactionSignature: variables.feeTransactionSignature,
           amount: variables.amount,
           feeAmount: variables.feeAmount,
+          message: variables.message?.trim() || null,
           campaignId: variables.campaignId,
           donorWalletAddress: variables.donorWalletAddress,
+          donorName: result?.donorName || 'Dropfund supporter',
+          donorImage: result?.donorImage || null,
           timestamp: BigInt(Date.now() * 1_000_000),
         }, ...existing];
       });
-      queryClient.invalidateQueries({ queryKey: ['donations', variables.campaignId], refetchType: 'none' });
+      queryClient.invalidateQueries({ queryKey: ['donations', variables.campaignId], refetchType: 'active' });
       queryClient.invalidateQueries({ queryKey: ['campaign', variables.campaignId] });
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
       queryClient.invalidateQueries({ queryKey: ['userDonations', variables.donorWalletAddress] });

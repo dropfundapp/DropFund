@@ -225,14 +225,6 @@ export default function CreateCampaignPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="p-3 bg-muted rounded-lg space-y-1 text-sm">
-              <div className="text-xs text-muted-foreground">Creator Wallet Address</div>
-              <div className="font-mono text-xs break-all">{solanaAddress || 'Sign in to create your wallet'}</div>
-              <p className="text-xs text-muted-foreground pt-1">
-                Donations will be sent to this wallet address
-              </p>
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="title">Campaign Title *</Label>
               <Input

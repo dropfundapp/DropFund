@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Link } from '@tanstack/react-router';
 import { Clock, TrendingUp, Globe, MessageCircle } from 'lucide-react';
 import { formatUsdc } from '@/lib/utils';
+import OdometerNumber from '@/components/OdometerNumber';
 
 interface CampaignCardProps {
   campaign: CampaignSummary;
@@ -171,7 +172,7 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Raised</span>
-            <span className="font-semibold">${formatUsdc(animatedRaisedNumber / 1000000)} USDC</span>
+            <span className="font-semibold">$<OdometerNumber value={formatUsdc(raisedNumber / 1000000)} /> USDC</span>
           </div>
           <Progress value={animatedProgressPercentage} className="h-2 [&>div]:bg-[#58d16e]" />
           <div className="flex justify-between text-sm">
@@ -186,7 +187,7 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
           </div>
           <div className="flex items-center gap-1 text-muted-foreground">
             <TrendingUp className="h-4 w-4" />
-            <span>{animatedDonationCount} donations</span>
+            <span><OdometerNumber value={String(donationCount)} /> donations</span>
           </div>
         </div>
 

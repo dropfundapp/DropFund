@@ -1,0 +1,10 @@
+.dropfund-odometer.odometer {
+  font-family: inherit;
+  line-height: inherit;
+  vertical-align: baseline;
+}
+
+.dropfund-odometer.odometer .odometer-digit,
+.dropfund-odometer.odometer .odometer-digit .odometer-digit-spacer {
+  vertical-align: baseline;
+}

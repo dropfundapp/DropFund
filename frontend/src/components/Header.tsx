@@ -9,7 +9,7 @@ import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { usePrivyAuth } from './PrivyAuthProvider';
 import { useFundWallet } from '@privy-io/react-auth/solana';
 import { usePrivyBalances } from '../hooks/usePrivyBalances';
-import { useAnimatedBalance } from '../hooks/useAnimatedBalance';
+import OdometerNumber from './OdometerNumber';
 
 function getAvatarColor(address: string) {
   const colors = ['#4b54ff', '#e05d8f', '#e08b3e', '#36a269', '#8b62d9', '#2d9cdb'];
@@ -31,7 +31,6 @@ function getNameInitials(name: string) {
 export default function Header() {
   const { ready: privyReady, authenticated, configured: privyConfigured, login, logout, solanaAddress } = usePrivyAuth();
   const { usdcBalance, isLoading: balanceLoading } = usePrivyBalances();
-  const animatedUsdcBalance = useAnimatedBalance(usdcBalance);
   const { fundWallet } = useFundWallet();
   const [profile, setProfile] = useState<{ name?: string; image?: string } | null>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -152,7 +151,7 @@ export default function Header() {
   };
 
   return (
-    <header className="relative w-full bg-background/95 pt-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="relative w-full bg-background/95 pt-2 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-3 group">
           <svg width="40" height="40" viewBox="0 0 1024 1024" className="object-contain" role="img" aria-label="Dropfund Logo">
@@ -169,20 +168,20 @@ export default function Header() {
             <>
               <div
                 ref={accountControlRef}
-                className="flex items-center gap-4 rounded-xl border border-[#282b30] bg-[#1d1e1f] px-3 py-2 transition-colors hover:bg-[#282b30]"
+                className="flex items-center gap-4 rounded-xl border border-[#282b30] px-3 py-2"
                 onMouseEnter={() => {
                   if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
                 }}
               >
                 <button type="button" onClick={handleConnect} className="text-left" aria-label="Deposit USDC">
-                  <div className="text-sm font-semibold leading-5 text-white">{balanceLoading ? 'Loading...' : animatedUsdcBalance !== null ? `$${(Math.floor(animatedUsdcBalance * 100) / 100).toFixed(2)} USDC` : 'Balance unavailable'}</div>
+                  <div className="flex h-5 items-baseline whitespace-nowrap text-sm font-semibold leading-5 text-white">{balanceLoading ? 'Loading...' : usdcBalance !== null ? <><span>$</span><OdometerNumber value={(Math.floor(usdcBalance * 100) / 100).toFixed(2)} /><span className="ml-1">USDC</span></> : 'Balance unavailable'}</div>
                   <div className="text-sm font-semibold leading-5 text-[#58d16e]">Deposit</div>
                 </button>
                 <Button
                   ref={buttonRef}
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 rounded-full text-white hover:bg-[#282b30]"
+                  className="group h-10 w-10 rounded-full text-white hover:bg-[#282b30]"
                   onClick={(e) => {
                     e.stopPropagation();
                     if (accountControlRef.current) {
@@ -204,7 +203,7 @@ export default function Header() {
                   }}
                   aria-label="Open account menu"
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full text-base font-bold text-white" style={{ backgroundColor: solanaAddress ? getAvatarColor(solanaAddress) : '#4b54ff' }}>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full text-base font-bold text-white transition-[filter] group-hover:brightness-90" style={{ backgroundColor: solanaAddress ? getAvatarColor(solanaAddress) : '#4b54ff' }}>
                     {profile?.image ? <img src={profile.image} alt="Profile" className="h-full w-full rounded-full object-cover" /> : solanaAddress ? getNameInitials(profile?.name || getFunnyName(solanaAddress)) : <User className="h-5 w-5" />}
                   </span>
                 </Button>
@@ -318,8 +317,8 @@ export default function Header() {
                       <>
                         <div className="flex items-center gap-3 rounded-xl bg-[#282b30] px-3 py-3">
                           <Wallet className="h-5 w-5 shrink-0 text-white" />
-                          <span className="min-w-0 flex-1 truncate text-base font-semibold">
-                            {balanceLoading ? 'Loading balance...' : animatedUsdcBalance !== null ? `${(Math.floor(animatedUsdcBalance * 100) / 100).toFixed(2)} USDC` : 'Balance unavailable'}
+                          <span className="flex min-w-0 flex-1 items-baseline whitespace-nowrap text-base font-semibold">
+                            {balanceLoading ? 'Loading balance...' : usdcBalance !== null ? <><span>$</span><OdometerNumber value={(Math.floor(usdcBalance * 100) / 100).toFixed(2)} /><span className="ml-1">USDC</span></> : 'Balance unavailable'}
                           </span>
                           <Button variant="secondary" className="shrink-0 bg-[#58d16e] px-3 py-2 text-black hover:bg-[#6ee67f]" onClick={() => { handleConnect(); }}>
                             Deposit

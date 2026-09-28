@@ -20,8 +20,10 @@ export async function requirePrivyUser(request: Request) {
     ? headers.get('authorization')
     : headers?.authorization;
   if (!authorization?.startsWith('Bearer ')) throw new Response('Unauthorized', { status: 401 });
+
+  const client = getClient();
   try {
-    const claims = await getClient().verifyAuthToken(authorization.slice(7));
+    const claims = await client.verifyAuthToken(authorization.slice(7));
     return claims.userId;
   } catch (error) {
     console.error('Privy access token verification failed:', error);

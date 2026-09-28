@@ -13,11 +13,13 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useSolanaDonation, type DonationFeeQuote } from '@/hooks/useSolanaDonation';
 import { usePrivyBalances } from '@/hooks/usePrivyBalances';
 import { useAddDonation } from '../hooks/useQueries';
-import { Clock, TrendingUp, Calendar, Globe, Send, ThumbsUp, Share2, Copy, X, Flag } from 'lucide-react';
+import { Clock, TrendingUp, Globe, Send, ThumbsUp, Share2, Copy, X, Flag } from 'lucide-react';
 import { api } from '@/lib/api';
 import { ApiRequestError } from '@/lib/api';
 import { formatUsdc } from '@/lib/utils';
 import TransactionSuccessDialog from '@/components/TransactionSuccessDialog';
+import CampaignActivityFeed from '@/components/CampaignActivityFeed';
+import OdometerNumber from '@/components/OdometerNumber';
 import {
   Dialog,
   DialogContent,
@@ -81,6 +83,11 @@ export default function CampaignPage() {
   const raisedNumber = campaign ? donations.reduce((sum, d) => sum + Number(d.amount), 0) : 0;
   const progressPercentage = goalNumber > 0 ? (raisedNumber / goalNumber) * 100 : 0;
   const donationCount = donations.length;
+
+  const sortedDonations = [...donations].sort((a, b) => {
+    if (donationSort === 'highest') return Number(b.amount) - Number(a.amount);
+    return Number(b.timestamp) - Number(a.timestamp);
+  });
 
   useEffect(() => {
     const amount = Number(donationAmount);
@@ -211,13 +218,6 @@ export default function CampaignPage() {
   const hasInsufficientBalance = authenticated && usdcBalance !== null && donationValue > usdcBalance;
   const isGoalReachedAmount = raisedNumber >= goalNumber;
 
-  const sortedDonations = [...donations].sort((a, b) => {
-    if (donationSort === 'highest') {
-      return Number(b.amount) - Number(a.amount);
-    }
-    return Number(b.timestamp) - Number(a.timestamp);
-  });
-
   const handleDonateClick = async () => {
     try {
       if (isCampaignCreator) {
@@ -338,8 +338,19 @@ export default function CampaignPage() {
   };
 
   return (
-    <div className="container py-12">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="container pb-4">
+      <div className="grid grid-cols-1 gap-y-8 lg:grid-cols-4 lg:gap-x-6">
+        <aside className="sticky top-12 hidden h-[calc(100vh-5rem)] min-h-0 lg:block lg:min-w-0">
+          <CampaignActivityFeed
+            campaign={campaign}
+            donations={donations}
+            donationsLoading={donationsLoading}
+            authenticated={authenticated}
+            walletAddress={solanaAddress}
+            onLogin={login}
+            fillHeight
+          />
+        </aside>
         <div className="lg:col-span-2 space-y-6">
           <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
             <img
@@ -370,8 +381,11 @@ export default function CampaignPage() {
                       {campaign.creatorWalletAddress ? getNameInitials(creatorDisplayName) : 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="text-sm font-semibold text-foreground">
-                    {campaign.creatorWalletAddress ? creatorDisplayName : 'Unknown creator'}
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">
+                      {campaign.creatorWalletAddress ? creatorDisplayName : 'Unknown creator'}
+                    </div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">Created {formatDate(campaign.createdAt)}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
@@ -398,12 +412,10 @@ export default function CampaignPage() {
             </div>
 
             <div>
-              <h1 className="text-4xl font-bold">{campaign.title}</h1>
+              <h1 className="text-[2rem] leading-8 font-bold">{campaign.title}</h1>
             </div>
 
-            <div className="prose prose-neutral dark:prose-invert max-w-none">
-              <pre className="text-lg whitespace-pre-wrap break-words font-sans bg-transparent border-0 p-0 m-0">{campaign.description}</pre>
-            </div>
+            <p className="text-base whitespace-pre-wrap break-words text-white/75">{campaign.description}</p>
 
             {((campaign.websiteUrl?.some((url) => url.trim().length > 0)) || 
               (campaign.twitterUrl?.some((url) => url.trim().length > 0)) || 
@@ -448,12 +460,12 @@ export default function CampaignPage() {
           {/* Mobile: Show funding card after description */}
           <div className="lg:hidden">
             <Card>
-              <CardContent className="pt-6 space-y-6">
+              <CardContent className="p-4 space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Raised</span>
-                      <span className="font-bold text-lg">${formatUsdc(animatedRaisedNumber / 1000000)} USDC</span>
+                      <span className="ml-auto inline-flex items-baseline justify-end whitespace-nowrap text-right text-lg font-bold"><span>$</span><OdometerNumber value={formatUsdc(raisedNumber / 1000000)} /><span className="ml-1">USDC</span></span>
                     </div>
                     <Progress value={animatedProgressPercentage} className="h-3 [&>div]:bg-[#58d16e]" />
                     <div className="flex justify-between text-sm text-muted-foreground">
@@ -464,27 +476,13 @@ export default function CampaignPage() {
 
                   <div className="grid grid-cols-2 gap-4 pt-4 border-t">
                     <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                        <TrendingUp className="h-4 w-4" />
-                        <span>Donations</span>
-                      </div>
-                      <div className="text-2xl font-bold">{animatedDonationCount}</div>
+                      <div className="text-sm text-muted-foreground">Donations</div>
+                      <div className="text-lg font-semibold"><OdometerNumber value={String(donationCount)} /></div>
                     </div>
                     <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                        <Clock className="h-4 w-4" />
-                        <span>Time Left</span>
-                      </div>
+                      <div className="text-sm text-muted-foreground">Time Left</div>
                       <div className="text-lg font-semibold">{getTimeRemaining()}</div>
                     </div>
-                  </div>
-
-                  <div className="pt-4 border-t space-y-1">
-                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                      <Calendar className="h-4 w-4" />
-                      <span>Created</span>
-                    </div>
-                    <div className="text-sm">{formatDate(campaign.createdAt)}</div>
                   </div>
 
                   <div className="relative">
@@ -527,6 +525,16 @@ export default function CampaignPage() {
 
           {/* Donation history (mobile/tablet) */}
           <div className="lg:hidden">
+            <CampaignActivityFeed
+              campaign={campaign}
+              donations={donations}
+              donationsLoading={donationsLoading}
+              authenticated={authenticated}
+              walletAddress={solanaAddress}
+              onLogin={login}
+            />
+          </div>
+          <div className="hidden lg:hidden">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-[1.2rem] font-bold">Donations</h2>
               <div className="flex items-center gap-2">
@@ -593,12 +601,12 @@ export default function CampaignPage() {
         {/* Desktop: Show funding card in sidebar */}
         <div className="hidden lg:flex sticky top-12 h-[calc(100vh-5rem)] flex-col space-y-6 overflow-hidden">
           <Card className="shrink-0">
-            <CardContent className="pt-6 space-y-6">
+            <CardContent className="p-4 space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Raised</span>
-                    <span className="font-bold text-lg">${formatUsdc(animatedRaisedNumber / 1000000)} USDC</span>
+                    <span className="ml-auto inline-flex items-baseline justify-end whitespace-nowrap text-right text-lg font-bold"><span>$</span><OdometerNumber value={formatUsdc(raisedNumber / 1000000)} /><span className="ml-1">USDC</span></span>
                   </div>
                   <Progress value={animatedProgressPercentage} className="h-3 [&>div]:bg-[#58d16e]" />
                   <div className="flex justify-between text-sm text-muted-foreground">
@@ -609,41 +617,29 @@ export default function CampaignPage() {
 
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t">
                     <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                        <TrendingUp className="h-4 w-4" />
-                        <span>Donations</span>
-                      </div>
-                      <div className="text-2xl font-bold">{animatedDonationCount}</div>
+                      <div className="text-sm text-muted-foreground">Donations</div>
+                      <div className="text-lg font-semibold"><OdometerNumber value={String(donationCount)} /></div>
                     </div>
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                      <Clock className="h-4 w-4" />
-                      <span>Time Left</span>
-                    </div>
+                    <div className="text-sm text-muted-foreground">Time Left</div>
                     <div className="text-lg font-semibold">{getTimeRemaining()}</div>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t space-y-1">
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                    <Calendar className="h-4 w-4" />
-                    <span>Created</span>
-                  </div>
-                  <div className="text-sm">{formatDate(campaign.createdAt)}</div>
-                </div>
               </div>
 
+              <div className="relative">
                 {!disableDonate && <div className="mb-3 flex items-center rounded-xl border border-[#282b30] bg-[#282b30] px-4 py-3">
-                  <span className="mr-2 text-2xl text-white/45">$</span>
-                  <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="0" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-2xl font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
-                  {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : networkFee !== null ? `$${networkFee.toFixed(2)} Dropfund fee` : `$${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} available`}</span>}
-                </div>}
-                <Button
-                  className="h-[3.2rem] w-full text-lg font-semibold"
-                  size="lg"
-                  disabled={disableDonate || isDonating || !donationAmount || isBelowMinimumDonation || hasInsufficientBalance || isCampaignCreator}
-                  onClick={handleDonateClick}
-                >
+                    <span className="mr-2 text-2xl text-white/45">$</span>
+                    <input value={donationAmount} onChange={(event) => handleDonationAmountChange(event.target.value)} inputMode="decimal" type="text" placeholder="0" disabled={isDonating || isCampaignCreator} className="min-w-0 flex-1 bg-transparent text-2xl font-semibold text-white outline-none placeholder:text-white/35" aria-label="Donation amount in USDC" />
+                    {authenticated && usdcBalance !== null && <span className={`ml-3 shrink-0 text-right text-sm ${hasInsufficientBalance ? 'text-[#ff641f]' : 'text-white/55'}`}>{hasInsufficientBalance ? 'Insufficient balance' : networkFee !== null ? `$${networkFee.toFixed(2)} Dropfund fee` : `$${(Math.floor(usdcBalance * 100) / 100).toFixed(2)} available`}</span>}
+                  </div>}
+                  <Button
+                    className="h-[3.2rem] w-full text-lg font-semibold"
+                    size="lg"
+                    disabled={disableDonate || isDonating || !donationAmount || isBelowMinimumDonation || hasInsufficientBalance || isCampaignCreator}
+                    onClick={handleDonateClick}
+                  >
                   {disableDonate
                     ? 'Campaign Ended'
                     : isCampaignCreator
@@ -663,11 +659,12 @@ export default function CampaignPage() {
                                 ? 'Sending...'
                                 : 'Confirming...'
                           : 'Fund It'}
-                </Button>
+                  </Button>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="flex-1 min-h-0 overflow-hidden bg-transparent shadow-none border-0">
+          <Card className="hidden flex-1 min-h-0 overflow-hidden bg-transparent shadow-none border-0">
             <CardContent className="pt-0 pb-0 h-full flex flex-col overflow-hidden">
               <div className="flex items-center justify-between mb-4 shrink-0">
                 <h2 className="text-[1.2rem] font-bold">Donations</h2>
@@ -758,55 +755,72 @@ export default function CampaignPage() {
               aria-label="Share campaign"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold tracking-tight">Share campaign</h2>
                 <Button type="button" variant="ghost" size="icon" aria-label="Close share dialog" className="h-8 w-8 rounded-full text-white/70 hover:bg-white/10 hover:text-white" onClick={() => setShareOpen(false)}>
                   <X className="h-5 w-5" />
                 </Button>
               </div>
-              <div className="space-y-3">
-              <Button
-                type="button"
-                className="h-14 w-full justify-center rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6]"
-                onClick={async () => {
-                  try {
-                    const url = `${window.location.origin}/share/campaign/${encodeURIComponent(campaignId)}`;
-                    await navigator.clipboard.writeText(url);
-                    toast.success('Link copied');
-                    setShareOpen(false);
-                  } catch {
-                    toast.error('Failed to copy link');
-                  }
-                }}
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Copy Link
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-14 w-full justify-center rounded-2xl bg-white text-lg font-semibold text-black hover:bg-white/85"
-                asChild
-              >
-                <a
-                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                    `Check out this campaign: ${campaign.title}`
-                  )}&url=${encodeURIComponent(`${window.location.origin}/share/campaign/${encodeURIComponent(campaignId)}`)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    className="h-4 w-4 mr-2"
-                    aria-label="X"
-                    fill="currentColor"
+              <div className="space-y-5">
+                <div className="overflow-hidden rounded-2xl">
+                  <div className="w-full aspect-video">
+                    <img
+                      src={campaign.imageUrl || '/assets/generated/campaign-placeholder.dim_400x300.jpg'}
+                      alt={campaign.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="font-bold text-xl break-words">{campaign.title}</div>
+                  <div className="text-base text-muted-foreground line-clamp-2">
+                    {campaign.description || "Let's launch a campaign!"}
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Button
+                    type="button"
+                    className="h-14 w-full justify-center rounded-2xl bg-[#4b54ff] text-lg font-semibold text-white hover:bg-[#4149e6]"
+                    onClick={async () => {
+                      try {
+                        const url = `${window.location.origin}/share/campaign/${encodeURIComponent(campaignId)}`;
+                        await navigator.clipboard.writeText(url);
+                        toast.success('Link copied');
+                        setShareOpen(false);
+                      } catch {
+                        toast.error('Failed to copy link');
+                      }
+                    }}
                   >
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
-                  Share on X
-                </a>
-              </Button>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy Link
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-14 w-full justify-center rounded-2xl bg-white text-lg font-semibold text-black hover:bg-white/85"
+                    asChild
+                  >
+                    <a
+                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                        `Check out this campaign: ${campaign.title}`
+                      )}&url=${encodeURIComponent(`${window.location.origin}/share/campaign/${encodeURIComponent(campaignId)}`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        className="h-4 w-4 mr-2"
+                        aria-label="X"
+                        fill="currentColor"
+                      >
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                      </svg>
+                      Share on X
+                    </a>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -817,7 +831,7 @@ export default function CampaignPage() {
       {campaign && !isMobile && (
         <Dialog open={shareOpen} onOpenChange={setShareOpen}>
           <DialogContent className="w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6">
-            <DialogHeader className="mb-6 flex-row items-center justify-between space-y-0">
+            <DialogHeader className="flex-row items-center justify-between space-y-0">
               <DialogTitle className="text-lg font-semibold tracking-tight">Share campaign</DialogTitle>
               <DialogDescription className="sr-only">
                 Share this campaign via link or Twitter
@@ -890,7 +904,7 @@ export default function CampaignPage() {
         setReportOpen(open);
         if (!open) setReportReason('');
       }}>
-        <DialogContent className="w-full max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:p-6">
+        <DialogContent className="w-[calc(100%-1.5rem)] max-w-[440px] rounded-[24px] border border-[#282b30] bg-[#1d1e1f] p-5 text-white shadow-2xl sm:w-full sm:p-6">
           <DialogHeader className="mb-5 pr-10">
             <DialogTitle className="text-lg font-semibold tracking-tight">Report campaign</DialogTitle>
             <DialogDescription className="text-white/50">Tell us what concerns you about this campaign. Our team will review it.</DialogDescription>

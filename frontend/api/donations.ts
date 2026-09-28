@@ -101,18 +101,21 @@ export default async function handler(req: any, res: any) {
       const donorWalletAddress = typeof req.query?.donorWalletAddress === 'string' ? req.query.donorWalletAddress : '';
       const creatorWalletAddress = typeof req.query?.creatorWalletAddress === 'string' ? req.query.creatorWalletAddress : '';
       const rows = campaignId
-        ? await sql`select * from donations where campaign_id = ${campaignId} order by created_at desc`
+        ? await sql`select donations.*, coalesce(nullif(users.display_name, ''), 'Dropfund supporter') as donor_name, users.image_url as donor_image from donations left join users on users.solana_address = donations.donor_wallet_address where donations.campaign_id = ${campaignId} order by donations.created_at desc`
         : donorWalletAddress
-          ? await sql`select * from donations where donor_wallet_address = ${donorWalletAddress} order by created_at desc`
+          ? await sql`select donations.*, coalesce(nullif(users.display_name, ''), 'Dropfund supporter') as donor_name, users.image_url as donor_image from donations left join users on users.solana_address = donations.donor_wallet_address where donations.donor_wallet_address = ${donorWalletAddress} order by donations.created_at desc`
           : creatorWalletAddress
-            ? await sql`select donations.* from donations join campaigns on campaigns.id = donations.campaign_id where campaigns.creator_wallet_address = ${creatorWalletAddress} order by donations.created_at desc`
+            ? await sql`select donations.*, coalesce(nullif(users.display_name, ''), 'Dropfund supporter') as donor_name, users.image_url as donor_image from donations join campaigns on campaigns.id = donations.campaign_id left join users on users.solana_address = donations.donor_wallet_address where campaigns.creator_wallet_address = ${creatorWalletAddress} order by donations.created_at desc`
             : [];
       return json(res, rows.map((row: any) => ({
         mainTransactionSignature: row.transaction_signature,
         feeTransactionSignature: row.fee_transaction_signature,
         amount: String(row.amount),
         feeAmount: String(row.fee_amount),
+        message: row.message || null,
         donorWalletAddress: row.donor_wallet_address,
+        donorName: row.donor_name,
+        donorImage: row.donor_image || null,
         campaignId: row.campaign_id,
         timestamp: String(new Date(row.created_at).getTime() * 1_000_000),
       })));
@@ -125,9 +128,10 @@ export default async function handler(req: any, res: any) {
     const campaignId = String(body.campaignId || '');
     const amount = BigInt(body.amount || 0);
     const feeAmount = BigInt(body.feeAmount || 0);
+    const message = typeof body.message === 'string' ? body.message.trim() : '';
     const grossAmount = amount + feeAmount;
     const expectedFee = calculateDropfundFee(grossAmount);
-    if (!signature || signature.length > 200 || !campaignId || !walletPattern.test(donorWalletAddress) || amount <= 0n || feeAmount !== expectedFee) {
+    if (!signature || signature.length > 200 || !campaignId || !walletPattern.test(donorWalletAddress) || amount <= 0n || feeAmount !== expectedFee || message.length > 500) {
       return json(res, { error: 'Invalid donation request' }, 400);
     }
     await requireWallet(req, donorWalletAddress);
@@ -151,8 +155,8 @@ export default async function handler(req: any, res: any) {
 
     const result = await sql`
       with inserted as (
-        insert into donations (transaction_signature, amount, fee_amount, donor_wallet_address, campaign_id, created_at)
-        select ${signature}, ${amount.toString()}, ${feeAmount.toString()}, ${donorWalletAddress}, ${campaignId}, now()
+        insert into donations (transaction_signature, amount, fee_amount, message, donor_wallet_address, campaign_id, created_at)
+        select ${signature}, ${amount.toString()}, ${feeAmount.toString()}, ${message || null}, ${donorWalletAddress}, ${campaignId}, now()
         where exists (
           select 1 from campaigns
           where id = ${campaignId} and status not in ('funded', 'ended')
@@ -172,7 +176,17 @@ export default async function handler(req: any, res: any) {
         (select count(*)::int from updated) as updated_count
     `;
     if (!result[0]?.inserted_count) return json(res, { error: 'Donation transaction already recorded or campaign is closed' }, 409);
-    return json(res, { ok: true }, 201);
+    const donor = await sql`
+      select coalesce(nullif(display_name, ''), 'Dropfund supporter') as donor_name, image_url as donor_image
+      from users
+      where solana_address = ${donorWalletAddress}
+      limit 1
+    `;
+    return json(res, {
+      ok: true,
+      donorName: donor[0]?.donor_name || 'Dropfund supporter',
+      donorImage: donor[0]?.donor_image || null,
+    }, 201);
   } catch (error: any) {
     if (error instanceof Response) return error;
     console.error(error);

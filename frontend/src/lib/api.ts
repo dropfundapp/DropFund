@@ -1,4 +1,4 @@
-import type { Campaign, CampaignSummary, Donation, UserProfile } from '../types';
+import type { Campaign, CampaignComment, CampaignSummary, DiscoveryItem, Donation, UserProfile } from '../types';
 
 export class ApiRequestError extends Error {
   constructor(message: string, readonly status: number) {
@@ -47,7 +47,29 @@ export function parseSummary(raw: any): CampaignSummary {
 }
 
 export function parseDonation(raw: any): Donation {
-  return { ...raw, amount: BigInt(raw.amount), feeAmount: BigInt(raw.feeAmount), timestamp: BigInt(raw.timestamp) };
+  return {
+    ...raw,
+    message: typeof raw.message === 'string' ? raw.message : null,
+    donorName: typeof raw.donorName === 'string' && raw.donorName ? raw.donorName : 'Dropfund supporter',
+    donorImage: typeof raw.donorImage === 'string' && raw.donorImage ? raw.donorImage : null,
+    amount: BigInt(raw.amount),
+    feeAmount: BigInt(raw.feeAmount),
+    timestamp: BigInt(raw.timestamp),
+  };
+}
+
+function parseComment(raw: any): CampaignComment {
+  return {
+    ...raw,
+    id: String(raw.id),
+    authorImage: typeof raw.authorImage === 'string' && raw.authorImage ? raw.authorImage : null,
+    isCreator: Boolean(raw.isCreator),
+    timestamp: BigInt(raw.timestamp),
+  };
+}
+
+function parseDiscoveryItem(raw: any): DiscoveryItem {
+  return { ...raw, amount: raw.amount === undefined ? undefined : BigInt(raw.amount), timestamp: BigInt(raw.timestamp) };
 }
 
 export const api = {
@@ -60,10 +82,13 @@ export const api = {
   donationsByCampaign: async (campaignId: string) => (await request<any[]>(`/api/donations?campaignId=${encodeURIComponent(campaignId)}`)).map(parseDonation),
   donationsByWallet: async (walletAddress: string) => (await request<any[]>(`/api/donations?donorWalletAddress=${encodeURIComponent(walletAddress)}`)).map(parseDonation),
   donationsByCreator: async (walletAddress: string) => (await request<any[]>(`/api/donations?creatorWalletAddress=${encodeURIComponent(walletAddress)}`)).map(parseDonation),
+  commentsByCampaign: async (campaignId: string) => (await request<any[]>(`/api/comments?campaignId=${encodeURIComponent(campaignId)}`)).map(parseComment),
+  discoveryFeed: async () => (await request<any[]>('/api/feed')).map(parseDiscoveryItem),
   profile: (walletAddress: string, token: string) => request<{ name: string; walletAddress: string; image: string | null }>(`/api/profile?walletAddress=${encodeURIComponent(walletAddress)}`, { headers: { Authorization: `Bearer ${token}` } }),
   uploadCampaignImage: (image: string, walletAddress: string, token: string) => request<{ imageUrl: string }>('/api/media', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ image, walletAddress }) }),
   reportCampaign: (campaignId: string, walletAddress: string, reason: string, token: string) => request<{ ok: true }>('/api/reports', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ campaignId, walletAddress, reason }) }),
   saveProfile: (profile: UserProfile, image: string | null, token: string) => request<{ ok: true; name: string }>('/api/profile', { method: 'PUT', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ ...profile, image }) }),
   createCampaign: (params: Record<string, unknown>, token: string) => request<{ id: string }>('/api/campaigns', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify(params) }),
-  addDonation: (params: Record<string, unknown>, token: string) => request('/api/donations', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify(params) }),
+  addDonation: (params: Record<string, unknown>, token: string) => request<{ ok: true; donorName: string; donorImage: string | null }>('/api/donations', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify(params) }),
+  addComment: (params: { campaignId: string; authorWalletAddress: string; body: string }, token: string) => request('/api/comments', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify(params) }),
 };

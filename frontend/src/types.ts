@@ -28,8 +28,33 @@ export interface Donation {
   feeTransactionSignature: string;
   amount: bigint;
   feeAmount: bigint;
+  message: string | null;
   donorWalletAddress: string;
+  donorName: string;
+  donorImage: string | null;
   campaignId: string;
+  timestamp: bigint;
+}
+
+export interface CampaignComment {
+  id: string;
+  campaignId: string;
+  authorWalletAddress: string;
+  authorName: string;
+  authorImage: string | null;
+  body: string;
+  timestamp: bigint;
+  isCreator: boolean;
+}
+
+export interface DiscoveryItem {
+  id: string;
+  type: 'campaign' | 'donation';
+  campaignId: string;
+  campaignTitle: string;
+  imageUrl: string;
+  actorName: string;
+  amount?: bigint;
   timestamp: bigint;
 }
 
