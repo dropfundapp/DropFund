@@ -7,6 +7,7 @@ const MAX_LINKS_PER_COMMENT = 1;
 const COMMENT_LIMIT_WINDOW_MS = 60_000;
 const MAX_COMMENTS_PER_IP = 10;
 const MAX_COMMENTS_PER_WALLET = 3;
+const blockedTerms = ['bitch', 'fuck', 'fucker', 'fucking', 'motherfucker', 'shit', 'bullshit', 'cunt', 'dick', 'pussy', 'whore', 'slut'];
 const blockedLinkDomains = new Set([
   'bit.ly', 'buff.ly', 'cutt.ly', 'goo.gl', 'grabify.link', 'iplogger.com', 'iplogger.org',
   'is.gd', 'ow.ly', 'rb.gy', 'rebrand.ly', 'shorturl.at', 't.co', 'tiny.one', 'tinyurl.com',
@@ -47,6 +48,10 @@ function validateCommentLinks(comment: string, allowLinks: boolean) {
     if (blockedLinkDomains.has(url.hostname.toLowerCase())) return 'Shortened or unsafe links are not allowed';
   }
   return null;
+}
+
+function containsBlockedTerm(comment: string) {
+  return blockedTerms.some((term) => new RegExp(`(^|[^a-z])${term}([^a-z]|$)`, 'i').test(comment));
 }
 
 export default async function handler(req: any, res: any) {
@@ -103,6 +108,7 @@ export default async function handler(req: any, res: any) {
     const isCreator = campaign.creator_wallet_address === authorWalletAddress;
   const linkError = validateCommentLinks(comment, isCreator);
   if (linkError) return json(res, { error: linkError }, 400);
+    if (containsBlockedTerm(comment)) return json(res, { hidden: true }, 201);
     const donations = isCreator ? [] : await sql`
       select transaction_signature from donations
       where campaign_id = ${campaignId} and donor_wallet_address = ${authorWalletAddress}
