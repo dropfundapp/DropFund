@@ -31,8 +31,9 @@ function isRateLimited(key: string, limit: number) {
   return current.count > limit;
 }
 
-function validateCommentLinks(comment: string) {
+function validateCommentLinks(comment: string, allowLinks: boolean) {
   const links = comment.match(/\bhttps?:\/\/[^\s<>"']+/gi) || [];
+  if (!allowLinks && links.length > 0) return 'Only the campaign creator can post links';
   if (links.length > MAX_LINKS_PER_COMMENT) return 'Comments can include at most one link';
 
   for (const link of links) {
@@ -46,25 +47,6 @@ function validateCommentLinks(comment: string) {
     if (blockedLinkDomains.has(url.hostname.toLowerCase())) return 'Shortened or unsafe links are not allowed';
   }
   return null;
-}
-
-async function moderateComment(comment: string) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return 'Comment moderation is temporarily unavailable';
-
-  try {
-    const response = await fetch('https://api.openai.com/v1/moderations', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
-      signal: AbortSignal.timeout(8_000),
-      body: JSON.stringify({ model: 'omni-moderation-latest', input: comment }),
-    });
-    if (!response.ok) return 'Comment moderation is temporarily unavailable';
-    const payload = await response.json();
-    return payload.results?.[0]?.flagged ? 'This comment cannot be posted' : null;
-  } catch {
-    return 'Comment moderation is temporarily unavailable';
-  }
 }
 
 export default async function handler(req: any, res: any) {
@@ -109,8 +91,6 @@ export default async function handler(req: any, res: any) {
     if (isRateLimited(`ip:${ipAddress}`, MAX_COMMENTS_PER_IP)) {
       return json(res, { error: 'Too many comment requests. Please try again shortly.' }, 429);
     }
-    const linkError = validateCommentLinks(comment);
-    if (linkError) return json(res, { error: linkError }, 400);
 
     await requireWallet(req, authorWalletAddress);
     if (isRateLimited(`wallet:${authorWalletAddress}`, MAX_COMMENTS_PER_WALLET)) {
@@ -121,6 +101,8 @@ export default async function handler(req: any, res: any) {
     if (!campaign) return json(res, { error: 'Campaign not found' }, 404);
 
     const isCreator = campaign.creator_wallet_address === authorWalletAddress;
+  const linkError = validateCommentLinks(comment, isCreator);
+  if (linkError) return json(res, { error: linkError }, 400);
     const donations = isCreator ? [] : await sql`
       select transaction_signature from donations
       where campaign_id = ${campaignId} and donor_wallet_address = ${authorWalletAddress}
@@ -129,8 +111,6 @@ export default async function handler(req: any, res: any) {
     if (!isCreator && !donations[0]) {
       return json(res, { error: 'Only confirmed donors can comment on this campaign' }, 403);
     }
-    const moderationError = await moderateComment(comment);
-    if (moderationError) return json(res, { error: moderationError }, moderationError.includes('unavailable') ? 503 : 400);
 
     const rows = await sql`
       insert into campaign_comments (campaign_id, author_wallet_address, body)
