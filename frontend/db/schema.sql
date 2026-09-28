@@ -68,6 +68,7 @@ create table if not exists donations (
   fee_transaction_signature text not null default '',
   amount bigint not null check (amount > 0),
   fee_amount bigint not null default 0 check (fee_amount >= 0),
+  message text check (message is null or char_length(message) <= 500),
   donor_wallet_address text not null,
   campaign_id text not null references campaigns(id),
   created_at timestamptz not null default now()
@@ -75,3 +76,13 @@ create table if not exists donations (
 
 create index if not exists donations_campaign_idx on donations (campaign_id, created_at desc);
 create index if not exists donations_donor_idx on donations (donor_wallet_address, created_at desc);
+
+create table if not exists campaign_comments (
+  id bigserial primary key,
+  campaign_id text not null references campaigns(id) on delete cascade,
+  author_wallet_address text not null,
+  body text not null check (char_length(body) between 1 and 500),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists campaign_comments_campaign_created_idx on campaign_comments (campaign_id, created_at desc);
